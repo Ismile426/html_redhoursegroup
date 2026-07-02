@@ -424,11 +424,11 @@ header{padding:18px 28px 16px;background:#fff;border-bottom:1px solid var(--line
       <h3>🗺️ Structure overview — 5 levels + add-ons, attributes flow downward (parent → child)</h3>
       <div class="legend">
         <span><span class="ldot" style="background:var(--brand)"></span>Root</span>
-        <span><span class="ldot" style="background:#2563eb"></span>L1 Catalog</span>
-        <span><span class="ldot" style="background:#16a34a"></span>L2 Product Type</span>
-        <span><span class="ldot" style="background:#d97706"></span>L3 Template Product</span>
-        <span><span class="ldot" style="background:#7c3aed"></span>L4 Variant Product</span>
-        <span><span class="ldot" style="background:#db2777"></span>L5 Sub-variant / Add-on</span>
+        <span><span class="ldot" style="background:#2563eb"></span>Catalog / Root Category</span>
+        <span><span class="ldot" style="background:#16a34a"></span>L2 Product Type / Category</span>
+        <span><span class="ldot" style="background:#d97706"></span>L3 Template</span>
+        <span><span class="ldot" style="background:#7c3aed"></span>L4 Variant</span>
+        <span><span class="ldot" style="background:#db2777"></span>L5 SubVariant / Add On</span>
         <button class="graph-toggle" onclick="toggleGraph()">Show</button>
       </div>
     </div>
@@ -529,11 +529,11 @@ header{padding:18px 28px 16px;background:#fff;border-bottom:1px solid var(--line
           <thead><tr><th>Level</th><th>Represents</th><th>PIM standard term</th></tr></thead>
           <tbody>
             <tr><td class="lvl-cell"><span class="ldot" style="background:var(--brand)"></span>Root · RedHorse</td><td>Company-wide policies, brand, locales</td><td>Organization / tenant root</td></tr>
-            <tr><td class="lvl-cell"><span class="ldot" style="background:#2563eb"></span>L1 Catalog</td><td>One RedHorse product sheet tab (Screws, Rivets, Hammer…)</td><td>Product catalog</td></tr>
-            <tr><td class="lvl-cell"><span class="ldot" style="background:#16a34a"></span>L2 Product Type</td><td>Navigation group — Wood/timber, Steel/alu…</td><td>Product category · product family</td></tr>
-            <tr><td class="lvl-cell"><span class="ldot" style="background:#d97706"></span>L3 Template Product</td><td>Spec sheet · Template no. 317</td><td>Product master · parent product</td></tr>
-            <tr><td class="lvl-cell"><span class="ldot" style="background:#7c3aed"></span>L4 Variant Product</td><td>Sellable SKU · axis combo + tier</td><td>Product variant · concrete SKU</td></tr>
-            <tr><td class="lvl-cell"><span class="ldot" style="background:#db2777"></span>L5 Sub-variant / Add-on</td><td>Optional add-on when flag = Y</td><td>Derived SKU · bundled add-on variant</td></tr>
+            <tr><td class="lvl-cell"><span class="ldot" style="background:#2563eb"></span>Catalog / Root Category</td><td>One RedHorse product sheet tab (Screws, Rivets, Hammer…)</td><td>Product catalog</td></tr>
+            <tr><td class="lvl-cell"><span class="ldot" style="background:#16a34a"></span>L2 Product Type / Category</td><td>Navigation group — Wood/timber, Steel/alu…</td><td>Product category · product family</td></tr>
+            <tr><td class="lvl-cell"><span class="ldot" style="background:#d97706"></span>L3 Template</td><td>Spec sheet · Template no. 317</td><td>Product master · parent product</td></tr>
+            <tr><td class="lvl-cell"><span class="ldot" style="background:#7c3aed"></span>L4 Variant</td><td>Sellable SKU · axis combo + tier</td><td>Product variant · concrete SKU</td></tr>
+            <tr><td class="lvl-cell"><span class="ldot" style="background:#db2777"></span>L5 SubVariant / Add On</td><td>Optional add-on when flag = Y</td><td>Derived SKU · bundled add-on variant</td></tr>
           </tbody>
         </table>
       </div>
@@ -555,15 +555,15 @@ header{padding:18px 28px 16px;background:#fff;border-bottom:1px solid var(--line
     <h4>The flow at a glance</h4>
     <p class="sec-sub">How the levels line up, left to right</p>
     <div class="fflow">
-      <div class="fchip l1"><div class="lvt" style="color:#2563eb">L1 Catalog</div><div class="e">📁</div><div class="t">Product catalog</div><div class="ex">Screws</div><div class="fo">Data Object</div></div>
+      <div class="fchip l1"><div class="lvt" style="color:#2563eb">Catalog / Root Category</div><div class="e">📁</div><div class="t">Root Category</div><div class="ex">Screws</div><div class="fo">Data Object</div></div>
       <div class="farrf">→</div>
-      <div class="fchip l2"><div class="lvt" style="color:#16a34a">L2 Product Type</div><div class="e">📁</div><div class="t">Category</div><div class="ex">Wood / timber</div><div class="fo">Data Object</div></div>
+      <div class="fchip l2"><div class="lvt" style="color:#16a34a">L2 Product Type / Category</div><div class="e">📁</div><div class="t">Category</div><div class="ex">Wood / timber</div><div class="fo">Data Object</div></div>
       <div class="farrf">→</div>
-      <div class="fchip l3"><div class="lvt" style="color:#d97706">L3 Template</div><div class="e">📋</div><div class="t">Parent product</div><div class="ex">Wood screw 317</div><div class="fo">Parent object</div></div>
+      <div class="fchip l3"><div class="lvt" style="color:#d97706">L3 Template</div><div class="e">📋</div><div class="t">Template</div><div class="ex">Wood screw 317</div><div class="fo">Parent object</div></div>
       <div class="farrf">→</div>
-      <div class="fchip l4"><div class="lvt" style="color:#7c3aed">L4 Variant</div><div class="e">🛒</div><div class="t">Product variant</div><div class="ex">317-7.2mm-180mm-TX25</div><div class="fo">Object variant</div></div>
+      <div class="fchip l4"><div class="lvt" style="color:#7c3aed">L4 Variant</div><div class="e">🛒</div><div class="t">Variant</div><div class="ex">317-7.2mm-180mm-TX25</div><div class="fo">Object variant</div></div>
       <div class="farrf">→</div>
-      <div class="fchip l5"><div class="lvt" style="color:#db2777">L5 Add-on</div><div class="e">➕</div><div class="t">Derived SKU</div><div class="ex">+ washer</div><div class="fo">Nested variant</div></div>
+      <div class="fchip l5"><div class="lvt" style="color:#db2777">L5 SubVariant / Add On</div><div class="e">➕</div><div class="t">SubVariant / Add On</div><div class="ex">+ washer</div><div class="fo">Nested variant</div></div>
       <div class="farrf">→</div>
       <div class="fchip rl"><div class="lvt" style="color:var(--mut)">Publish</div><div class="e">🌐</div><div class="t">Publish</div><div class="ex">to channels</div><div class="fo">Save &amp; Publish</div></div>
     </div>
@@ -576,26 +576,16 @@ header{padding:18px 28px 16px;background:#fff;border-bottom:1px solid var(--line
     <table class="term-tbl">
       <thead><tr><th>Explorer term</th><th>Example in Screws</th><th>PIM / market standard</th><th>Pimcore platform</th></tr></thead>
       <tbody>
-        <tr><td class="term-cell"><span class="term-badge tb-l1">L1 Catalog</span></td><td class="ui-cell">Screws · Rivets · Hammer…</td><td><b>Product catalog</b> — top-level product universe</td><td>Data Object in object tree</td></tr>
-        <tr><td class="term-cell"><span class="term-badge tb-l2">L2 Product Type</span></td><td class="ui-cell">Wood / timber · Steel, alu · Concrete</td><td><b>Product category</b> · <b>product family</b></td><td>Data Object (<code>type=object</code>)</td></tr>
-        <tr><td class="term-cell"><span class="term-badge tb-l3">L3 Template Product</span></td><td class="ui-cell">Wood screw DxL-L1 TX · Template no. 317</td><td><b>Product master</b> · <b>parent product</b> · <b>abstract product</b></td><td>Parent object · <code>allowVariants</code> + <code>allowInherit</code></td></tr>
-        <tr><td class="term-cell"><span class="term-badge tb-l4">L4 Variant Product</span></td><td class="ui-cell">317-7.2mm-180mm-TX25 · tier</td><td><b>Product variant</b> · <b>concrete product</b> · <b>SKU</b></td><td><b>Object variant</b> (<code>type=variant</code>)</td></tr>
-        <tr><td class="term-cell"><span class="term-badge tb-l5">L5 Sub-variant / Add-on</span></td><td class="ui-cell">317-…-TX25-W · -PG</td><td><b>Derived SKU</b> · <b>bundled add-on</b></td><td>Nested object variant</td></tr>
+        <tr><td class="term-cell"><span class="term-badge tb-l1">Catalog / Root Category</span></td><td class="ui-cell">Screws · Rivets · Hammer…</td><td><b>Product catalog</b> — top-level product universe</td><td>Data Object in object tree</td></tr>
+        <tr><td class="term-cell"><span class="term-badge tb-l2">L2 Product Type / Category</span></td><td class="ui-cell">Wood / timber · Steel, alu · Concrete</td><td><b>Product category</b> · <b>product family</b></td><td>Data Object (<code>type=object</code>)</td></tr>
+        <tr><td class="term-cell"><span class="term-badge tb-l3">L3 Template</span></td><td class="ui-cell">Wood screw DxL-L1 TX · Template no. 317</td><td><b>Product master</b> · <b>parent product</b> · <b>abstract product</b></td><td>Parent object · <code>allowVariants</code> + <code>allowInherit</code></td></tr>
+        <tr><td class="term-cell"><span class="term-badge tb-l4">L4 Variant</span></td><td class="ui-cell">317-7.2mm-180mm-TX25 · tier</td><td><b>Product variant</b> · <b>concrete product</b> · <b>SKU</b></td><td><b>Object variant</b> (<code>type=variant</code>)</td></tr>
+        <tr><td class="term-cell"><span class="term-badge tb-l5">L5 SubVariant / Add On</span></td><td class="ui-cell">317-…-TX25-W · -PG</td><td><b>Derived SKU</b> · <b>bundled add-on</b></td><td>Nested object variant</td></tr>
       </tbody>
     </table>
   </div>
   <div class="term-section">
-    <h4>2 · Attribute zones</h4>
-    <p class="sec-sub">Coloured zones in the explorer → standard PIM attribute concepts</p>
-    <div class="term-zone-grid">
-      <div class="term-zone z-std"><h5><span class="term-badge tb-blue">L3</span> Standard attributes</h5><p><b>Shared / master attributes</b> — inherited on every variant.</p><ul><li>Head Type · Material · Screw Type</li><li>Pimcore: inherited parent fields</li></ul></div>
-      <div class="term-zone z-var"><h5><span class="term-badge tb-yellow">L4</span> Variant definition</h5><p><b>Variant-defining attributes</b> · <b>super attributes</b>.</p><ul><li>Diameter × Length × Drive</li><li>Combinations create SKUs</li></ul></div>
-      <div class="term-zone z-extra"><h5><span class="term-badge tb-l4">L4</span> Per-SKU extras</h5><p><b>SKU-level attributes</b> — unique per row.</p><ul><li>Weight · Tier · ERP item #</li></ul></div>
-      <div class="term-zone z-addon"><h5><span class="term-badge tb-pink">L5</span> Add-on flags</h5><p><b>Optional configuration</b> · <b>bundled options</b>.</p><ul><li>Washer Y/N · Powder paint Y/N</li></ul></div>
-    </div>
-  </div>
-  <div class="term-section">
-    <h4>3 · Key explorer labels</h4>
+    <h4>2 · Key explorer labels</h4>
     <table class="term-tbl">
       <thead><tr><th>Explorer label</th><th>PIM / market term</th><th>Notes</th></tr></thead>
       <tbody>
@@ -608,7 +598,7 @@ header{padding:18px 28px 16px;background:#fff;border-bottom:1px solid var(--line
     </table>
   </div>
   <div class="term-section">
-    <h4>4 · Pimcore platform concepts</h4>
+    <h4>3 · Pimcore platform concepts</h4>
     <table class="term-tbl">
       <thead><tr><th>Pimcore term</th><th>Meaning</th><th>Maps to explorer</th></tr></thead>
       <tbody>
@@ -675,15 +665,15 @@ ul.fsteps li b{color:var(--txt)}
     <h4>The flow at a glance</h4>
     <p class="sec-sub">How the F&amp;O pieces line up, left to right</p>
     <div class="fflow">
-      <div class="fchip l1"><div class="lvt" style="color:#2563eb">L1 Catalog</div><div class="e">📁</div><div class="t">Category</div><div class="ex">Screws</div><div class="fo">Category hierarchy</div></div>
+      <div class="fchip l1"><div class="lvt" style="color:#2563eb">Catalog / Root Category</div><div class="e">📁</div><div class="t">Root Category</div><div class="ex">Screws</div><div class="fo">Category hierarchy</div></div>
       <div class="farrf">→</div>
-      <div class="fchip l2"><div class="lvt" style="color:#16a34a">L2 Product Type</div><div class="e">📁</div><div class="t">Sub-category</div><div class="ex">Wood / timber</div><div class="fo">Category node</div></div>
+      <div class="fchip l2"><div class="lvt" style="color:#16a34a">L2 Product Type / Category</div><div class="e">📁</div><div class="t">Category</div><div class="ex">Wood / timber</div><div class="fo">Category node</div></div>
       <div class="farrf">→</div>
       <div class="fchip l3"><div class="lvt" style="color:#d97706">L3 Template</div><div class="e">📋</div><div class="t">Template</div><div class="ex">Wood screw 317</div><div class="fo">Product master</div></div>
       <div class="farrf">→</div>
-      <div class="fchip l4"><div class="lvt" style="color:var(--mut)">Configurator</div><div class="e">⚙️</div><div class="t">Configure</div><div class="ex">pick Ø · length · drive</div><div class="fo">Configuration model</div></div>
-      <div class="farrf">→</div>
       <div class="fchip l4"><div class="lvt" style="color:#7c3aed">L4 Variant</div><div class="e">🛒</div><div class="t">Variant</div><div class="ex">7.2×180 · TX25</div><div class="fo">Configuration = sellable</div></div>
+      <div class="farrf">→</div>
+      <div class="fchip l5"><div class="lvt" style="color:#db2777">L5 SubVariant / Add On</div><div class="e">➕</div><div class="t">SubVariant / Add On</div><div class="ex">+ washer / -PG</div><div class="fo">Subcomponent</div></div>
       <div class="farrf">→</div>
       <div class="fchip rl"><div class="lvt" style="color:var(--mut)">Release</div><div class="e">🌐</div><div class="t">Release &amp; sell</div><div class="ex">DK · SE · US</div><div class="fo">Release + Sales order</div></div>
     </div>
@@ -696,42 +686,17 @@ ul.fsteps li b{color:var(--txt)}
     <table class="term-tbl">
       <thead><tr><th>Explorer term</th><th>Example in Screws</th><th>F&amp;O term / concept</th><th>F&amp;O object</th></tr></thead>
       <tbody>
-        <tr><td class="term-cell"><span class="term-badge tb-l1">L1 Catalog</span></td><td class="ui-cell">Screws · Rivets · Hammer…</td><td><b>Product catalog</b> · top-level category</td><td>Category node (top)</td></tr>
-        <tr><td class="term-cell"><span class="term-badge tb-l2">L2 Product Type</span></td><td class="ui-cell">Wood / timber · Metal · Concrete</td><td><b>Product group</b> · sub-category</td><td>Category node (sub)</td></tr>
-        <tr><td class="term-cell"><span class="term-badge tb-l3">L3 Template Product</span></td><td class="ui-cell">Wood screw · Template no. 317</td><td><b>Product master</b> · configurable template</td><td>Product master + configuration model</td></tr>
-        <tr><td class="term-cell"><span class="term-badge tb-l4">L4 Variant Product</span></td><td class="ui-cell">317-7.2mm-180mm-TX25</td><td><b>Configuration</b> · built variant · sellable SKU</td><td>Configuration (Configuration dimension) → Released product variant</td></tr>
-        <tr><td class="term-cell"><span class="term-badge tb-l5">L5 Sub-variant / Add-on</span></td><td class="ui-cell">317-…-TX25-PG</td><td><b>Add-on</b> · sub-variant</td><td>Subcomponent + selection condition</td></tr>
+        <tr><td class="term-cell"><span class="term-badge tb-l1">Catalog / Root Category</span></td><td class="ui-cell">Screws · Rivets · Hammer…</td><td><b>Product catalog</b> · top-level category</td><td>Category node (top)</td></tr>
+        <tr><td class="term-cell"><span class="term-badge tb-l2">L2 Product Type / Category</span></td><td class="ui-cell">Wood / timber · Metal · Concrete</td><td><b>Product group</b> · sub-category</td><td>Category node (sub)</td></tr>
+        <tr><td class="term-cell"><span class="term-badge tb-l3">L3 Template</span></td><td class="ui-cell">Wood screw · Template no. 317</td><td><b>Product master</b> · configurable template</td><td>Product master + configuration model</td></tr>
+        <tr><td class="term-cell"><span class="term-badge tb-l4">L4 Variant</span></td><td class="ui-cell">317-7.2mm-180mm-TX25</td><td><b>Configuration</b> · built variant · sellable SKU</td><td>Configuration (Configuration dimension) → Released product variant</td></tr>
+        <tr><td class="term-cell"><span class="term-badge tb-l5">L5 SubVariant / Add On</span></td><td class="ui-cell">317-…-TX25-PG</td><td><b>Add-on</b> · sub-variant</td><td>Subcomponent + selection condition</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="term-section">
-    <h4>2 · Attribute zones</h4>
-    <p class="sec-sub">Coloured zones in the explorer → F&amp;O attribute concepts</p>
-    <div class="term-zone-grid">
-      <div class="term-zone z-std"><h5><span class="term-badge tb-blue">L3</span> Standard attributes</h5><p><b>Product attributes</b> — fixed on the master, same on every variant.</p><ul><li>Head Type · Material · Screw Type</li><li>F&amp;O: attributes on the product master</li></ul></div>
-      <div class="term-zone z-var"><h5><span class="term-badge tb-yellow">L4</span> Variant definition</h5><p><b>Configuration attributes</b> — the choices the customer makes.</p><ul><li>Diameter × Length × Drive</li><li>Answered in the configurator</li></ul></div>
-      <div class="term-zone z-extra"><h5><span class="term-badge tb-l4">L4</span> Per-SKU extras</h5><p><b>Calculated values</b> — worked out automatically.</p><ul><li>Weight, derived from size</li><li>F&amp;O: a Calculation</li></ul></div>
-      <div class="term-zone z-addon"><h5><span class="term-badge tb-pink">L5</span> Add-on flags</h5><p><b>Subcomponents</b> — added by a selection condition.</p><ul><li>Washer Y/N · Powder paint Y/N</li></ul></div>
-    </div>
-  </div>
-
-  <div class="term-section">
-    <h4>3 · Key explorer labels</h4>
-    <table class="term-tbl">
-      <thead><tr><th>Explorer label</th><th>F&amp;O term</th><th>Notes</th></tr></thead>
-      <tbody>
-        <tr><td class="term-cell">Template no.</td><td>Product master number</td><td>The configurable parent (e.g. 317), not a sellable SKU</td></tr>
-        <tr><td class="term-cell">SKU</td><td>Configuration ID · released product variant</td><td>The sellable item, built to order</td></tr>
-        <tr><td class="term-cell">Target Material</td><td>Product attribute</td><td>Drives the L2 Product Type grouping</td></tr>
-        <tr><td class="term-cell">Tier</td><td>Product attribute</td><td>Variant attribute — <b>not a hierarchy level</b></td></tr>
-        <tr><td class="term-cell">Sub-variant SKUs</td><td>Subcomponent add-on</td><td>Extra item when the add-on flag = Y (e.g. -PG)</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="term-section">
-    <h4>4 · F&amp;O platform concepts</h4>
+    <h4>2 · F&amp;O platform concepts</h4>
     <table class="term-tbl">
       <thead><tr><th>F&amp;O term</th><th>Meaning</th><th>Maps to explorer</th></tr></thead>
       <tbody>
@@ -747,7 +712,7 @@ ul.fsteps li b{color:var(--txt)}
   </div>
 
   <div class="term-section">
-    <h4>5 · Make-to-order vs make-to-inventory</h4>
+    <h4>3 · Make-to-order vs make-to-inventory</h4>
     <p class="sec-sub">The same product, ordered three ways</p>
     <div class="fbanner inv"><span class="tag">Make-to-Inventory · from history</span> <b>The bestseller, already on the shelf:</b> a customer orders <b>200 wood screws, 7.2 × 180, TX25, Carbon, no washer</b> — a popular version the planner pre-packed to stock from past sales.
       <ul class="fsteps">
@@ -777,7 +742,7 @@ ul.fsteps li b{color:var(--txt)}
   </div>
 
   <div class="term-section">
-    <h4>6 · Sell in many companies (release)</h4>
+    <h4>4 · Sell in many companies (release)</h4>
     <p class="sec-sub">Build once, release where you need</p>
     <div class="fbanner inv"><b style="color:#166534">You build the rules once — each company just adds its own price, stock &amp; brand.</b> You never rebuild the configurator per company; you <b>release</b> the product to the companies that should sell it.
       <ul class="fsteps">
@@ -813,11 +778,11 @@ const TIERS=["Standard", "Mini", "Premium"];
 const TIER_DESC={"Standard": "Main product line \u2014 full spec, default pack.", "Mini": "Compact / small-pack variant of the same line.", "Premium": "Enhanced coating, finish or warranty grade."};
 const LEVELS={
   root:{short:'Root',full:'RedHorse Group'},
-  l1:{short:'L1 Catalog',full:'Catalog',crumb:'Catalog'},
-  l2:{short:'L2 Product Type',full:'Product Type',crumb:'Product Type'},
-  l3:{short:'L3 Template Product',full:'Template Product',crumb:'Template Product'},
-  l4:{short:'L4 Variant Product',full:'Variant Product',crumb:'Variant Product'},
-  l5:{short:'L5 Sub-variant / Add-on',full:'Sub-variant / Add-on',crumb:'Sub-variant / Add-on'}
+  l1:{short:'Catalog / Root Category',full:'Catalog',crumb:'Catalog / Root Category'},
+  l2:{short:'L2 Product Type / Category',full:'Product Type',crumb:'L2 Product Type / Category'},
+  l3:{short:'L3 Template',full:'Template Product',crumb:'L3 Template'},
+  l4:{short:'L4 Variant',full:'Variant Product',crumb:'L4 Variant'},
+  l5:{short:'L5 SubVariant / Add On',full:'Sub-variant / Add-on',crumb:'L5 SubVariant / Add On'}
 };
 /** Shown in data but hidden from drill-down UI — redundant once a level is selected. */
 const HIDDEN_GROUP_ATTRS=new Set(['target_use','typical_drive','compliance_docs','default_warranty','application_domain','compliance','warranty','default_unit','Catalog sheet','L2 role','Sheet columns','Sheet column','Grouping column']);
