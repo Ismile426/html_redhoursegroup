@@ -244,13 +244,22 @@ const FEATURE_OPTS = {
   'Typical Applications': ['Load bearing elements','CLT-connection','Steel sheet to steel','Steel sheet to alu','Fixing into concrete','Chipboard / woodwork','Exterior decking']
 };
 
-/* Add-on dimensions (F&O) — the only thing appended to the item number */
+/* Add-on dimensions (F&O) — the only thing appended to the item number.
+ * Colour = Powder paint (from sheet "Powder paint Color"); Style = assembled Washer/Finish
+ * (from sheet "Washer Type"). These are post-configuration add-ons applied on top of a variant. */
 const DIM_DEFS = [
-  { key:'config', label:'Configuration', opts:['Standard (0)','MAT-SILVER (1)','Long thread (21)'] },
-  { key:'colour', label:'Colour',        opts:['No Colour (0)','RAL 9005 Jet Black (59)','RAL 9010 White (60)','RAL 8371 M (26)'] },
-  { key:'size',   label:'Size',          opts:['Single piece / PCS (2)','Box of 100 (8)','150 PCS (3)'] },
-  { key:'style',  label:'Style',         opts:['NA (0)','EPDM washer (8)','RH C25B (1)'] }
+  { key:'config', label:'Configuration', rh:'thread / build option', opts:['Standard (0)','MAT-SILVER (1)','Long thread (21)'] },
+  { key:'colour', label:'Colour · Powder paint', rh:'sheet: Powder paint Color', opts:['No Colour (0)','RAL 9005 Jet Black (59)','RAL 9010 White (60)','RAL 8371 M (26)'] },
+  { key:'size',   label:'Size · Pack',   rh:'how it is sold, not screw length', opts:['Single piece / PCS (2)','Box of 100 (8)','150 PCS (3)'] },
+  { key:'style',  label:'Finish · Washer', rh:'sheet: Washer Type (assembled)', opts:['NA (0)','EPDM washer (8)','RH C25B (1)'] }
 ];
+
+/* Cross-sell = separate loose items bought alongside the screw (sheet "Cross Sales Products").
+ * NOT a suffix — a relation to other products. */
+const CROSS_SELL = {
+  Screws: ['EPDM washers','TX20 bit','TX25 bit','PZ2 bit','Bit socket','Decking spacer','Masonry drill Ø6','HX8 wrench bit'],
+  Rivets: [], Hammer: [], Washer: []
+};
 
 /* Example templates (values pulled from the sheet examples) */
 const TEMPLATES = {
@@ -259,12 +268,14 @@ const TEMPLATES = {
       fixed:{ 'Head Type':'Mushroom head (MH)','Thread Type':'Type B, medium','Screw Type':'Self-drilling','Point Type':'Drill point #2','Material':'Bi-metal, stainless A2','Target Material':'Steel, alu','Surface Treatment':'Cosmetic zink, ZnB10','Surface Treatment Color':'Silver','Self Drilling Y/N':'Y','Self Tapping Y/N':'Y','Powder Paint Y/N':'Y','Powder paint Color':'Dark Green','Washer Y/N':'Y','Washer Type':'Bonded EPDM' },
       pools:{ 'Drive Type':['TX20'],'Major Diameters':['4.8 mm','5.5 mm'],'Lengths':['25 mm','38 mm'],'Drill Capacity':['2-6 mm steel','4-8 mm steel'],'Drill Point Diameter':['5 mm','6.5 mm'],'Drill Point Length':['6 mm','8 mm'],'Weights':['6 g','11 g'],'Head Diameter':['12 mm'],'Partial Lengths':[],'Effective Lengths':['26 mm','18 mm'] },
       features:{ 'Special Features':[],'Typical Applications':['Steel sheet to steel','Steel sheet to alu'] },
+      crossSell:['EPDM washers'],
       merch:{ dk:{tier:'Standard',released:true}, se:{tier:'Standard',released:true}, us:{tier:'Pro',released:false}, ec:{tier:'Standard',released:false} },
       dims:{ config:['Standard (0)','Long thread (21)'], colour:['No Colour (0)','RAL 9005 Jet Black (59)'], size:['Single piece / PCS (2)','Box of 100 (8)'], style:['NA (0)','EPDM washer (8)'] } },
     { code:'30300', name:'Wood screw DxL-L1 TX', brands:['CREO'],
       fixed:{ 'Head Type':'Countersunk w. turbine ribs (CSH-TR)','Thread Type':'Wood','Screw Type':'Wood screw','Point Type':'Sharp point (S-point)','Material':'Carbon steel','Target Material':'Wood','Surface Treatment':'Zytec™+','Surface Treatment Color':'Black','Self Drilling Y/N':'N','Self Tapping Y/N':'Y','Powder Paint Y/N':'N','Powder paint Color':'—','Washer Y/N':'N','Washer Type':'—' },
       pools:{ 'Drive Type':['TX25','TX30'],'Major Diameters':['7.2 mm','8 mm'],'Lengths':['120 mm','180 mm','220 mm'],'Drill Capacity':[],'Drill Point Diameter':[],'Drill Point Length':[],'Weights':['31 g','45 g','62 g'],'Head Diameter':['13 mm','15 mm'],'Partial Lengths':['91 mm','120 mm','150 mm'],'Effective Lengths':['111 mm','156 mm','215 mm'] },
       features:{ 'Special Features':['Turbine Ribs','Thread cut','Knurls'],'Typical Applications':['Load bearing elements','CLT-connection'] },
+      crossSell:['TX25 bit'],
       merch:{ dk:{tier:'Premium',released:true}, se:{tier:'Premium',released:true}, us:{tier:'Premium',released:false}, ec:{tier:'Standard',released:false} },
       dims:{ config:['Standard (0)'], colour:['No Colour (0)'], size:['Single piece / PCS (2)','Box of 100 (8)'], style:['NA (0)'] } }
   ],
@@ -285,7 +296,7 @@ function emptyTemplate(){
   const features = {}; FEATURE_KEYS.forEach(k => features[k]=[]);
   return {
     code:'', name:'', isNew:false, brands:[],
-    fixed, pools, features,
+    fixed, pools, features, crossSell:[],
     merch:{ dk:{tier:'Standard',released:false}, se:{tier:'Standard',released:false}, us:{tier:'Standard',released:false}, ec:{tier:'Standard',released:false} },
     dims:{ config:[], colour:[], size:[], style:[] }
   };
@@ -430,6 +441,12 @@ function renderPanel(){
           <div class="fb-hd">Range descriptors (multi-value text)</div>
           ${FEATURE_KEYS.map(featureEditor).join('')}
         </div>
+
+        <div class="fixed-box">
+          <div class="fb-hd">🔗 Cross-sell products <span style="font-weight:600;text-transform:none;letter-spacing:0">— sheet: Cross Sales Products</span></div>
+          <div class="hint" style="margin-bottom:8px">Separate loose items bought <b>alongside</b> the screw (e.g. loose EPDM washers, drive bits). This is a <b>relation to other products</b>, not an add-on suffix — it never changes the item number.</div>
+          <div class="tag-multi">${(CROSS_SELL[state.catalog]||[]).map(o=>`<div class="tag-opt ${t.crossSell.includes(o)?'on':''}" onclick="toggleCrossSell('${js(o)}')">${esc(o)}</div>`).join('') || '<span class="hint">none for this catalog</span>'}</div>
+        </div>
       </div>`;
   }
 
@@ -553,6 +570,10 @@ function renderPanel(){
         <div class="content" style="font-size:13px">${FEATURE_KEYS.map(k=>`<b>${esc(k)}:</b> ${txt(t.features[k])}`).join('<br>')}</div>
       </div>
 
+      <div class="review-section"><h4>Cross-sell products <span class="hint">(related items — not part of the number)</span></h4>
+        <div class="content" style="font-size:13px">${txt(t.crossSell)}</div>
+      </div>
+
       <div class="review-section"><h4>Sold by</h4>
         <table style="width:100%;border-collapse:collapse;font-size:13px"><tbody>${merchRows}</tbody></table>
       </div>
@@ -578,6 +599,7 @@ function pickTemplate(code){
   FIXED_KEYS.forEach(k=> t.fixed[k]=x.fixed[k]||'');
   CONFIG_KEYS.forEach(k=> t.pools[k]=[...(x.pools[k]||[])]);
   FEATURE_KEYS.forEach(k=> t.features[k]=[...(x.features[k]||[])]);
+  t.crossSell=[...(x.crossSell||[])];
   t.merch=JSON.parse(JSON.stringify(x.merch));
   t.dims={ config:[...x.dims.config], colour:[...x.dims.colour], size:[...x.dims.size], style:[...x.dims.style] };
   state.template=t; state.variants=[]; render();
@@ -591,6 +613,7 @@ function togglePool(k,val){
   render();
 }
 function toggleFeature(k,val){ const a=state.template.features[k]; const i=a.indexOf(val); i>=0?a.splice(i,1):a.push(val); render(); }
+function toggleCrossSell(val){ const a=state.template.crossSell; const i=a.indexOf(val); i>=0?a.splice(i,1):a.push(val); render(); }
 function setMerch(cid,key,val){ state.template.merch[cid][key]=val; render(); }
 function toggleRelease(cid){ state.template.merch[cid].released=!state.template.merch[cid].released; render(); }
 
