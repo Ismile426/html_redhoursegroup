@@ -96,7 +96,7 @@ header p{font-size:13px;color:var(--mut)}
 .preview{position:sticky;top:16px}
 .preview h3{font-size:15px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .tree-line{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.9;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow-x:auto;white-space:pre}
-.tree-line .l1{color:#93c5fd}.tree-line .l2{color:#86efac}.tree-line .l3{color:#fcd34d}.tree-line .l4{color:#c4b5fd;font-weight:700}
+.tree-line .l1{color:#93c5fd}.tree-line .l2{color:#86efac}.tree-line .l3{color:#fcd34d;font-weight:700}.tree-line .l4-base{color:#4ade80;font-weight:700}.tree-line .l4-sub{color:#c4b5fd;opacity:.85}
 .tree-line .dim{color:#64748b}.tree-line .new{color:#fca5a5}
 
 .summary-kv{display:grid;grid-template-columns:1fr;gap:6px;margin-top:12px}
@@ -675,8 +675,8 @@ function renderTreePreview(){
       lines.push(`    <span class="l3">📁 ${esc(t.code)}</span>  <span class="dim">${esc(t.name||t.fixed['Screw Type']||'range')}</span>`);
       const filled=state.variants.filter(v=>v.brands.includes(b) && v.picks['Major Diameters']);
       if(filled.length) filled.forEach(v=>{
-        lines.push(`      <span class="l4">🔩 ${esc(itemNumber(v))}</span>  <span class="dim">${v.name?esc(v.name):'base · '+esc(v.picks['Major Diameters'])+'×'+esc(v.picks['Lengths'])+' '+esc(v.picks['Drive Type'])}</span>`);
-        (v.subs||[]).filter(sub=>(sub.brands&&sub.brands.length?sub.brands:v.brands).includes(b)).forEach(sub=>lines.push(`        <span class="l4" style="opacity:.8">🛒 ${esc(subNumber(v,sub))}</span>  <span class="dim">add-on</span>`));
+        lines.push(`      <span class="l4-base">🔩 ${esc(itemNumber(v))}</span>  <span class="dim">${v.name?esc(v.name):'base · '+esc(v.picks['Major Diameters'])+'×'+esc(v.picks['Lengths'])+' '+esc(v.picks['Drive Type'])}</span>`);
+        (v.subs||[]).filter(sub=>(sub.brands&&sub.brands.length?sub.brands:v.brands).includes(b)).forEach(sub=>lines.push(`        <span class="l4-sub">🛒 ${esc(subNumber(v,sub))}</span>  <span class="dim">add-on</span>`));
       });
       else if(state.step>=2) lines.push(`      <span class="dim">(add variants: pick Ø / L / drive)</span>`);
     });

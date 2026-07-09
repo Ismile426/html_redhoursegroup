@@ -46,6 +46,13 @@ header p{font-size:12.5px;opacity:.85}
 .tr .mono{font-family:ui-monospace,Menlo,Consolas,monospace;line-height:1.35}
 .tr .tree-sku{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;font-weight:700;color:var(--l4);line-height:1.35;white-space:nowrap}
 .tr-sub .ic{font-size:13px}
+/* range (template) row — amber pill, distinct from base items */
+.tr-range .tree-range{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;font-weight:800;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:1px 8px;line-height:1.35;white-space:nowrap}
+.tr-range .sub{font-size:11.5px;color:#92400e;font-weight:600}
+.tr-range.click:hover{background:#fffbeb}
+/* base variant row — green pill, clearly an item not a range */
+.tr-base .tree-base{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;font-weight:800;color:#047857;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:6px;padding:1px 8px;line-height:1.35;white-space:nowrap}
+.tr-base.click:hover{background:#f0fdf4}
 .tr .sub{font-size:11px;color:var(--mut);margin-left:4px;font-weight:500}
 .kids{margin-left:16px;border-left:1.5px dashed var(--line);padding-left:6px}
 .kids.collapsed{display:none}
@@ -305,7 +312,7 @@ function renderTree(){
       const bts=ts.filter(t=>t.brands.includes(bc));
       h+=`<div class="tr">${CARET}<span class="ic">🏷</span><span class="nm">${esc(brandName(bc))}</span></div><div class="kids" data-lvl="brand">`;
       for(const tpl of bts){
-        h+=`<div class="tr click" onclick="openBySku('${tpl.code}')">${CARET}<span class="ic">📁</span><span class="nm mono">${esc(tpl.code)}</span><span class="sub">${esc(tpl.name)}</span></div><div class="kids" data-lvl="range">`;
+        h+=`<div class="tr tr-range click" onclick="openBySku('${tpl.code}')">${CARET}<span class="ic">📁</span><span class="tree-range">${esc(tpl.code)}</span><span class="sub">${esc(tpl.name)}</span></div><div class="kids" data-lvl="range">`;
         const vs=(tpl.variants||[]).filter(v=>v.brands.includes(bc));
         if(!vs.length){ h+=`<div class="tr">${NOCARET}<span class="ic"></span><span class="sub">no items under this brand</span></div>`; }
         for(const v of vs){
@@ -313,7 +320,7 @@ function renderTree(){
           const brandSubs=(v.subs||[]).filter(sub=>(sub.brands&&sub.brands.length?sub.brands:v.brands).includes(bc));
           const hasSubs=brandSubs.length>0;
           const vlabel = v.name ? `<span class="vnametag">${esc(v.name)}</span>` : `<span class="basetag">base · sellable</span>`;
-          h+=`<div class="tr click" onclick="openBySku('${base}')">${hasSubs?CARET:NOCARET}<span class="ic">🔩</span><span class="nm mono">${esc(base)}</span>${vlabel}</div>`;
+          h+=`<div class="tr tr-base click" onclick="openBySku('${base}')">${hasSubs?CARET:NOCARET}<span class="ic">🔩</span><span class="tree-base">${esc(base)}</span>${vlabel}</div>`;
           if(hasSubs){
             h+='<div class="kids" data-lvl="base">';
             for(const sub of brandSubs){
