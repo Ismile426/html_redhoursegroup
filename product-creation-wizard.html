@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RedHorse PIM v2 — Product Creation Wizard</title>
+<style>
+:root{
+  --bg:#f8fafc;--surface:#fff;--surface-2:#f1f5f9;--line:#e2e8f0;
+  --txt:#0f172a;--txt-2:#334155;--mut:#64748b;
+  --rh:#dc2626;--l1:#2563eb;--l2:#16a34a;--l3:#d97706;--l4:#7c3aed;
+  --cyan:#0891b2;--shadow:0 2px 8px rgba(15,23,42,.07);--shadow-md:0 4px 14px rgba(15,23,42,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.5;-webkit-font-smoothing:antialiased}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em}
+a{color:var(--l1);text-decoration:none}
+input,select,textarea,button{font-family:inherit}
+
+header{background:#fff;border-bottom:1px solid var(--line);padding:16px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--rh),#7c2d12);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
+header h1{font-size:19px}
+header p{font-size:13px;color:var(--mut)}
+.hdr-links{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.hdr-links a{font-size:13px;font-weight:600;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--txt-2)}
+.hdr-links a:hover{background:var(--surface-2)}
+
+.wrap{max-width:1280px;margin:0 auto;padding:20px 22px 80px}
+.lead{font-size:15px;color:var(--txt-2);max-width:900px;margin-bottom:18px}
+
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:800;border:1px solid;white-space:nowrap}
+.b-l1{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
+.b-l2{background:#dcfce7;color:#166534;border-color:#86efac}
+.b-l3{background:#fef3c7;color:#92400e;border-color:#fcd34d}
+.b-l4{background:#ede9fe;color:#5b21b6;border-color:#c4b5fd}
+.b-par{background:#cffafe;color:#0e7490;border-color:#67e8f9}
+.b-new{background:#fee2e2;color:#991b1b;border-color:#fca5a5}
+.b-fix{background:#e2e8f0;color:#334155;border-color:#cbd5e1}
+
+/* stepper */
+.stepper{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;box-shadow:var(--shadow)}
+.step-tab{flex:1;padding:12px 10px;text-align:center;cursor:pointer;border-right:1px solid var(--line);position:relative;transition:.12s}
+.step-tab:last-child{border-right:0}
+.step-tab .sn{font-size:11px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.03em}
+.step-tab .st{font-size:13.5px;font-weight:700;margin-top:2px}
+.step-tab.active{background:#fef2f2}
+.step-tab.active .sn{color:var(--rh)}
+.step-tab.done{background:#f0fdf4}
+.step-tab.done .sn::after{content:' ✓';color:var(--l2)}
+.step-tab:hover:not(.active){background:var(--surface-2)}
+
+.layout{display:grid;grid-template-columns:1fr 400px;gap:18px;align-items:start}
+@media(max-width:1050px){.layout{grid-template-columns:1fr}}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;box-shadow:var(--shadow)}
+.panel h2{font-size:18px;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.panel .sub{font-size:13.5px;color:var(--mut);margin-bottom:16px}
+
+.field-row{margin-bottom:14px}
+.field-row label{display:block;font-size:12.5px;font-weight:700;color:var(--txt-2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.02em}
+.field-row .hint{font-size:12px;color:var(--mut);font-weight:400;text-transform:none;letter-spacing:0;margin-top:3px}
+.field-row input[type=text],.field-row select,.field-row textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:14px;color:var(--txt);background:#fff}
+.field-row input:focus,.field-row select:focus,.field-row textarea:focus{outline:none;border-color:var(--l4);box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+.choice-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:6px}
+.choice-card{border:2px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;text-align:left;background:#fff;transition:.12s}
+.choice-card:hover{border-color:var(--l4)}
+.choice-card.selected{border-color:var(--l4);background:#faf5ff}
+.choice-card .cc-icon{font-size:22px;margin-bottom:6px}
+.choice-card .cc-name{font-size:13.5px;font-weight:700}
+.choice-card .cc-meta{font-size:11.5px;color:var(--mut);margin-top:2px}
+.choice-card.add-new{border-style:dashed;display:flex;align-items:center;justify-content:center;color:var(--mut);font-weight:700;min-height:76px}
+.choice-card.add-new:hover{color:var(--l4);border-color:var(--l4)}
+
+.new-form{border:1px dashed var(--l4);background:#faf5ff;border-radius:10px;padding:14px;margin-top:10px;display:none}
+.new-form.open{display:block}
+
+.tag-multi{display:flex;flex-wrap:wrap;gap:8px}
+.tag-opt{padding:7px 13px;border-radius:16px;border:1.5px solid var(--line);font-size:13px;font-weight:600;cursor:pointer;background:#fff;color:var(--txt-2)}
+.tag-opt.on{background:var(--l2);border-color:var(--l2);color:#fff}
+
+.btn-row{display:flex;justify-content:space-between;margin-top:18px;gap:10px}
+.btn{padding:10px 20px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--txt-2)}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--rh);color:#fff;border-color:var(--rh)}
+.btn.primary:hover{background:#b91c1c}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* live preview sidebar */
+.preview{position:sticky;top:16px}
+.preview h3{font-size:15px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.tree-line{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.9;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow-x:auto;white-space:pre}
+.tree-line .l1{color:#93c5fd}.tree-line .l2{color:#86efac}.tree-line .l3{color:#fcd34d}.tree-line .l4{color:#c4b5fd;font-weight:700}
+.tree-line .dim{color:#64748b}.tree-line .new{color:#fca5a5}
+
+.summary-kv{display:grid;grid-template-columns:1fr;gap:6px;margin-top:12px}
+.summary-kv .row{display:flex;justify-content:space-between;font-size:12.5px;padding:6px 9px;background:var(--surface-2);border-radius:6px}
+.summary-kv .row .k{color:var(--mut)}
+.summary-kv .row .v{font-weight:700;text-align:right}
+
+.note{font-size:13px;border-radius:8px;padding:10px 12px;margin-top:12px}
+.note-info{background:#eff6ff;border:1px solid #93c5fd;color:#1e40af}
+.note-warn{background:#fffbeb;border:1px solid #fcd34d;color:#92400e}
+.note-ok{background:#f0fdf4;border:1px solid #86efac;color:#166534}
+
+.quote-preview{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:12px 14px;font-family:monospace;font-size:12.5px;margin-top:10px;line-height:1.7}
+.quote-preview .hl{color:#4ade80;font-weight:700}
+.quote-preview .frag{color:#fcd34d}
+
+.final-tree{margin-top:14px}
+.review-section{margin-bottom:16px}
+.review-section h4{font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px}
+.review-section .content{font-size:14px}
+.review-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.review-chip{background:var(--surface-2);border-radius:8px;padding:8px 10px;font-size:12.5px}
+.review-chip .k{color:var(--mut);font-size:10.5px;text-transform:uppercase;font-weight:700}
+.b-used{font-size:10.5px;color:var(--mut);margin-top:4px}
+.b-used span{display:inline-block;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:1px 7px;margin:2px 2px 0 0;font-weight:600}
+.assoc-line{color:#86efac;font-size:12px}
+
+.variant-card{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;background:var(--surface-2)}
+.variant-card-hd{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.variant-card-hd .vnum{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:800;color:var(--l4);font-size:14px}
+.variant-card-hd .mini-x{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;padding:3px 9px;color:#991b1b;font-weight:800;font-size:12px}
+.variant-card-hd .mini-x:hover{background:#fef2f2}
+.addon-hd{font-size:10.5px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.03em;margin:8px 0 4px}
+.add-variant-btn{width:100%;border:1.5px dashed var(--l4);color:var(--l4);background:#faf5ff;border-radius:10px;padding:10px;font-weight:700;font-size:13.5px;cursor:pointer;margin-bottom:6px}
+.add-variant-btn:hover{background:#f3e8ff}
+
+.fixed-box{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--surface-2);margin-bottom:14px}
+.fixed-box .fb-hd{font-size:11px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.sku-build{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;margin-top:8px}
+.sku-seg{border-radius:8px;padding:8px 10px;font-family:ui-monospace,Menlo,Consolas,monospace;text-align:center;min-width:54px}
+.sku-seg.base{background:#0f172a;color:#4ade80;font-weight:800}
+.sku-seg.dim{background:#1e293b;color:#fcd34d}
+.sku-seg.zero{opacity:.45}
+.sku-dash{color:var(--mut);font-weight:800;align-self:center;padding:0 4px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">RH</div>
+  <div>
+    <h1>Product Creation Wizard</h1>
+    <p>Walk through Catalog → <b>Template (range #, brand, fixed spec, Ø/L + add-on pools)</b> → Variants</p>
+  </div>
+  <div class="hdr-links">
+    <a href="index.html">Catalog Explorer</a>
+    <a href="product-creation-wizard.html">Product Wizard</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <p class="lead">A <b>Template</b> is a range with its own number (e.g. <code>40400</code>) — brand(s), country/company release, and the parts that never change across the range (<b>Head, Drive, Point, Material, Coating</b>) live here as single fixed values. Diameter &amp; Length <b>do vary within a range</b> (confirmed from the RedHorse characteristics sheet — one range lists several Ø/L combos), so they're a pool on the template and picked <b>per variant</b>. Each <b>Variant</b> gets its own item number by appending a running suffix to the template — <code>40400</code> → <code>404001</code>, <code>404002</code>… If a variant also needs a Configuration/Colour/Size/Style add-on, that's appended with dashes: <code>404001-1-12-2-3</code>.</p>
+
+  <div class="stepper" id="stepper"></div>
+
+  <div class="layout">
+    <div class="panel" id="step-panel"></div>
+
+    <div class="preview">
+      <div class="panel">
+        <h3>🗂️ Live object tree</h3>
+        <div class="tree-line" id="tree-preview"></div>
+        <div class="summary-kv" id="summary-kv"></div>
+        <div class="note note-info" id="step-note"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CATALOGS = ['Screws','Hammer','Washer','Rivets'];
+
+/** Brands = Product families (M2M on the template — presentation layer, not a folder). */
+const EXISTING_BRANDS = {
+  Screws: [
+    { code:'AXIS',  name:'AXIS®' },
+    { code:'CREO',  name:'CREO®' },
+    { code:'ROCO',  name:'ROCO®' },
+    { code:'URSUS', name:'URSUS®' },
+    { code:'HELIX', name:'HELIX®' }
+  ],
+  Hammer: [ { code:'RHTOOLS', name:'RedHorse Tools' } ],
+  Washer: [ { code:'RHFIX',   name:'RedHorse Fixing' } ],
+  Rivets: [ { code:'RHRIV',   name:'RedHorse Rivets' } ]
+};
+
+/** Company release + tier + sold-as brand name — Method A step 3 ("Sell where & tier"). */
+const COMPANIES = [
+  { id:'dk', name:'RED HORSE Denmark',   flag:'🇩🇰' },
+  { id:'se', name:'Aston Sweden',        flag:'🇸🇪' },
+  { id:'us', name:'RED HORSE USA',       flag:'🇺🇸' },
+  { id:'ec', name:'Star Fasteners+ (web)', flag:'🌐' }
+];
+const TIERS = ['Standard','Premium','Mini','Pro','Basic'];
+
+const MATERIALS = ['Carbon','RXB','A2 Stainless','A4 Stainless','Aluminium','Steel'];
+const COATINGS  = ['Zn20B','Zytec','HDG','None'];
+const HEADS     = ['MH (Mushroom Head)','CSH (Countersunk)','HWH (Hex washer)','FH (Farmer)'];
+const DRIVES    = ['TX20 (TORX®)','PZ (Pozidriv)','PH (Phillips)','SQ (Square)'];
+const POINTS    = ['#1','#1S','#2','Sharp Point'];
+/** "Virtuel hængemapper" — Standard/Mini/Plus are attribute tags on the template, not folders */
+const CATEGORIES = ['Standard','Mini','Plus','Self-drilling','Façade','Roofing'];
+
+/** The 4 F&O product dimensions. Template lists the allowed VALUES (pool);
+ *  a variant picks exactly ONE per dimension. Order matches 35032-21-59-8-1. */
+const DIM_CONFIG = ['Standard (0)','MAT-SILVER (1)','Long thread (21)'];
+const DIM_COLOUR = ['No Colour (0)','RAL 9005 Jet Black (59)','RAL 9010 White (60)','RAL 8371 M (26)'];
+const DIM_SIZE   = ['Single piece / PCS (2)','Box of 100 (8)','150 PCS (3)'];
+const DIM_STYLE  = ['NA (0)','EPDM washer (8)','RH C25B (1)','RH4001 C25B (2)'];
+const DIM_DEFS = [
+  { key:'config', label:'Configuration', rh:'material / washer', opts:DIM_CONFIG },
+  { key:'colour', label:'Colour',         rh:'paint colour',      opts:DIM_COLOUR },
+  { key:'size',   label:'Size',           rh:'pack size — how it is sold, not screw length', opts:DIM_SIZE },
+  { key:'style',  label:'Style',          rh:'label',             opts:DIM_STYLE }
+];
+
+/** Templates = a range with its own number (e.g. 40400). Variants get their own item number
+ *  by appending a running suffix (404001, 404002…). Per the RedHorse characteristics sheet:
+ *  Head / Drive / Point / Material / Coating are ONE value per range (fixed here).
+ *  Diameter & Length are NOT fixed — a single range lists several Ø/L combos — so they're
+ *  a pool on the template and each variant picks one Ø + one L. */
+const TEMPLATES = {
+  Screws: [
+    { code:'40400', name:'CREO Self-drilling Façade Screw DxL TX', material:'Bi-metal, stainless A2', coating:'Cosmetic zink, ZnB10', head:HEADS[1], drive:DRIVES[0], point:'Drill point #2',
+      diameterPool:['4.8 mm','5.5 mm'], lengthPool:['25 mm','38 mm'],
+      brands:['CREO','AXIS'], categories:['Self-drilling','Façade'],
+      merch:{ dk:{tier:'Standard',released:true}, se:{tier:'Standard',released:true}, us:{tier:'Pro',released:false}, ec:{tier:'Standard',released:false} },
+      dims:{ config:['Standard (0)','Long thread (21)'], colour:['No Colour (0)','RAL 9005 Jet Black (59)','RAL 9010 White (60)'], size:['Single piece / PCS (2)','Box of 100 (8)'], style:['NA (0)','EPDM washer (8)'] } },
+    { code:'30300', name:'CREO Wood Screw DxL-L1 TX', material:'Carbon steel', coating:'Zytec™+', head:'Countersunk w. turbine ribs (CSH-TR)', drive:'TX25', point:'Sharp point (S-point)',
+      diameterPool:['7.2 mm','8 mm'], lengthPool:['120 mm','180 mm','220 mm'],
+      brands:['CREO'], categories:['Roofing'],
+      merch:{ dk:{tier:'Premium',released:true}, se:{tier:'Premium',released:true}, us:{tier:'Premium',released:false}, ec:{tier:'Standard',released:false} },
+      dims:{ config:['Standard (0)'], colour:['No Colour (0)','RAL 9005 Jet Black (59)'], size:['Single piece / PCS (2)','Box of 100 (8)'], style:['NA (0)'] } }
+  ],
+  Hammer: [ { code:'40021', name:'Striking Hammer', material:'Steel', coating:'None', head:HEADS[0], drive:DRIVES[0], point:POINTS[0],
+      diameterPool:[], lengthPool:['320 mm'],
+      brands:['RHTOOLS'], categories:[], merch:{ dk:{tier:'Standard',released:true}, se:{tier:'Standard',released:false}, us:{tier:'Standard',released:false}, ec:{tier:'Standard',released:false} },
+      dims:{ config:['Standard (0)'], colour:['No Colour (0)'], size:['Single piece / PCS (2)'], style:['NA (0)'] } } ],
+  Washer: [ { code:'90010', name:'Sealing Washer', material:'EPDM', coating:'None', head:HEADS[0], drive:DRIVES[0], point:POINTS[0],
+      diameterPool:['14 mm','18 mm'], lengthPool:[],
+      brands:['RHFIX'], categories:[], merch:{ dk:{tier:'Standard',released:true}, se:{tier:'Standard',released:false}, us:{tier:'Standard',released:false}, ec:{tier:'Standard',released:false} },
+      dims:{ config:['Standard (0)'], colour:['No Colour (0)'], size:['Single piece / PCS (2)','Box of 100 (8)'], style:['NA (0)'] } } ],
+  Rivets: [ { code:'51001', name:'Blind Rivet', material:'Aluminium', coating:'None', head:HEADS[0], drive:DRIVES[0], point:POINTS[0],
+      diameterPool:['4.0 mm','4.8 mm'], lengthPool:['12 mm','16 mm'],
+      brands:['RHRIV'], categories:[], merch:{ dk:{tier:'Standard',released:true}, se:{tier:'Standard',released:false}, us:{tier:'Standard',released:false}, ec:{tier:'Standard',released:true} },
+      dims:{ config:['Standard (0)'], colour:['No Colour (0)'], size:['Single piece / PCS (2)'], style:['NA (0)'] } } ]
+};
+
+const STEPS = [
+  { key:'catalog',  label:'Catalog',    num:'L1' },
+  { key:'template', label:'Template',   num:'L3' },
+  { key:'sell',     label:'Sell + tier', num:'—' },
+  { key:'variant',  label:'Variants',   num:'L4' },
+  { key:'review',   label:'Review',     num:'✓' }
+];
+
+function emptyTemplate(){
+  return {
+    code:'', name:'', isNew:false,
+    material:'', coating:'', head:'', drive:'', point:'',
+    diameterPool:[], lengthPool:[],
+    brands:[], categories:[],
+    merch:{ dk:{tier:'Standard',released:false}, se:{tier:'Standard',released:false}, us:{tier:'Standard',released:false}, ec:{tier:'Standard',released:false} },
+    dims:{ config:[], colour:[], size:[], style:[] }
+  };
+}
+
+const state = {
+  step: 0,
+  catalog: null,
+  template: emptyTemplate(),
+  variants: [] // { seq, diameter, length, brands:[], config, colour, size, style }
+};
+
+function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function optCode(opt){ const m=String(opt||'').match(/\((\w[\w-]*)\)/); return m ? m[1] : '0'; }
+/** Variant's own item number = template + running suffix (plain sequence, not zero-padded).
+ *  40400 → 404001, 404002… (matches the RedHorse example exactly). */
+function itemNumber(v){
+  const base = state.template.code || '?????';
+  return `${base}${v.seq}`;
+}
+/** If an add-on (Config/Colour/Size/Style) is picked, append the codes with dashes:
+ *  404001-1-12-2-3. Without an add-on the number is just the item number. */
+function configuredNumber(v){
+  const item = itemNumber(v);
+  const hasAddon = v.config || v.colour || v.size || v.style;
+  if(!hasAddon) return item;
+  const c   = v.config ? optCode(v.config) : '0';
+  const col = v.colour ? optCode(v.colour) : '0';
+  const s   = v.size   ? optCode(v.size)   : '0';
+  const st  = v.style  ? optCode(v.style)  : '0';
+  return `${item}-${c}-${col}-${s}-${st}`;
+}
+function makeVariant(){
+  return {
+    seq: state.variants.length + 1,
+    diameter: state.template.diameterPool[0] || '', length: state.template.lengthPool[0] || '',
+    brands: state.template.brands.slice(), config:'', colour:'', size:'', style:''
+  };
+}
+
+function softUpdate(){
+  renderTreePreview();
+  const btn = document.getElementById('btn-continue');
+  if(btn) btn.disabled = !canAdvance();
+}
+
+function setField(obj, key, el, upper){
+  let v = el.value;
+  if(upper){ v = v.toUpperCase(); el.value = v; }
+  obj[key] = v;
+  softUpdate();
+}
+
+function renderStepper(){
+  const el = document.getElementById('stepper');
+  el.innerHTML = STEPS.map((s,i) => `
+    <div class="step-tab ${i===state.step?'active':''} ${i<state.step?'done':''}" onclick="goToStep(${i})">
+      <div class="sn">${s.num}</div>
+      <div class="st">${esc(s.label)}</div>
+    </div>`).join('');
+}
+
+function goToStep(i){
+  if(i > state.step && !canAdvance()) return;
+  state.step = i;
+  render();
+}
+
+function canAdvance(){
+  switch(STEPS[state.step].key){
+    case 'catalog':  return !!state.catalog;
+    case 'template': return !!(state.template.code && state.template.name && state.template.brands.length && state.template.material);
+    case 'sell':     return true;
+    case 'variant':  return state.variants.length > 0 && state.variants.every(v => v.brands.length);
+    default:         return true;
+  }
+}
+
+function next(){ if(canAdvance() && state.step < STEPS.length-1){ state.step++; render(); } }
+function prev(){ if(state.step > 0){ state.step--; render(); } }
+
+function renderPanel(){
+  const key = STEPS[state.step].key;
+  const el = document.getElementById('step-panel');
+  let body = '';
+
+  if(key === 'catalog'){
+    body = `
+      <h2><span class="badge b-l1">L1</span> Choose a catalog</h2>
+      <p class="sub">Every product sits on one shelf. Purely navigational — not a Pimcore attribute.</p>
+      <div class="choice-grid">
+        ${CATALOGS.map(c => `<div class="choice-card ${state.catalog===c?'selected':''}" onclick="pickCatalog('${c}')">
+          <div class="cc-icon">${c==='Screws'?'🔩':c==='Hammer'?'🔨':c==='Washer'?'🔘':'📌'}</div>
+          <div class="cc-name">${esc(c)}</div>
+          <div class="cc-meta">/Catalog/${esc(c)}</div>
+        </div>`).join('')}
+      </div>
+      <div class="note note-info">In Dynamics F&amp;O this is called: <b>Category hierarchy (top level)</b>.</div>`;
+  }
+
+  else if(key === 'template'){
+    const list = TEMPLATES[state.catalog] || [];
+    const brandList = EXISTING_BRANDS[state.catalog] || [];
+    body = `
+      <h2><span class="badge b-l3">L3</span> The Template — a range, not a single item</h2>
+      <p class="sub">Per the RedHorse characteristics sheet, <b>Head, Drive, Point, Material, Coating</b> are one value per range — fixed here. <b>Diameter &amp; Length are not fixed</b> — the same range lists several Ø/L combos (e.g. 4.8mm+5.5mm, 25mm+38mm) — so they're a pool here and each <b>Variant</b> picks one Ø + one L, getting its own item number (<code>40400</code> → <code>404001</code>).</p>
+
+      <div class="choice-grid">
+        ${list.map(t => `<div class="choice-card ${!state.template.isNew && state.template.code===t.code?'selected':''}" onclick='pickTemplate(${JSON.stringify(t.code)})'>
+          <div class="cc-icon">📦</div>
+          <div class="cc-name">${esc(t.code)}</div>
+          <div class="cc-meta">${esc(t.material)}${t.coating!=='None'?' + '+esc(t.coating):''}</div>
+          <div class="b-used">brands: ${(t.brands||[]).map(b=>'<span>'+esc(b)+'</span>').join(' ')||'<span>none</span>'}</div>
+        </div>`).join('')}
+        <div class="choice-card add-new ${state.template.isNew?'selected':''}" onclick="newTemplate()">+ New template</div>
+      </div>
+
+      <div class="new-form open" style="margin-top:14px">
+        <div class="field-grid">
+          <div class="field-row"><label>Item number <span class="hint">(= Template = Range/MGPG — this IS the base item)</span></label><input type="text" value="${esc(state.template.code)}" oninput="setField(state.template,'code',this,true)" placeholder="e.g. 30444"></div>
+          <div class="field-row"><label>Name</label><input type="text" value="${esc(state.template.name)}" oninput="setField(state.template,'name',this)" placeholder="e.g. Self-drilling façade screw"></div>
+        </div>
+
+        <div class="field-row"><label><span class="badge b-l2">L2</span> Brand(s) — product family <span class="hint">(multi-select — pick every look-alike family this template belongs to)</span></label>
+          <div class="tag-multi">${brandList.map(b => `<div class="tag-opt ${state.template.brands.includes(b.code)?'on':''}" onclick="toggleTemplateBrand('${b.code}')">${esc(b.name)}</div>`).join('')}</div>
+          <div class="hint" style="margin-top:6px">${state.template.brands.length ? 'This template shows under: <b>'+state.template.brands.map(esc).join(', ')+'</b>. Each variant then picks its own brand(s) from this set.' : 'No brand yet — pick one or more.'}</div>
+        </div>
+
+        <div class="fixed-box">
+          <div class="fb-hd"><span class="badge b-par">Pool</span> Diameter &amp; Length — varies within the range, one variant = one Ø + one L</div>
+          <div class="field-grid">
+            <div class="field-row" style="margin-bottom:0">
+              <label>Diameter values allowed</label>
+              <div class="tag-multi" style="margin-bottom:8px">${state.template.diameterPool.map(o => `<div class="tag-opt on" onclick="removePoolValue('diameterPool','${esc(o)}')">${esc(o)} ✕</div>`).join('') || '<span class="hint">none yet</span>'}</div>
+              <input type="text" id="new-diameter" placeholder="e.g. 4.8 mm — press Enter" onkeydown="if(event.key==='Enter'){addPoolValue('diameterPool',this.value);this.value='';}">
+            </div>
+            <div class="field-row" style="margin-bottom:0">
+              <label>Length values allowed</label>
+              <div class="tag-multi" style="margin-bottom:8px">${state.template.lengthPool.map(o => `<div class="tag-opt on" onclick="removePoolValue('lengthPool','${esc(o)}')">${esc(o)} ✕</div>`).join('') || '<span class="hint">none yet</span>'}</div>
+              <input type="text" id="new-length" placeholder="e.g. 25 mm — press Enter" onkeydown="if(event.key==='Enter'){addPoolValue('lengthPool',this.value);this.value='';}">
+            </div>
+          </div>
+        </div>
+
+        <div class="fixed-box">
+          <div class="fb-hd"><span class="badge b-fix">Fixed</span> Spec — one value each, shared by every variant</div>
+          <div class="field-grid">
+            <div class="field-row"><label>Material</label>
+              <select onchange="state.template.material=this.value;softUpdate()"><option value="">— select —</option>${MATERIALS.map(m=>`<option ${state.template.material===m?'selected':''}>${esc(m)}</option>`).join('')}</select>
+            </div>
+            <div class="field-row"><label>Coating</label>
+              <select onchange="state.template.coating=this.value;softUpdate()"><option value="">— none —</option>${COATINGS.map(c=>`<option ${state.template.coating===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
+            </div>
+          </div>
+          <div class="field-grid3">
+            <div class="field-row" style="margin-bottom:0"><label>Head type</label><select onchange="state.template.head=this.value;softUpdate()"><option value="">— select —</option>${HEADS.map(h=>`<option ${state.template.head===h?'selected':''}>${esc(h)}</option>`).join('')}</select></div>
+            <div class="field-row" style="margin-bottom:0"><label>Drive type</label><select onchange="state.template.drive=this.value;softUpdate()"><option value="">— select —</option>${DRIVES.map(d=>`<option ${state.template.drive===d?'selected':''}>${esc(d)}</option>`).join('')}</select></div>
+            <div class="field-row" style="margin-bottom:0"><label>Point type</label><select onchange="state.template.point=this.value;softUpdate()"><option value="">— select —</option>${POINTS.map(p=>`<option ${state.template.point===p?'selected':''}>${esc(p)}</option>`).join('')}</select></div>
+          </div>
+        </div>
+
+        <div class="field-row"><label>Categories / tags <span class="hint">(several can apply — not folders)</span></label>
+          <div class="tag-multi">${CATEGORIES.map(c => `<div class="tag-opt ${state.template.categories.includes(c)?'on':''}" onclick="toggleTemplateCategory('${c}')">${esc(c)}</div>`).join('')}</div>
+        </div>
+
+        <div class="field-row" style="margin-top:4px">
+          <label><span class="badge b-par">Add-on × 4</span> Configuration · Colour · Size · Style — optional, appended to a variant's number with dashes</label>
+          ${DIM_DEFS.map(d => `
+            <div style="margin:8px 0 10px"><b style="font-size:12.5px">${esc(d.label)}</b> <span class="hint">(${esc(d.rh)})</span>
+              <div class="tag-multi" style="margin-top:6px">${d.opts.map(o => `<div class="tag-opt ${state.template.dims[d.key].includes(o)?'on':''}" onclick="toggleDim('${d.key}','${esc(o)}')">${esc(o)}</div>`).join('')}</div>
+            </div>`).join('')}
+          <div class="hint">Add or remove allowed values here to change what variants are possible for this template.</div>
+        </div>
+      </div>
+      <div class="note note-info">In Dynamics F&amp;O this is called: <b>Product master (fixed spec) + 4 product dimensions + variants</b>.</div>`;
+  }
+
+  else if(key === 'sell'){
+    const rows = COMPANIES.map(c => {
+      const m = state.template.merch[c.id];
+      return `<tr>
+        <td>${c.flag} ${esc(c.name)}</td>
+        <td><select onchange="setMerch('${c.id}','tier',this.value)">${TIERS.map(t=>`<option ${m.tier===t?'selected':''}>${esc(t)}</option>`).join('')}</select></td>
+        <td><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" ${m.released?'checked':''} onchange="toggleRelease('${c.id}')"> Sell here</label></td>
+      </tr>`;
+    }).join('');
+    body = `
+      <h2><span class="badge b-l2">Sell + tier</span> Turn a company on to sell it, set its tier</h2>
+      <p class="sub">Brand(s) live on the Template (previous step). This is per-company <b>release</b> and <b>tier</b> — not a new brand.</p>
+      <table style="width:100%;border-collapse:collapse;font-size:13.5px">
+        <thead><tr style="text-align:left;color:var(--mut);font-size:11px;text-transform:uppercase"><th style="padding:6px 4px">Company</th><th style="padding:6px 4px">Tier</th><th style="padding:6px 4px">Sell here?</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="note note-info">In Dynamics F&amp;O this is called: <b>Released products + tier per company</b>.</div>`;
+  }
+
+  else if(key === 'variant'){
+    if(!state.variants.length) state.variants = [ makeVariant() ];
+    const brandPool = state.template.brands;
+    const brandInfo = code => (EXISTING_BRANDS[state.catalog]||[]).find(x=>x.code===code) || { code, name:code };
+    const dimSelect = (vi, d) => {
+      const allowed = state.template.dims[d.key];
+      const v = state.variants[vi];
+      if(!allowed.length){
+        return `<div class="field-row"><label>${esc(d.label)}</label><select disabled><option>— none allowed on template —</option></select></div>`;
+      }
+      return `<div class="field-row"><label>${esc(d.label)} <span class="hint">(${esc(d.rh)})</span></label>
+        <select onchange="setVariantDim(${vi},'${d.key}',this.value)">
+          <option value="">— ${esc(allowed[0])} —</option>
+          ${allowed.map(o => `<option ${v[d.key]===o?'selected':''}>${esc(o)}</option>`).join('')}
+        </select></div>`;
+    };
+    const sizeSelect = (vi, poolKey, field, label) => {
+      const pool = state.template[poolKey];
+      const v = state.variants[vi];
+      if(!pool.length) return `<div class="field-row"><label>${esc(label)}</label><select disabled><option>— none on template —</option></select></div>`;
+      return `<div class="field-row"><label>${esc(label)}</label>
+        <select onchange="setVariantField2(${vi},'${field}',this.value)">
+          ${pool.map(o => `<option ${v[field]===o?'selected':''}>${esc(o)}</option>`).join('')}
+        </select></div>`;
+    };
+    const skuBuild = (v) => {
+      const item = itemNumber(v);
+      const segs = [ {code:item, label:'item #', base:true} ];
+      const hasAddon = v.config || v.colour || v.size || v.style;
+      if(hasAddon){
+        DIM_DEFS.forEach(d => {
+          const val = v[d.key];
+          const code = val ? optCode(val) : '0';
+          segs.push({ code, label:d.label, zero: code==='0' });
+        });
+      }
+      return segs.map((s,i) => (i>0?'<span class="sku-dash">-</span>':'') + `<div class="sku-seg ${s.base?'base':'dim'}${s.zero?' zero':''}">${esc(s.code)}<div style="font-size:9px;font-weight:600;opacity:.75;margin-top:2px">${esc(s.label)}</div></div>`).join('');
+    };
+    const cards = state.variants.map((v,vi) => `
+      <div class="variant-card">
+        <div class="variant-card-hd">
+          <span class="badge b-l4">Variant ${vi+1}</span>
+          <span class="vnum" id="vnum-${vi}">${esc(configuredNumber(v))}</span>
+          ${state.variants.length>1 ? `<button class="mini-x" onclick="removeVariant(${vi})">✕ remove</button>` : ''}
+        </div>
+        <div class="sku-build">${skuBuild(v)}</div>
+
+        <div class="field-grid" style="margin-top:12px">
+          ${sizeSelect(vi,'diameterPool','diameter','Diameter')}
+          ${sizeSelect(vi,'lengthPool','length','Length')}
+        </div>
+
+        <div class="field-row"><label><span class="badge b-l2">L2</span> Brand(s) for this variant <span class="hint">(single or multiple — subset of template brands)</span></label>
+          ${brandPool.length
+            ? `<div class="tag-multi">${brandPool.map(code => `<div class="tag-opt ${v.brands.includes(code)?'on':''}" onclick="toggleVariantBrand(${vi},'${code}')">${esc(brandInfo(code).name)}</div>`).join('')}</div>`
+            : `<span style="font-size:12px;color:var(--mut)">no template brands</span>`}
+        </div>
+
+        <div class="addon-hd">Add-on (optional) — Configuration / Colour / Size / Style, appended with dashes only if used</div>
+        <div class="field-grid">${DIM_DEFS.map(d => dimSelect(vi,d)).join('')}</div>
+      </div>`).join('');
+    body = `
+      <h2><span class="badge b-l4">L4</span> Variants of ${esc(state.template.code||'—')}</h2>
+      <p class="sub">Each variant gets its own item number by appending a running suffix to the template — <code>${esc(state.template.code||'40400')}</code> → <code>${esc(itemNumber(state.variants[0]||{seq:1}))}</code>, <code>${esc(itemNumber({seq:2}))}</code>… Pick its Ø &amp; L from the template's pool. Only add a Configuration/Colour/Size/Style add-on if this specific variant needs one — it gets appended with dashes.</p>
+      ${brandPool.length ? '' : '<div class="note note-warn">Template has no brands — go back to the Template step and select at least one.</div>'}
+      ${cards}
+      <button class="add-variant-btn" onclick="addVariant()">+ Add another variant (${esc(itemNumber({seq:state.variants.length+1}))})</button>
+      <div class="note note-info">Without an add-on the number is just the item number, e.g. <code>${esc(itemNumber(state.variants[0]||{seq:1}))}</code>. With an add-on it becomes <code>${esc(itemNumber(state.variants[0]||{seq:1}))}-1-12-2-3</code>-style.</div>`;
+  }
+
+  else if(key === 'review'){
+    const t = state.template;
+    const dimTxt = (arr) => arr.length ? arr.map(esc).join(', ') : '<span style="color:var(--mut)">none</span>';
+    const merchRows = COMPANIES.map(c => {
+      const m = t.merch[c.id];
+      return `<tr><td>${c.flag} ${esc(c.name)}</td><td>${esc(m.tier)}</td><td>${m.released?'<b style="color:var(--l2)">✓ sells it</b>':'<span style="color:var(--mut)">—</span>'}</td></tr>`;
+    }).join('');
+    const variantRows = state.variants.map((v,i) => `
+      <div class="variant-card" style="margin-bottom:8px">
+        <div class="variant-card-hd">
+          <span class="badge b-l4">Variant ${i+1}</span>
+          <span class="vnum">${esc(configuredNumber(v))}</span>
+        </div>
+        <div style="font-size:12.5px;color:var(--txt-2)">
+          <b>Ø × L:</b> ${esc(v.diameter||'—')} × ${esc(v.length||'—')} &nbsp;·&nbsp; <b>Brand(s):</b> ${v.brands.length?v.brands.map(esc).join(', '):'—'}<br>
+          <b>Add-on:</b> ${(v.config||v.colour||v.size||v.style) ? [v.config,v.colour,v.size,v.style].filter(Boolean).map(esc).join(' · ') : '<span style="color:var(--mut)">none — plain item number</span>'}
+        </div>
+      </div>`).join('');
+    body = `
+      <h2>✅ Review before saving</h2>
+      <p class="sub">This is exactly what would be saved as Pimcore objects — one Template (= range), and its variants each with their own item number.</p>
+
+      <div class="review-section">
+        <h4>Template (L3) — the range</h4>
+        <div class="review-grid">
+          <div class="review-chip"><div class="k">Catalog</div><div class="v">${esc(state.catalog||'—')}</div></div>
+          <div class="review-chip"><div class="k">Template #</div><div class="v">${esc(t.code||'—')} ★</div></div>
+          <div class="review-chip"><div class="k">Brands (L2)</div><div class="v">${dimTxt(t.brands)}</div></div>
+          <div class="review-chip"><div class="k">Material / Coating</div><div class="v">${esc(t.material||'—')}${t.coating&&t.coating!=='None'?' / '+esc(t.coating):''}</div></div>
+        </div>
+      </div>
+
+      <div class="review-section">
+        <h4>Fixed spec <span class="hint">(one value each — same for the whole range)</span></h4>
+        <div class="review-grid">
+          <div class="review-chip"><div class="k">Head</div><div class="v">${esc(t.head||'—')}</div></div>
+          <div class="review-chip"><div class="k">Drive</div><div class="v">${esc(t.drive||'—')}</div></div>
+          <div class="review-chip"><div class="k">Point</div><div class="v">${esc(t.point||'—')}</div></div>
+        </div>
+      </div>
+
+      <div class="review-section">
+        <h4>Diameter &amp; Length pool <span class="hint">(varies per variant, NOT fixed on the range)</span></h4>
+        <div class="content" style="font-size:13px">
+          <b>Diameter:</b> ${dimTxt(t.diameterPool)}<br>
+          <b>Length:</b> ${dimTxt(t.lengthPool)}
+        </div>
+      </div>
+
+      <div class="review-section">
+        <h4>Allowed dimension pool (multi-select on template)</h4>
+        <div class="content" style="font-size:13px">
+          <b>Configuration:</b> ${dimTxt(t.dims.config)}<br>
+          <b>Colour:</b> ${dimTxt(t.dims.colour)}<br>
+          <b>Size:</b> ${dimTxt(t.dims.size)}<br>
+          <b>Style:</b> ${dimTxt(t.dims.style)}
+        </div>
+      </div>
+
+      <div class="review-section">
+        <h4>Sold by (per company)</h4>
+        <table style="width:100%;border-collapse:collapse;font-size:13px"><tbody>${merchRows}</tbody></table>
+      </div>
+
+      <div class="review-section">
+        <h4>Variants (L4) — built from ${esc(t.code||'—')}</h4>
+        ${variantRows}
+      </div>
+
+      <div class="note note-ok">Template <code>${esc(t.code||'40400')}</code> holds brand(s) + fixed spec (Head/Drive/Point/Material/Coating) + the Ø/L and add-on pools. Each variant gets its own item number by appending a running suffix — e.g. <code>${esc(itemNumber(state.variants[0]||{seq:1}))}</code> — and only gets the dashed add-on suffix if it actually uses one.</div>
+    `;
+  }
+
+  const isFirst = state.step === 0;
+  const isLast = state.step === STEPS.length - 1;
+  body += `
+    <div class="btn-row">
+      <button class="btn" onclick="prev()" ${isFirst?'disabled':''}>← Back</button>
+      ${isLast
+        ? `<button class="btn primary" onclick="restart()">↻ Start a new product</button>`
+        : `<button class="btn primary" id="btn-continue" onclick="next()" ${canAdvance()?'':'disabled'}>Continue →</button>`}
+    </div>`;
+
+  el.innerHTML = body;
+}
+
+function pickCatalog(c){ state.catalog=c; state.template=emptyTemplate(); state.variants=[]; render(); }
+
+function pickTemplate(code){
+  const t = (TEMPLATES[state.catalog]||[]).find(x=>x.code===code);
+  if(!t) return;
+  state.template = {
+    code:t.code, name:t.name, isNew:false,
+    material:t.material, coating:t.coating, head:t.head, drive:t.drive, point:t.point,
+    diameterPool:[...(t.diameterPool||[])], lengthPool:[...(t.lengthPool||[])],
+    brands:[...(t.brands||[])], categories:[...(t.categories||[])],
+    merch: JSON.parse(JSON.stringify(t.merch)),
+    dims:{ config:[...t.dims.config], colour:[...t.dims.colour], size:[...t.dims.size], style:[...t.dims.style] }
+  };
+  state.variants = [];
+  render();
+}
+function newTemplate(){ state.template = emptyTemplate(); state.template.isNew = true; state.variants=[]; render(); }
+function toggleTemplateBrand(code){
+  const a=state.template.brands; const i=a.indexOf(code); i>=0?a.splice(i,1):a.push(code);
+  state.variants.forEach(v=>{ v.brands=v.brands.filter(b=>state.template.brands.includes(b)); });
+  render();
+}
+function toggleTemplateCategory(c){ const a=state.template.categories; const i=a.indexOf(c); i>=0?a.splice(i,1):a.push(c); render(); }
+function toggleDim(dim,val){
+  const a=state.template.dims[dim]; const i=a.indexOf(val); i>=0?a.splice(i,1):a.push(val);
+  state.variants.forEach(v => { if(v[dim] && !a.includes(v[dim])) v[dim]=''; });
+  render();
+}
+function addPoolValue(poolKey,val){
+  val = String(val||'').trim();
+  if(!val) return;
+  const a = state.template[poolKey];
+  if(!a.includes(val)) a.push(val);
+  const field = poolKey==='diameterPool' ? 'diameter' : 'length';
+  state.variants.forEach(v => { if(!v[field]) v[field]=val; });
+  render();
+}
+function removePoolValue(poolKey,val){
+  const a = state.template[poolKey]; const i=a.indexOf(val); if(i>=0) a.splice(i,1);
+  const field = poolKey==='diameterPool' ? 'diameter' : 'length';
+  state.variants.forEach(v => { if(v[field]===val) v[field]=a[0]||''; });
+  render();
+}
+function setMerch(cid,key,val){ state.template.merch[cid][key]=val; render(); }
+function toggleRelease(cid){ state.template.merch[cid].released = !state.template.merch[cid].released; render(); }
+
+/* per-variant handlers */
+function addVariant(){ state.variants.push(makeVariant()); render(); }
+function removeVariant(vi){ state.variants.splice(vi,1); if(!state.variants.length) state.variants=[makeVariant()]; render(); }
+function setVariantDim(vi,key,val){ state.variants[vi][key]=val; render(); }
+function setVariantField2(vi,key,val){ state.variants[vi][key]=val; render(); }
+function toggleVariantBrand(vi,code){ const a=state.variants[vi].brands; const i=a.indexOf(code); i>=0?a.splice(i,1):a.push(code); render(); }
+
+function restart(){
+  state.step=0; state.catalog=null;
+  state.template=emptyTemplate();
+  state.variants=[];
+  render();
+}
+
+function renderTreePreview(){
+  const treeEl = document.getElementById('tree-preview');
+  const kvEl = document.getElementById('summary-kv');
+  const noteEl = document.getElementById('step-note');
+  const t = state.template;
+
+  const lines = [`<span class="l1">/RedHorseV3/Catalog/${esc(state.catalog||'…')}</span>`];
+  if(state.catalog){
+    const brandSet = t.brands.length ? t.brands : ['…'];
+    brandSet.forEach(b => lines.push(`  <span class="l2">🏷 ${esc(b)}</span> <span class="dim">brand</span>`));
+    if(t.code){
+      lines.push(`    <span class="l3">🔩 ${esc(t.code)}</span>  <span class="dim">template = range · Head/Drive/Point/Material/Coating fixed</span>`);
+      const filled = state.variants.filter(v => v.brands.length);
+      if(filled.length){
+        filled.forEach(v => lines.push(`      <span class="l4">🛒 ${esc(configuredNumber(v))}</span>  <span class="dim">Ø${esc(v.diameter||'?')}×${esc(v.length||'?')}</span>`));
+      } else if(state.step >= 3){
+        lines.push(`      <span class="dim">(add variants: pick Ø/L)</span>`);
+      }
+    } else if(state.step >= 1){
+      lines.push(`    <span class="dim">🔩 …  (set item number + brand)</span>`);
+    }
+  }
+  treeEl.innerHTML = lines.join('\n');
+
+  const kvRows = [];
+  if(state.catalog) kvRows.push(['Catalog (L1)', state.catalog]);
+  if(t.code) kvRows.push(['Template #', t.code]);
+  if(t.brands.length) kvRows.push(['Brands (L2)', t.brands.join(', ')]);
+  if(t.diameterPool.length || t.lengthPool.length) kvRows.push(['Ø / L pool', t.diameterPool.length+' Ø · '+t.lengthPool.length+' L']);
+  const dimCount = t.dims.config.length+t.dims.colour.length+t.dims.size.length+t.dims.style.length;
+  if(dimCount) kvRows.push(['Add-on pool', dimCount + ' allowed values']);
+  const filled = state.variants.filter(v=>v.brands.length);
+  if(filled.length) kvRows.push(['Variants', filled.map(v=>configuredNumber(v)).join(', ')]);
+  kvEl.innerHTML = kvRows.map(([k,v]) => `<div class="row"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`).join('');
+
+  const notes = {
+    catalog: 'Pick the product world first.',
+    template: 'Template = range number. Head/Drive/Point/Material/Coating are fixed; Ø/L and the add-on codes are pools.',
+    sell: 'Turn a company on to sell it, and set its tier. This does not create a new brand or item.',
+    variant: 'Each variant = template + running suffix (40400 → 404001). Add-on codes are optional, appended with dashes.',
+    review: 'One master object. Variants are dimension combinations, never separate items.'
+  };
+  noteEl.textContent = notes[STEPS[state.step].key] || '';
+}
+
+function render(){
+  renderStepper();
+  renderPanel();
+  renderTreePreview();
+}
+
+render();
+</script>
+</body>
+</html>
