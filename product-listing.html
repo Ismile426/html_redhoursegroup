@@ -48,6 +48,8 @@ header p{font-size:12.5px;opacity:.85}
 .kids{margin-left:16px;border-left:1.5px dashed var(--line);padding-left:6px}
 .kids.collapsed{display:none}
 .basetag{margin-left:auto;font-size:10px;font-weight:800;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;border-radius:20px;padding:1px 8px;white-space:nowrap}
+.vnametag{font-size:11.5px;color:#555;margin-left:7px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+.subtag{font-size:10.5px;color:#888;margin-left:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
 .count-pill{margin-left:auto;font-size:10.5px;font-weight:700;color:var(--mut);background:var(--surface-2);border:1px solid var(--line);border-radius:20px;padding:1px 8px}
 
 /* ---- listing ---- */
@@ -308,11 +310,15 @@ function renderTree(){
           const base=H.itemNumber(tpl,v);
           const brandSubs=(v.subs||[]).filter(sub=>(sub.brands&&sub.brands.length?sub.brands:v.brands).includes(bc));
           const hasSubs=brandSubs.length>0;
-          h+=`<div class="tr click" onclick="openBySku('${base}')">${hasSubs?CARET:NOCARET}<span class="ic">🔩</span><span class="nm mono">${esc(base)}</span><span class="basetag">base · sellable</span></div>`;
+          const vlabel = v.name ? `<span class="vnametag">${esc(v.name)}</span>` : `<span class="basetag">base · sellable</span>`;
+          h+=`<div class="tr click" onclick="openBySku('${base}')">${hasSubs?CARET:NOCARET}<span class="ic">🔩</span><span class="nm mono">${esc(base)}</span>${vlabel}</div>`;
           if(hasSubs){
             h+='<div class="kids" data-lvl="base">';
-            for(const sub of brandSubs){ const s=H.subNumber(tpl,v,sub);
-              h+=`<div class="tr click" onclick="openBySku('${s}')">${NOCARET}<span class="ic">🛒</span><span class="mono" style="font-size:12px">${esc(s)}</span></div>`; }
+            for(const sub of brandSubs){
+              const s=H.subNumber(tpl,v,sub);
+              const addons=[sub.config,sub.colour,sub.size,sub.style].filter(Boolean).join(' · ');
+              h+=`<div class="tr click" onclick="openBySku('${s}')">${NOCARET}<span class="ic">🛒</span><span class="mono" style="font-size:12px">${esc(s)}</span>${addons?`<span class="subtag">${esc(addons)}</span>`:''}</div>`;
+            }
             h+='</div>';
           }
         }
