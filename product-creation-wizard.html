@@ -298,7 +298,7 @@ function makeVariant(){
   CONFIG_KEYS.forEach(k => picks[k] = state.template.pools[k][0] || '');
   return { seq: state.variants.length+1, brands: state.template.brands.slice(), tier:'Standard', picks, subs: [] };
 }
-function makeSub(){ return { config:'', colour:'', size:'', style:'' }; }
+function makeSub(brands){ return { brands:(brands||[]).slice(), config:'', colour:'', size:'', style:'' }; }
 
 function softUpdate(){ renderTreePreview(); const b=document.getElementById('btn-continue'); if(b) b.disabled=!canAdvance(); }
 function setField(obj,key,el,upper){ let v=el.value; if(upper){ v=v.toUpperCase(); el.value=v; } obj[key]=v; softUpdate(); }
@@ -461,6 +461,9 @@ function renderPanel(){
           <button class="mini-x" onclick="removeSub(${vi},${si})">✕</button>
         </div>
         <div class="sku-build" style="margin:8px 0">${skuBuild(v,sub)}</div>
+        <div class="field-row" style="margin-bottom:8px"><label><span class="badge b-l2">L2</span> Brand(s) for this sub-variant <span class="hint">(subset of the variant's ${v.brands.length?v.brands.map(c=>esc(brandInfo(c).name)).join(', '):'—'})</span></label>
+          ${v.brands.length?`<div class="tag-multi">${v.brands.map(code=>`<div class="tag-opt ${(sub.brands||[]).includes(code)?'on':''}" onclick="toggleSubBrand(${vi},${si},'${code}')">${esc(brandInfo(code).name)}</div>`).join('')}</div>`:`<span style="font-size:12px;color:var(--mut)">pick brands on the variant first</span>`}
+        </div>
         <div class="field-grid">${DIM_DEFS.map(d=>dimSelect(vi,si,d)).join('')}</div>
       </div>`;
     const cards = state.variants.map((v,vi)=>`
@@ -516,7 +519,7 @@ function renderPanel(){
         </div>
         ${v.subs.length?`<div style="margin-top:8px;font-size:12.5px">
           <div style="color:var(--mut);text-transform:uppercase;font-size:10.5px;letter-spacing:.4px;margin-bottom:4px">L5 sub-variants (add-ons)</div>
-          ${v.subs.map(sub=>`<div style="display:flex;gap:8px;align-items:center;padding:3px 0"><span class="vnum sub-num">${esc(subNumber(v,sub))}</span><span style="color:var(--txt-2)">${[sub.config,sub.colour,sub.size,sub.style].filter(Boolean).map(esc).join(' · ')||'—'}</span></div>`).join('')}
+          ${v.subs.map(sub=>`<div style="display:flex;gap:8px;align-items:center;padding:3px 0;flex-wrap:wrap"><span class="vnum sub-num">${esc(subNumber(v,sub))}</span><span style="color:var(--txt-2)">${[sub.config,sub.colour,sub.size,sub.style].filter(Boolean).map(esc).join(' · ')||'—'}</span><span class="badge b-l2" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0">${(sub.brands&&sub.brands.length?sub.brands:v.brands).map(esc).join(', ')}</span></div>`).join('')}
         </div>`:'<div style="margin-top:6px;font-size:12px;color:var(--mut)">No add-on sub-variants — sells as the plain base number.</div>'}
       </div>`).join('');
     body = `
@@ -579,11 +582,16 @@ function pickTemplate(code){
   t.dims={ config:[...x.dims.config], colour:[...x.dims.colour], size:[...x.dims.size], style:[...x.dims.style] };
   state.template=t;
   /* preload the variants + sub-variants stored in the local DB */
-  state.variants=(x.variants||[]).map(v=>({ seq:v.seq, brands:[...v.brands], tier:v.tier||'Standard', picks:{...v.picks}, subs:(v.subs||[]).map(s=>({...s})) }));
+  state.variants=(x.variants||[]).map(v=>({ seq:v.seq, brands:[...v.brands], tier:v.tier||'Standard', picks:{...v.picks}, subs:(v.subs||[]).map(s=>({ ...s, brands:(s.brands&&s.brands.length?s.brands:v.brands).slice() })) }));
   render();
 }
 function newTemplate(){ state.template=emptyTemplate(); state.template.isNew=true; state.variants=[]; render(); }
-function toggleTemplateBrand(code){ const a=state.template.brands; const i=a.indexOf(code); i>=0?a.splice(i,1):a.push(code); state.variants.forEach(v=>{ v.brands=v.brands.filter(b=>a.includes(b)); }); render(); }
+function toggleTemplateBrand(code){
+  const a=state.template.brands; const i=a.indexOf(code); i>=0?a.splice(i,1):a.push(code);
+  /* cascade template → variant → sub-variant */
+  state.variants.forEach(v=>{ v.brands=v.brands.filter(b=>a.includes(b)); (v.subs||[]).forEach(s=>{ s.brands=(s.brands||[]).filter(b=>v.brands.includes(b)); }); });
+  render();
+}
 function setFixed(k,val){
   state.template.fixed[k]=val;
   if(k==='Powder Paint Y/N' && val!=='Y') state.variants.forEach(v=>{ (v.subs||[]).forEach(s=>{ s.colour=''; }); });
@@ -601,10 +609,18 @@ function setVariantTier(vi,val){ state.variants[vi].tier=val; render(); }
 function addVariant(){ state.variants.push(makeVariant()); render(); }
 function removeVariant(vi){ state.variants.splice(vi,1); if(!state.variants.length) state.variants=[makeVariant()]; render(); }
 function setPick(vi,k,val){ state.variants[vi].picks[k]=val; render(); }
-function addSub(vi){ state.variants[vi].subs.push(makeSub()); render(); }
+function addSub(vi){ state.variants[vi].subs.push(makeSub(state.variants[vi].brands)); render(); }
 function removeSub(vi,si){ state.variants[vi].subs.splice(si,1); render(); }
 function setDim(vi,si,key,val){ state.variants[vi].subs[si][key]=val; render(); }
-function toggleVariantBrand(vi,code){ const a=state.variants[vi].brands; const i=a.indexOf(code); i>=0?a.splice(i,1):a.push(code); render(); }
+function toggleVariantBrand(vi,code){
+  const v=state.variants[vi]; const a=v.brands; const i=a.indexOf(code); i>=0?a.splice(i,1):a.push(code);
+  /* cascade: a sub-variant can only carry brands its parent variant carries */
+  (v.subs||[]).forEach(s=>{ s.brands=(s.brands||[]).filter(b=>a.includes(b)); });
+  render();
+}
+function toggleSubBrand(vi,si,code){
+  const a=state.variants[vi].subs[si].brands; const i=a.indexOf(code); i>=0?a.splice(i,1):a.push(code); render();
+}
 
 function restart(){ state.step=0; state.catalog=null; state.template=emptyTemplate(); state.variants=[]; render(); }
 
@@ -622,7 +638,7 @@ function renderTreePreview(){
       const filled=state.variants.filter(v=>v.brands.includes(b) && v.picks['Major Diameters']);
       if(filled.length) filled.forEach(v=>{
         lines.push(`      <span class="l4">🔩 ${esc(itemNumber(v))}</span>  <span class="dim">base · ${esc(v.picks['Major Diameters'])}×${esc(v.picks['Lengths'])} ${esc(v.picks['Drive Type'])}</span>`);
-        (v.subs||[]).forEach(sub=>lines.push(`        <span class="l4" style="opacity:.8">🛒 ${esc(subNumber(v,sub))}</span>  <span class="dim">add-on</span>`));
+        (v.subs||[]).filter(sub=>(sub.brands&&sub.brands.length?sub.brands:v.brands).includes(b)).forEach(sub=>lines.push(`        <span class="l4" style="opacity:.8">🛒 ${esc(subNumber(v,sub))}</span>  <span class="dim">add-on</span>`));
       });
       else if(state.step>=2) lines.push(`      <span class="dim">(add variants: pick Ø / L / drive)</span>`);
     });

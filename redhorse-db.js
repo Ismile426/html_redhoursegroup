@@ -67,8 +67,8 @@ window.RH_DB = {
         { seq:1, brands:['CREO','AXIS'], tier:'Standard',
           picks:{ 'Drive Type':'TX20','Major Diameters':'4.8 mm','Lengths':'25 mm','Drill Capacity':'2-6 mm steel','Drill Point Diameter':'5 mm','Drill Point Length':'6 mm','Weights':'6 g','Head Diameter':'12 mm','Partial Lengths':'','Effective Lengths':'26 mm' },
           subs:[
-            { config:'WSH-EPDM (5)', colour:'RAL 9005 Jet Black (59)', size:'', style:'' },
-            { config:'', colour:'', size:'Box of 100 (8)', style:'RH C25B (1)' }
+            { brands:['CREO','AXIS'], config:'WSH-EPDM (5)', colour:'RAL 9005 Jet Black (59)', size:'', style:'' },
+            { brands:['CREO'], config:'', colour:'', size:'Box of 100 (8)', style:'RH C25B (1)' }
           ] },
         { seq:2, brands:['CREO'], tier:'Premium',
           picks:{ 'Drive Type':'TX20','Major Diameters':'5.5 mm','Lengths':'38 mm','Drill Capacity':'4-8 mm steel','Drill Point Diameter':'6.5 mm','Drill Point Length':'8 mm','Weights':'11 g','Head Diameter':'12 mm','Partial Lengths':'','Effective Lengths':'18 mm' },

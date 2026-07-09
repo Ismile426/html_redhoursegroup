@@ -173,9 +173,10 @@ DB.templates.forEach(tpl=>{
       text:(base+' '+tpl.name+' '+v.brands.join(' ')+' '+v.tier+' '+pickText+' '+fixedText).toLowerCase() });
     (v.subs||[]).forEach(sub=>{
       const sku = H.subNumber(tpl,v,sub);
+      const subBrands = (sub.brands&&sub.brands.length?sub.brands:v.brands);
       const addonText = [sub.config,sub.colour,sub.size,sub.style].filter(Boolean).join(' ');
-      ROWS.push({ kind:'sub', sku, name:tpl.name, catalog:tpl.catalog, brands:v.brands, tier:v.tier, tpl, v, sub,
-        text:(sku+' '+base+' '+tpl.name+' '+v.brands.join(' ')+' '+addonText+' '+pickText).toLowerCase() });
+      ROWS.push({ kind:'sub', sku, name:tpl.name, catalog:tpl.catalog, brands:subBrands, tier:v.tier, tpl, v, sub,
+        text:(sku+' '+base+' '+tpl.name+' '+subBrands.join(' ')+' '+addonText+' '+pickText).toLowerCase() });
     });
   });
 });
@@ -260,11 +261,12 @@ function renderTree(){
         if(!vs.length){ h+=`<div class="tr">${NOCARET}<span class="ic"></span><span class="sub">no items under this brand</span></div>`; }
         for(const v of vs){
           const base=H.itemNumber(tpl,v);
-          const hasSubs=(v.subs||[]).length>0;
+          const brandSubs=(v.subs||[]).filter(sub=>(sub.brands&&sub.brands.length?sub.brands:v.brands).includes(bc));
+          const hasSubs=brandSubs.length>0;
           h+=`<div class="tr click" onclick="openBySku('${base}')">${hasSubs?CARET:NOCARET}<span class="ic">🔩</span><span class="nm mono">${esc(base)}</span><span class="basetag">base · sellable</span></div>`;
           if(hasSubs){
             h+='<div class="kids" data-lvl="base">';
-            for(const sub of v.subs){ const s=H.subNumber(tpl,v,sub);
+            for(const sub of brandSubs){ const s=H.subNumber(tpl,v,sub);
               h+=`<div class="tr click" onclick="openBySku('${s}')">${NOCARET}<span class="ic">🛒</span><span class="mono" style="font-size:12px">${esc(s)}</span></div>`; }
             h+='</div>';
           }
@@ -330,7 +332,7 @@ function openDrawer(i){
       body+=`<div class="dsec"><h4>Add-on decode — ${esc(r.sku)}</h4>${segs.map(([label,val])=>`<div class="addon-line"><span class="mono">${val?H.optCode(val):'0'}</span><span style="color:var(--mut)">${esc(label)}:</span><span style="font-weight:600">${esc(val||'none (0)')}</span></div>`).join('')}</div>`;
       body+=`<div class="dsec"><h4>Parent base item</h4><div class="subsku" onclick="openBySku('${H.itemNumber(tpl,r.v)}')"><span>🔩</span><span class="mono" style="font-weight:800;color:var(--l4)">${esc(H.itemNumber(tpl,r.v))}</span><span class="badge b-base">sellable on its own</span></div></div>`;
     } else {
-      body+=`<div class="dsec"><h4>Sub-variants of ${esc(r.sku)} (add-on children)</h4>${(r.v.subs||[]).length?(r.v.subs||[]).map(sub=>{const s=H.subNumber(tpl,r.v,sub);return `<div class="subsku" onclick="openBySku('${s}')"><span>🛒</span><span class="mono" style="font-weight:800;color:var(--l4)">${esc(s)}</span><span style="font-size:11.5px;color:var(--mut)">${[sub.config,sub.colour,sub.size,sub.style].filter(Boolean).map(esc).join(' · ')}</span></div>`;}).join(''):'<div style="font-size:12.5px;color:var(--mut)">none — sells only as the plain base number</div>'}</div>`;
+      body+=`<div class="dsec"><h4>Sub-variants of ${esc(r.sku)} (add-on children)</h4>${(r.v.subs||[]).length?(r.v.subs||[]).map(sub=>{const s=H.subNumber(tpl,r.v,sub);const sb=(sub.brands&&sub.brands.length?sub.brands:r.v.brands);return `<div class="subsku" onclick="openBySku('${s}')"><span>🛒</span><span class="mono" style="font-weight:800;color:var(--l4)">${esc(s)}</span><span style="font-size:11.5px;color:var(--mut)">${[sub.config,sub.colour,sub.size,sub.style].filter(Boolean).map(esc).join(' · ')}</span><span style="margin-left:auto;display:flex;gap:3px">${sb.map(b=>`<span style="font-size:9.5px;font-weight:700;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;border-radius:5px;padding:0 6px">${esc(brandName(b))}</span>`).join('')}</span></div>`;}).join(''):'<div style="font-size:12.5px;color:var(--mut)">none — sells only as the plain base number</div>'}</div>`;
     }
     body+=`<div class="dsec"><h4>Brand(s) &amp; tier</h4><div style="font-size:12.5px;color:var(--txt-2)">${r.brands.map(b=>esc(brandName(b))).join(', ')} · <b>${esc(r.tier)}</b></div></div>`;
   }
