@@ -261,7 +261,6 @@ CATALOGS.forEach(c => TEMPLATES[c] = RH_DB.templates.filter(t => t.catalog === c
 const STEPS = [
   { key:'catalog',  label:'Catalog',     num:'L1' },
   { key:'template', label:'Template',    num:'L3' },
-  { key:'sell',     label:'Sell where', num:'—' },
   { key:'variant',  label:'Variants',    num:'L4' },
   { key:'review',   label:'Review',      num:'✓' }
 ];
@@ -317,7 +316,6 @@ function canAdvance(){
   switch(STEPS[state.step].key){
     case 'catalog':  return !!state.catalog;
     case 'template': return !!(t.code && t.name && t.brands.length && t.fixed['Material'] && t.pools['Major Diameters'].length && t.pools['Lengths'].length && t.pools['Drive Type'].length);
-    case 'sell':     return true;
     case 'variant':  return state.variants.length>0 && state.variants.every(v => v.brands.length && v.picks['Major Diameters'] && v.picks['Lengths'] && v.picks['Drive Type']);
     default:         return true;
   }
@@ -427,20 +425,6 @@ function renderPanel(){
       </div>`;
   }
 
-  else if(key==='sell'){
-    const rows = COMPANIES.map(c=>{ const m=t.merch[c.id]; return `<tr>
-        <td>${c.flag} ${esc(c.name)}</td>
-        <td><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" ${m.released?'checked':''} onchange="toggleRelease('${c.id}')"> Sell here</label></td>
-      </tr>`; }).join('');
-    body = `
-      <h2><span class="badge b-l2">Sell where</span> Release per company</h2>
-      <p class="sub">Brand(s) live on the Template. <b>Tier is set per variant</b> in the next step — the same range can have a Standard and a Premium variant.</p>
-      <table style="width:100%;border-collapse:collapse;font-size:13.5px">
-        <thead><tr style="text-align:left;color:var(--mut);font-size:11px;text-transform:uppercase"><th style="padding:6px 4px">Company</th><th style="padding:6px 4px">Sell here?</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>`;
-  }
-
   else if(key==='variant'){
     if(!state.variants.length) state.variants=[makeVariant()];
     const brandPool = t.brands;
@@ -523,7 +507,6 @@ function renderPanel(){
 
   else if(key==='review'){
     const txt = (arr)=> arr && arr.length ? arr.map(esc).join(', ') : '<span style="color:var(--mut)">none</span>';
-    const merchRows = COMPANIES.map(c=>{ const m=t.merch[c.id]; return `<tr><td>${c.flag} ${esc(c.name)}</td><td>${m.released?'<b style="color:var(--l2)">✓ sells it</b>':'<span style="color:var(--mut)">—</span>'}</td></tr>`; }).join('');
     const variantRows = state.variants.map((v,i)=>`
       <div class="variant-card" style="margin-bottom:8px">
         <div class="variant-card-hd"><span class="badge b-l4">Variant ${i+1}</span><span class="vnum">${esc(itemNumber(v))}</span><span class="badge b-fix">sellable</span><span class="badge b-par">${esc(v.tier||'Standard')}</span></div>
@@ -570,10 +553,6 @@ function renderPanel(){
         <div class="content" style="font-size:13px">${txt(t.crossSell)}</div>
       </div>
 
-      <div class="review-section"><h4>Sold by</h4>
-        <table style="width:100%;border-collapse:collapse;font-size:13px"><tbody>${merchRows}</tbody></table>
-      </div>
-
       <div class="review-section"><h4>Variants (L4)</h4>${variantRows}</div>
 
       <div class="note note-ok">Fixed = one value / range. Every characteristic the sheet lists with 2+ values in a range is a <b>configurable pool</b>, never fixed. Item number = <code>${esc(itemNumber({seq:1}))}</code>; add-ons only via the dashed suffix.</div>`;
@@ -617,7 +596,6 @@ function togglePool(k,val){
 }
 function toggleFeature(k,val){ const a=state.template.features[k]; const i=a.indexOf(val); i>=0?a.splice(i,1):a.push(val); render(); }
 function toggleCrossSell(val){ const a=state.template.crossSell; const i=a.indexOf(val); i>=0?a.splice(i,1):a.push(val); render(); }
-function toggleRelease(cid){ state.template.merch[cid].released=!state.template.merch[cid].released; render(); }
 function setVariantTier(vi,val){ state.variants[vi].tier=val; render(); }
 
 function addVariant(){ state.variants.push(makeVariant()); render(); }
@@ -633,26 +611,22 @@ function restart(){ state.step=0; state.catalog=null; state.template=emptyTempla
 function renderTreePreview(){
   const treeEl=document.getElementById('tree-preview'), kvEl=document.getElementById('summary-kv'), noteEl=document.getElementById('step-note');
   const t=state.template;
-  /* Method B tree: 🏢 Company → 📂 Product type → 🏷 Brand → 📁 Range → 🔩 Item (base) → 🛒 Sub-variant */
+  /* Tree: 📂 Product type → 🏷 Brand → 📁 Range → 🔩 Item (base) → 🛒 Sub-variant */
   const lines=[];
-  const releasedCos = COMPANIES.filter(co => t.merch[co.id] && t.merch[co.id].released);
-  const cos = releasedCos.length ? releasedCos : COMPANIES.slice(0,1);
-  cos.forEach(co=>{
-    lines.push(`<span class="l1">🏢 ${co.flag} ${esc(co.name)}</span>${releasedCos.length?'':'  <span class="dim">(nothing released yet)</span>'}`);
-    lines.push(`  <span class="l1">📂 ${esc(state.catalog||'…')}</span>`);
-    if(!state.catalog) return;
+  lines.push(`<span class="l1">📂 ${esc(state.catalog||'…')}</span>`);
+  if(state.catalog){
     (t.brands.length?t.brands:['…']).forEach(b=>{
-      lines.push(`    <span class="l2">🏷 ${esc(b)}</span>`);
-      if(!t.code){ if(state.step>=1) lines.push(`      <span class="dim">📁 …  (set range number + name)</span>`); return; }
-      lines.push(`      <span class="l3">📁 ${esc(t.code)}</span>  <span class="dim">${esc(t.name||t.fixed['Screw Type']||'range')}</span>`);
+      lines.push(`  <span class="l2">🏷 ${esc(b)}</span>`);
+      if(!t.code){ if(state.step>=1) lines.push(`    <span class="dim">📁 …  (set range number + name)</span>`); return; }
+      lines.push(`    <span class="l3">📁 ${esc(t.code)}</span>  <span class="dim">${esc(t.name||t.fixed['Screw Type']||'range')}</span>`);
       const filled=state.variants.filter(v=>v.brands.includes(b) && v.picks['Major Diameters']);
       if(filled.length) filled.forEach(v=>{
-        lines.push(`        <span class="l4">🔩 ${esc(itemNumber(v))}</span>  <span class="dim">base · ${esc(v.picks['Major Diameters'])}×${esc(v.picks['Lengths'])} ${esc(v.picks['Drive Type'])}</span>`);
-        (v.subs||[]).forEach(sub=>lines.push(`          <span class="l4" style="opacity:.8">🛒 ${esc(subNumber(v,sub))}</span>  <span class="dim">add-on</span>`));
+        lines.push(`      <span class="l4">🔩 ${esc(itemNumber(v))}</span>  <span class="dim">base · ${esc(v.picks['Major Diameters'])}×${esc(v.picks['Lengths'])} ${esc(v.picks['Drive Type'])}</span>`);
+        (v.subs||[]).forEach(sub=>lines.push(`        <span class="l4" style="opacity:.8">🛒 ${esc(subNumber(v,sub))}</span>  <span class="dim">add-on</span>`));
       });
-      else if(state.step>=3) lines.push(`        <span class="dim">(add variants: pick Ø / L / drive)</span>`);
+      else if(state.step>=2) lines.push(`      <span class="dim">(add variants: pick Ø / L / drive)</span>`);
     });
-  });
+  }
   treeEl.innerHTML=lines.join('\n');
 
   const kv=[];
@@ -669,7 +643,6 @@ function renderTreePreview(){
   const notes={
     catalog:'Pick the product world first.',
     template:'Fixed = one value / range. Sheet values that repeat within a range become configurable pools.',
-    sell:'Release per company only. Tier is chosen per variant in the next step.',
     variant:'Each variant picks one value per configurable pool. Number = template + running suffix.',
     review:'Nothing configurable is fixed. Only add-on codes append to the number.'
   };

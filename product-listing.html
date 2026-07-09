@@ -31,15 +31,22 @@ header p{font-size:12.5px;opacity:.85}
 
 /* ---- tree (Method B) ---- */
 .tree{font-size:13px;max-height:76vh;overflow:auto}
+.tree-tools{display:flex;gap:8px;margin-bottom:8px}
+.tree-tools button{font-size:11.5px;font-weight:700;padding:5px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);cursor:pointer;color:var(--txt-2)}
+.tree-tools button:hover{background:var(--surface-2);border-color:#c4b5fd;color:var(--l4)}
 .tr{display:flex;align-items:center;gap:7px;padding:4px 8px;border-radius:7px;cursor:default;line-height:1.5}
 .tr.click{cursor:pointer}
 .tr.click:hover{background:var(--surface-2)}
 .tr.sel{background:#ede9fe;outline:1px solid #c4b5fd}
+.tr .caret{width:15px;flex:none;text-align:center;font-size:10px;color:var(--mut);cursor:pointer;user-select:none;border-radius:4px}
+.tr .caret:hover{background:#ede9fe;color:var(--l4)}
+.tr .caret-sp{width:15px;flex:none}
 .tr .ic{width:18px;text-align:center;flex:none}
 .tr .nm{font-weight:700;color:var(--txt-2)}
 .tr .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
 .tr .sub{font-size:11px;color:var(--mut);margin-left:4px;font-weight:500}
 .kids{margin-left:16px;border-left:1.5px dashed var(--line);padding-left:6px}
+.kids.collapsed{display:none}
 .basetag{margin-left:auto;font-size:10px;font-weight:800;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;border-radius:20px;padding:1px 8px;white-space:nowrap}
 .count-pill{margin-left:auto;font-size:10.5px;font-weight:700;color:var(--mut);background:var(--surface-2);border:1px solid var(--line);border-radius:20px;padding:1px 8px}
 
@@ -99,7 +106,7 @@ mark{background:#fef08a;border-radius:2px}
   <div class="logo">RH</div>
   <div>
     <h1>Product Listing &amp; Hierarchy</h1>
-    <p>Browse the local DB — Company → Product type → Brand → Range → Item (base) → Sub-variant</p>
+    <p>Browse the local DB — Product type → Brand → Range → Item (base) → Sub-variant</p>
   </div>
   <div class="hdr-links">
     <a href="index.html">Catalog Explorer</a>
@@ -109,14 +116,19 @@ mark{background:#fef08a;border-radius:2px}
 
 <div class="wrap">
   <div class="legend">
-    <span>🏢 <b>Company</b></span><span>📂 <b>Product type</b></span><span>🏷 <b>Brand</b></span>
+    <span>📂 <b>Product type</b></span><span>🏷 <b>Brand</b></span>
     <span>📁 <b>Range</b> (template, e.g. 40400)</span><span>🔩 <b>Item</b> (base, sellable — 404001)</span>
     <span>🛒 <b>Sub-variant</b> (add-on child — 404001-1-26-3-2)</span>
   </div>
 
   <div class="layout">
     <div class="panel">
-      <h3>🌳 Product tree <span style="font-weight:500;color:var(--mut);font-size:11.5px">(Method B — each company is a root)</span></h3>
+      <h3>🌳 Product tree <span style="font-weight:500;color:var(--mut);font-size:11.5px">(Product type → Brand → Range → Item → Sub-variant)</span></h3>
+      <div class="tree-tools">
+        <button onclick="setAllTree(false)">⊞ Expand all</button>
+        <button onclick="setAllTree(true)">⊟ Collapse all</button>
+        <button onclick="collapseToRanges()">📁 Ranges only</button>
+      </div>
       <div class="tree" id="tree"></div>
     </div>
 
@@ -126,7 +138,6 @@ mark{background:#fef08a;border-radius:2px}
         <input type="text" id="q" placeholder="Search item no, name, brand, attribute… e.g. 404001, TX20, EPDM, RAL 9010" oninput="renderList()">
         <select id="f-catalog" onchange="renderList()"><option value="">All product types</option></select>
         <select id="f-brand" onchange="renderList()"><option value="">All brands</option></select>
-        <select id="f-company" onchange="renderList()"><option value="">All companies</option></select>
       </div>
       <div class="filter-row" id="kind-chips">
         <div class="f-chip on" data-kind="">All</div>
@@ -151,20 +162,19 @@ const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replac
 /* ---------- flatten the DB into searchable rows ---------- */
 const ROWS = [];
 DB.templates.forEach(tpl=>{
-  const relCos = DB.companies.filter(co=>tpl.merch[co.id] && tpl.merch[co.id].released).map(co=>co.id);
   const poolText = Object.values(tpl.pools||{}).flat().join(' ');
   const fixedText = Object.entries(tpl.fixed||{}).map(([k,v])=>k+' '+v).join(' ');
-  ROWS.push({ kind:'template', sku:tpl.code, name:tpl.name, catalog:tpl.catalog, brands:tpl.brands, companies:relCos, tier:'', tpl,
+  ROWS.push({ kind:'template', sku:tpl.code, name:tpl.name, catalog:tpl.catalog, brands:tpl.brands, tier:'', tpl,
     text:(tpl.code+' '+tpl.name+' '+tpl.brands.join(' ')+' '+fixedText+' '+poolText).toLowerCase() });
   (tpl.variants||[]).forEach(v=>{
     const base = H.itemNumber(tpl,v);
     const pickText = Object.values(v.picks||{}).filter(Boolean).join(' ');
-    ROWS.push({ kind:'base', sku:base, name:tpl.name, catalog:tpl.catalog, brands:v.brands, companies:relCos, tier:v.tier, tpl, v,
+    ROWS.push({ kind:'base', sku:base, name:tpl.name, catalog:tpl.catalog, brands:v.brands, tier:v.tier, tpl, v,
       text:(base+' '+tpl.name+' '+v.brands.join(' ')+' '+v.tier+' '+pickText+' '+fixedText).toLowerCase() });
     (v.subs||[]).forEach(sub=>{
       const sku = H.subNumber(tpl,v,sub);
       const addonText = [sub.config,sub.colour,sub.size,sub.style].filter(Boolean).join(' ');
-      ROWS.push({ kind:'sub', sku, name:tpl.name, catalog:tpl.catalog, brands:v.brands, companies:relCos, tier:v.tier, tpl, v, sub,
+      ROWS.push({ kind:'sub', sku, name:tpl.name, catalog:tpl.catalog, brands:v.brands, tier:v.tier, tpl, v, sub,
         text:(sku+' '+base+' '+tpl.name+' '+v.brands.join(' ')+' '+addonText+' '+pickText).toLowerCase() });
     });
   });
@@ -177,8 +187,6 @@ function initFilters(){
   DB.catalogs.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.icon+' '+c.id; cat.appendChild(o); });
   const br=document.getElementById('f-brand'); const seen=new Set();
   Object.values(DB.brands).flat().forEach(b=>{ if(seen.has(b.code))return; seen.add(b.code); const o=document.createElement('option'); o.value=b.code; o.textContent=b.name; br.appendChild(o); });
-  const co=document.getElementById('f-company');
-  DB.companies.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.flag+' '+c.name; co.appendChild(o); });
   document.querySelectorAll('#kind-chips .f-chip').forEach(ch=>ch.onclick=()=>{
     document.querySelectorAll('#kind-chips .f-chip').forEach(x=>x.classList.remove('on'));
     ch.classList.add('on'); kindFilter=ch.dataset.kind; renderList();
@@ -196,12 +204,10 @@ function filtered(){
   const q=document.getElementById('q').value.trim().toLowerCase();
   const fc=document.getElementById('f-catalog').value;
   const fb=document.getElementById('f-brand').value;
-  const fco=document.getElementById('f-company').value;
   return ROWS.filter(r=>{
     if(kindFilter && r.kind!==kindFilter) return false;
     if(fc && r.catalog!==fc) return false;
     if(fb && !r.brands.includes(fb)) return false;
-    if(fco && !r.companies.includes(fco)) return false;
     if(q && !r.text.includes(q)) return false;
     return true;
   });
@@ -236,34 +242,32 @@ function renderList(){
 }
 
 /* ---------- tree (Method B: company roots) ---------- */
+const CARET = `<span class="caret" onclick="event.stopPropagation();toggleKids(this)">▾</span>`;
+const NOCARET = `<span class="caret-sp"></span>`;
+
 function renderTree(){
   let h='';
-  for(const co of DB.companies){
-    const rel = DB.templates.filter(t=>t.merch[co.id] && t.merch[co.id].released);
-    h+=`<div class="tr"><span class="ic">🏢</span><span class="nm">${co.flag} ${esc(co.name)}</span><span class="count-pill">${rel.length} ranges</span></div><div class="kids">`;
-    if(!rel.length){ h+='<div class="tr"><span class="ic"></span><span class="sub">nothing released here yet</span></div></div>'; continue; }
-    for(const c of DB.catalogs){
-      const ts=rel.filter(t=>t.catalog===c.id); if(!ts.length) continue;
-      h+=`<div class="tr"><span class="ic">${c.icon}</span><span class="nm">${esc(c.id)}</span></div><div class="kids">`;
-      const brandSet=[...new Set(ts.flatMap(t=>t.brands))];
-      for(const bc of brandSet){
-        const bts=ts.filter(t=>t.brands.includes(bc));
-        h+=`<div class="tr"><span class="ic">🏷</span><span class="nm">${esc(brandName(bc))}</span></div><div class="kids">`;
-        for(const tpl of bts){
-          h+=`<div class="tr click" onclick="openBySku('${tpl.code}')"><span class="ic">📁</span><span class="nm mono">${esc(tpl.code)}</span><span class="sub">${esc(tpl.name)}</span></div><div class="kids">`;
-          const vs=(tpl.variants||[]).filter(v=>v.brands.includes(bc));
-          if(!vs.length){ h+='<div class="tr"><span class="ic"></span><span class="sub">no items under this brand</span></div>'; }
-          for(const v of vs){
-            const base=H.itemNumber(tpl,v);
-            h+=`<div class="tr click" onclick="openBySku('${base}')"><span class="ic">🔩</span><span class="nm mono">${esc(base)}</span><span class="basetag">base · sellable</span></div>`;
-            if((v.subs||[]).length){
-              h+='<div class="kids">';
-              for(const sub of v.subs){ const s=H.subNumber(tpl,v,sub);
-                h+=`<div class="tr click" onclick="openBySku('${s}')"><span class="ic">🛒</span><span class="mono" style="font-size:12px">${esc(s)}</span></div>`; }
-              h+='</div>';
-            }
+  for(const c of DB.catalogs){
+    const ts=DB.templates.filter(t=>t.catalog===c.id); if(!ts.length) continue;
+    h+=`<div class="tr">${CARET}<span class="ic">${c.icon}</span><span class="nm">${esc(c.id)}</span><span class="count-pill">${ts.length} ranges</span></div><div class="kids" data-lvl="catalog">`;
+    const brandSet=[...new Set(ts.flatMap(t=>t.brands))];
+    for(const bc of brandSet){
+      const bts=ts.filter(t=>t.brands.includes(bc));
+      h+=`<div class="tr">${CARET}<span class="ic">🏷</span><span class="nm">${esc(brandName(bc))}</span></div><div class="kids" data-lvl="brand">`;
+      for(const tpl of bts){
+        h+=`<div class="tr click" onclick="openBySku('${tpl.code}')">${CARET}<span class="ic">📁</span><span class="nm mono">${esc(tpl.code)}</span><span class="sub">${esc(tpl.name)}</span></div><div class="kids" data-lvl="range">`;
+        const vs=(tpl.variants||[]).filter(v=>v.brands.includes(bc));
+        if(!vs.length){ h+=`<div class="tr">${NOCARET}<span class="ic"></span><span class="sub">no items under this brand</span></div>`; }
+        for(const v of vs){
+          const base=H.itemNumber(tpl,v);
+          const hasSubs=(v.subs||[]).length>0;
+          h+=`<div class="tr click" onclick="openBySku('${base}')">${hasSubs?CARET:NOCARET}<span class="ic">🔩</span><span class="nm mono">${esc(base)}</span><span class="basetag">base · sellable</span></div>`;
+          if(hasSubs){
+            h+='<div class="kids" data-lvl="base">';
+            for(const sub of v.subs){ const s=H.subNumber(tpl,v,sub);
+              h+=`<div class="tr click" onclick="openBySku('${s}')">${NOCARET}<span class="ic">🛒</span><span class="mono" style="font-size:12px">${esc(s)}</span></div>`; }
+            h+='</div>';
           }
-          h+='</div>';
         }
         h+='</div>';
       }
@@ -274,20 +278,41 @@ function renderTree(){
   document.getElementById('tree').innerHTML=h;
 }
 
+/* ---- collapse / expand ---- */
+function toggleKids(caret){
+  const tr=caret.closest('.tr'); const kids=tr.nextElementSibling;
+  if(!kids || !kids.classList.contains('kids')) return;
+  const collapsed=kids.classList.toggle('collapsed');
+  caret.textContent=collapsed?'▸':'▾';
+}
+function setAllTree(collapsed){
+  document.querySelectorAll('#tree .kids').forEach(k=>k.classList.toggle('collapsed',collapsed));
+  document.querySelectorAll('#tree .caret').forEach(c=>c.textContent=collapsed?'▸':'▾');
+}
+/* collapse everything below the range level: ranges stay visible, their items hide */
+function collapseToRanges(){
+  document.querySelectorAll('#tree .kids').forEach(k=>{
+    const hide = k.dataset.lvl==='range' || k.dataset.lvl==='base';
+    k.classList.toggle('collapsed',hide);
+  });
+  document.querySelectorAll('#tree .tr').forEach(tr=>{
+    const caret=tr.querySelector('.caret'); if(!caret) return;
+    const kids=tr.nextElementSibling;
+    if(kids && kids.classList.contains('kids')) caret.textContent=kids.classList.contains('collapsed')?'▸':'▾';
+  });
+}
+
 /* ---------- detail drawer ---------- */
 function openBySku(sku){ const i=ROWS.findIndex(r=>r.sku===sku); if(i>=0) openDrawer(i); }
 function openDrawer(i){
   const r=ROWS[i]; if(!r) return;
   const tpl=r.tpl;
-  const relCos=DB.companies.filter(co=>tpl.merch[co.id] && tpl.merch[co.id].released);
-  const crumbCo = relCos.length?relCos[0]:DB.companies[0];
-  let crumb=`<span class="c1">🏢 ${crumbCo.flag} ${esc(crumbCo.name)}</span>${relCos.length>1?` <span class="cd">(+${relCos.length-1} more)</span>`:''}\n`;
-  crumb+=`  <span class="c1">📂 ${esc(tpl.catalog)}</span>\n`;
-  crumb+=`    <span class="c2">🏷 ${r.brands.map(b=>esc(brandName(b))).join(' · ')}</span>\n`;
-  crumb+=`      <span class="c3">📁 ${esc(tpl.code)}</span>  <span class="cd">${esc(tpl.name)}</span>`;
+  let crumb=`<span class="c1">📂 ${esc(tpl.catalog)}</span>\n`;
+  crumb+=`  <span class="c2">🏷 ${r.brands.map(b=>esc(brandName(b))).join(' · ')}</span>\n`;
+  crumb+=`    <span class="c3">📁 ${esc(tpl.code)}</span>  <span class="cd">${esc(tpl.name)}</span>`;
   if(r.kind!=='template'){
-    crumb+=`\n        <span class="c4">🔩 ${esc(H.itemNumber(tpl,r.v))}</span>  <span class="cd">base · sellable</span>`;
-    if(r.kind==='sub') crumb+=`\n          <span class="c4">🛒 ${esc(r.sku)}</span>  <span class="cd">add-on child</span>`;
+    crumb+=`\n      <span class="c4">🔩 ${esc(H.itemNumber(tpl,r.v))}</span>  <span class="cd">base · sellable</span>`;
+    if(r.kind==='sub') crumb+=`\n        <span class="c4">🛒 ${esc(r.sku)}</span>  <span class="cd">add-on child</span>`;
   }
 
   let body='';
@@ -309,7 +334,6 @@ function openDrawer(i){
     }
     body+=`<div class="dsec"><h4>Brand(s) &amp; tier</h4><div style="font-size:12.5px;color:var(--txt-2)">${r.brands.map(b=>esc(brandName(b))).join(', ')} · <b>${esc(r.tier)}</b></div></div>`;
   }
-  body+=`<div class="dsec"><h4>Released per company</h4><div style="font-size:12.5px;color:var(--txt-2)">${DB.companies.map(co=>`${co.flag} ${esc(co.name)}: ${tpl.merch[co.id]&&tpl.merch[co.id].released?'<b style="color:#047857">✓ sells it</b>':'<span style="color:var(--mut)">—</span>'}`).join('<br>')}</div></div>`;
 
   document.getElementById('drawer').innerHTML =
     `<button class="close" onclick="closeDrawer()">✕</button>
