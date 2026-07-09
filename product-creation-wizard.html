@@ -272,14 +272,14 @@ const TEMPLATES = {
       pools:{ 'Drive Type':['TX20'],'Major Diameters':['4.8 mm','5.5 mm'],'Lengths':['25 mm','38 mm'],'Drill Capacity':['2-6 mm steel','4-8 mm steel'],'Drill Point Diameter':['5 mm','6.5 mm'],'Drill Point Length':['6 mm','8 mm'],'Weights':['6 g','11 g'],'Head Diameter':['12 mm'],'Partial Lengths':[],'Effective Lengths':['26 mm','18 mm'] },
       features:{ 'Special Features':[],'Typical Applications':['Steel sheet to steel','Steel sheet to alu'] },
       crossSell:['EPDM washers'],
-      merch:{ dk:{tier:'Standard',released:true}, se:{tier:'Standard',released:true}, us:{tier:'Pro',released:false}, ec:{tier:'Standard',released:false} },
+      merch:{ dk:{released:true}, se:{released:true}, us:{released:false}, ec:{released:false} },
       dims:{ config:['Standard (0)','WSH-EPDM (5)','Long thread (21)'], colour:['No Colour (0)','RAL 9005 Jet Black (59)'], size:['PCS (0)','Box of 100 (8)'], style:['NA (0)','RH C25B (1)'] } },
     { code:'30300', name:'Wood screw DxL-L1 TX', brands:['CREO'],
       fixed:{ 'Head Type':'Countersunk w. turbine ribs (CSH-TR)','Thread Type':'Wood','Screw Type':'Wood screw','Point Type':'Sharp point (S-point)','Material':'Carbon steel','Target Material':'Wood','Surface Treatment':'Zytec™+','Surface Treatment Color':'Black','Self Drilling Y/N':'N','Self Tapping Y/N':'Y','Powder Paint Y/N':'N','Powder paint Color':'—','Washer Y/N':'N','Washer Type':'—' },
       pools:{ 'Drive Type':['TX25','TX30'],'Major Diameters':['7.2 mm','8 mm'],'Lengths':['120 mm','180 mm','220 mm'],'Drill Capacity':[],'Drill Point Diameter':[],'Drill Point Length':[],'Weights':['31 g','45 g','62 g'],'Head Diameter':['13 mm','15 mm'],'Partial Lengths':['91 mm','120 mm','150 mm'],'Effective Lengths':['111 mm','156 mm','215 mm'] },
       features:{ 'Special Features':['Turbine Ribs','Thread cut','Knurls'],'Typical Applications':['Load bearing elements','CLT-connection'] },
       crossSell:['TX25 bit'],
-      merch:{ dk:{tier:'Premium',released:true}, se:{tier:'Premium',released:true}, us:{tier:'Premium',released:false}, ec:{tier:'Standard',released:false} },
+      merch:{ dk:{released:true}, se:{released:true}, us:{released:false}, ec:{released:false} },
       dims:{ config:['Standard (0)'], colour:['No Colour (0)'], size:['PCS (0)','Box of 100 (8)'], style:['NA (0)'] } }
   ],
   Rivets: [], Hammer: [], Washer: []
@@ -288,7 +288,7 @@ const TEMPLATES = {
 const STEPS = [
   { key:'catalog',  label:'Catalog',     num:'L1' },
   { key:'template', label:'Template',    num:'L3' },
-  { key:'sell',     label:'Sell + tier', num:'—' },
+  { key:'sell',     label:'Sell where', num:'—' },
   { key:'variant',  label:'Variants',    num:'L4' },
   { key:'review',   label:'Review',      num:'✓' }
 ];
@@ -300,7 +300,7 @@ function emptyTemplate(){
   return {
     code:'', name:'', isNew:false, brands:[],
     fixed, pools, features, crossSell:[],
-    merch:{ dk:{tier:'Standard',released:false}, se:{tier:'Standard',released:false}, us:{tier:'Standard',released:false}, ec:{tier:'Standard',released:false} },
+    merch:{ dk:{released:false}, se:{released:false}, us:{released:false}, ec:{released:false} },
     dims:{ config:[], colour:[], size:[], style:[] }
   };
 }
@@ -324,7 +324,7 @@ function configuredNumber(v){
 function makeVariant(){
   const picks = {};
   CONFIG_KEYS.forEach(k => picks[k] = state.template.pools[k][0] || '');
-  return { seq: state.variants.length+1, brands: state.template.brands.slice(), picks, config:'', colour:'', size:'', style:'' };
+  return { seq: state.variants.length+1, brands: state.template.brands.slice(), tier:'Standard', picks, config:'', colour:'', size:'', style:'' };
 }
 
 function softUpdate(){ renderTreePreview(); const b=document.getElementById('btn-continue'); if(b) b.disabled=!canAdvance(); }
@@ -456,14 +456,13 @@ function renderPanel(){
   else if(key==='sell'){
     const rows = COMPANIES.map(c=>{ const m=t.merch[c.id]; return `<tr>
         <td>${c.flag} ${esc(c.name)}</td>
-        <td><select onchange="setMerch('${c.id}','tier',this.value)">${TIERS.map(x=>`<option ${m.tier===x?'selected':''}>${esc(x)}</option>`).join('')}</select></td>
         <td><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" ${m.released?'checked':''} onchange="toggleRelease('${c.id}')"> Sell here</label></td>
       </tr>`; }).join('');
     body = `
-      <h2><span class="badge b-l2">Sell + tier</span> Release per company &amp; set tier</h2>
-      <p class="sub">Brand(s) live on the Template. This is per-company release and tier only.</p>
+      <h2><span class="badge b-l2">Sell where</span> Release per company</h2>
+      <p class="sub">Brand(s) live on the Template. <b>Tier is set per variant</b> in the next step — the same range can have a Standard and a Premium variant.</p>
       <table style="width:100%;border-collapse:collapse;font-size:13.5px">
-        <thead><tr style="text-align:left;color:var(--mut);font-size:11px;text-transform:uppercase"><th style="padding:6px 4px">Company</th><th style="padding:6px 4px">Tier</th><th style="padding:6px 4px">Sell here?</th></tr></thead>
+        <thead><tr style="text-align:left;color:var(--mut);font-size:11px;text-transform:uppercase"><th style="padding:6px 4px">Company</th><th style="padding:6px 4px">Sell here?</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>`;
   }
@@ -506,8 +505,13 @@ function renderPanel(){
         </div>
         <div class="sku-build">${skuBuild(v)}</div>
 
-        <div class="field-row" style="margin-top:12px"><label><span class="badge b-l2">L2</span> Brand(s) for this variant</label>
-          ${brandPool.length?`<div class="tag-multi">${brandPool.map(code=>`<div class="tag-opt ${v.brands.includes(code)?'on':''}" onclick="toggleVariantBrand(${vi},'${code}')">${esc(brandInfo(code).name)}</div>`).join('')}</div>`:`<span style="font-size:12px;color:var(--mut)">no template brands</span>`}
+        <div class="field-grid" style="margin-top:12px">
+          <div class="field-row"><label><span class="badge b-l2">L2</span> Brand(s) for this variant</label>
+            ${brandPool.length?`<div class="tag-multi">${brandPool.map(code=>`<div class="tag-opt ${v.brands.includes(code)?'on':''}" onclick="toggleVariantBrand(${vi},'${code}')">${esc(brandInfo(code).name)}</div>`).join('')}</div>`:`<span style="font-size:12px;color:var(--mut)">no template brands</span>`}
+          </div>
+          <div class="field-row"><label>Tier <span class="hint">(per variant — same range can span Standard/Premium)</span></label>
+            <select onchange="setVariantTier(${vi},this.value)">${TIERS.map(x=>`<option ${v.tier===x?'selected':''}>${esc(x)}</option>`).join('')}</select>
+          </div>
         </div>
 
         <div class="addon-hd"><span class="badge b-cfg">Configurable · axes</span> Pick one each — these define the variant</div>
@@ -533,13 +537,13 @@ function renderPanel(){
 
   else if(key==='review'){
     const txt = (arr)=> arr && arr.length ? arr.map(esc).join(', ') : '<span style="color:var(--mut)">none</span>';
-    const merchRows = COMPANIES.map(c=>{ const m=t.merch[c.id]; return `<tr><td>${c.flag} ${esc(c.name)}</td><td>${esc(m.tier)}</td><td>${m.released?'<b style="color:var(--l2)">✓ sells it</b>':'<span style="color:var(--mut)">—</span>'}</td></tr>`; }).join('');
+    const merchRows = COMPANIES.map(c=>{ const m=t.merch[c.id]; return `<tr><td>${c.flag} ${esc(c.name)}</td><td>${m.released?'<b style="color:var(--l2)">✓ sells it</b>':'<span style="color:var(--mut)">—</span>'}</td></tr>`; }).join('');
     const variantRows = state.variants.map((v,i)=>`
       <div class="variant-card" style="margin-bottom:8px">
-        <div class="variant-card-hd"><span class="badge b-l4">Variant ${i+1}</span><span class="vnum">${esc(configuredNumber(v))}</span></div>
+        <div class="variant-card-hd"><span class="badge b-l4">Variant ${i+1}</span><span class="vnum">${esc(configuredNumber(v))}</span><span class="badge b-par">${esc(v.tier||'Standard')}</span></div>
         <div style="font-size:12.5px;color:var(--txt-2)">
           <b>Major Diameters:</b> ${esc(v.picks['Major Diameters']||'—')} · <b>Lengths:</b> ${esc(v.picks['Lengths']||'—')} · <b>Drive Type:</b> ${esc(v.picks['Drive Type']||'—')}<br>
-          <b>Brand(s):</b> ${v.brands.length?v.brands.map(esc).join(', '):'—'}<br>
+          <b>Brand(s):</b> ${v.brands.length?v.brands.map(esc).join(', '):'—'} · <b>Tier:</b> ${esc(v.tier||'Standard')}<br>
           <b>Add-on:</b> ${(v.config||v.colour||v.size||v.style)?[v.config,v.colour,v.size,v.style].filter(Boolean).map(esc).join(' · '):'<span style="color:var(--mut)">none</span>'}
         </div>
       </div>`).join('');
@@ -617,8 +621,8 @@ function togglePool(k,val){
 }
 function toggleFeature(k,val){ const a=state.template.features[k]; const i=a.indexOf(val); i>=0?a.splice(i,1):a.push(val); render(); }
 function toggleCrossSell(val){ const a=state.template.crossSell; const i=a.indexOf(val); i>=0?a.splice(i,1):a.push(val); render(); }
-function setMerch(cid,key,val){ state.template.merch[cid][key]=val; render(); }
 function toggleRelease(cid){ state.template.merch[cid].released=!state.template.merch[cid].released; render(); }
+function setVariantTier(vi,val){ state.variants[vi].tier=val; render(); }
 
 function addVariant(){ state.variants.push(makeVariant()); render(); }
 function removeVariant(vi){ state.variants.splice(vi,1); if(!state.variants.length) state.variants=[makeVariant()]; render(); }
@@ -657,7 +661,7 @@ function renderTreePreview(){
   const notes={
     catalog:'Pick the product world first.',
     template:'Fixed = one value / range. Sheet values that repeat within a range become configurable pools.',
-    sell:'Release per company + tier. No new brand or item.',
+    sell:'Release per company only. Tier is chosen per variant in the next step.',
     variant:'Each variant picks one value per configurable pool. Number = template + running suffix.',
     review:'Nothing configurable is fixed. Only add-on codes append to the number.'
   };
