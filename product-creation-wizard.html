@@ -157,9 +157,11 @@ header p{font-size:13px;color:var(--mut)}
     <p>Walk through Catalog → <b>Template (fixed spec + configurable pools)</b> → Variants</p>
   </div>
   <div class="hdr-links">
-    <a href="index.html">Catalog Explorer</a>
-    <a href="product-listing.html">Product Listing</a>
-    <a href="product-creation-wizard.html">Product Wizard</a>
+    <a href="RedHorse_Product_Listing.html">Product listing</a>
+    <a href="RedHorse_Levels_Attributes_Guide.html">Levels &amp; attributes</a>
+    <a href="RedHorse_PIM_v2_Architecture.html">Architecture</a>
+    <a href="RedHorse_Screws_Flow_Example.html">Screws flow</a>
+    <a href="RedHordse_PIM_V3_Explorer.html">Catalog Explorer</a>
   </div>
 </header>
 
@@ -296,7 +298,7 @@ function subNumber(v, sub){
 function makeVariant(){
   const picks = {};
   CONFIG_KEYS.forEach(k => picks[k] = state.template.pools[k][0] || '');
-  return { seq: state.variants.length+1, brands: state.template.brands.slice(), tier:'Standard', picks, subs: [] };
+  return { seq: state.variants.length+1, name:'', brands: state.template.brands.slice(), tier:'Standard', picks, subs: [] };
 }
 function makeSub(brands){ return { brands:(brands||[]).slice(), config:'', colour:'', size:'', style:'' }; }
 
@@ -476,7 +478,12 @@ function renderPanel(){
         </div>
         <div class="sku-build">${skuBuild(v)}</div>
 
-        <div class="field-grid" style="margin-top:12px">
+        <div class="field-row" style="margin:10px 0 0">
+          <label>Variant name <span class="hint">(optional — describes what makes this SKU unique, e.g. "4.8×25 TX20")</span></label>
+          <input type="text" value="${esc(v.name||'')}" placeholder="e.g. 4.8×25 mm TX20 plain" oninput="setVariantName(${vi},this.value)" style="font-size:13.5px">
+        </div>
+
+        <div class="field-grid" style="margin-top:10px">
           <div class="field-row"><label><span class="badge b-l2">L2</span> Brand(s) for this variant</label>
             ${brandPool.length?`<div class="tag-multi">${brandPool.map(code=>`<div class="tag-opt ${v.brands.includes(code)?'on':''}" onclick="toggleVariantBrand(${vi},'${code}')">${esc(brandInfo(code).name)}</div>`).join('')}</div>`:`<span style="font-size:12px;color:var(--mut)">no template brands</span>`}
           </div>
@@ -512,7 +519,7 @@ function renderPanel(){
     const txt = (arr)=> arr && arr.length ? arr.map(esc).join(', ') : '<span style="color:var(--mut)">none</span>';
     const variantRows = state.variants.map((v,i)=>`
       <div class="variant-card" style="margin-bottom:8px">
-        <div class="variant-card-hd"><span class="badge b-l4">Variant ${i+1}</span><span class="vnum">${esc(itemNumber(v))}</span><span class="badge b-fix">sellable</span><span class="badge b-par">${esc(v.tier||'Standard')}</span></div>
+        <div class="variant-card-hd"><span class="badge b-l4">Variant ${i+1}</span><span class="vnum">${esc(itemNumber(v))}</span><span class="badge b-fix">sellable</span><span class="badge b-par">${esc(v.tier||'Standard')}</span>${v.name?`<span style="font-size:12px;font-weight:600;color:var(--txt-2)">${esc(v.name)}</span>`:''}</div>
         <div style="font-size:12.5px;color:var(--txt-2)">
           <b>Major Diameters:</b> ${esc(v.picks['Major Diameters']||'—')} · <b>Lengths:</b> ${esc(v.picks['Lengths']||'—')} · <b>Drive Type:</b> ${esc(v.picks['Drive Type']||'—')}<br>
           <b>Brand(s):</b> ${v.brands.length?v.brands.map(esc).join(', '):'—'} · <b>Tier:</b> ${esc(v.tier||'Standard')}
@@ -582,7 +589,7 @@ function pickTemplate(code){
   t.dims={ config:[...x.dims.config], colour:[...x.dims.colour], size:[...x.dims.size], style:[...x.dims.style] };
   state.template=t;
   /* preload the variants + sub-variants stored in the local DB */
-  state.variants=(x.variants||[]).map(v=>({ seq:v.seq, brands:[...v.brands], tier:v.tier||'Standard', picks:{...v.picks}, subs:(v.subs||[]).map(s=>({ ...s, brands:(s.brands&&s.brands.length?s.brands:v.brands).slice() })) }));
+  state.variants=(x.variants||[]).map(v=>({ seq:v.seq, name:v.name||'', brands:[...v.brands], tier:v.tier||'Standard', picks:{...v.picks}, subs:(v.subs||[]).map(s=>({ ...s, brands:(s.brands&&s.brands.length?s.brands:v.brands).slice() })) }));
   render();
 }
 function newTemplate(){ state.template=emptyTemplate(); state.template.isNew=true; state.variants=[]; render(); }
@@ -605,13 +612,44 @@ function togglePool(k,val){
 function toggleFeature(k,val){ const a=state.template.features[k]; const i=a.indexOf(val); i>=0?a.splice(i,1):a.push(val); render(); }
 function toggleCrossSell(val){ const a=state.template.crossSell; const i=a.indexOf(val); i>=0?a.splice(i,1):a.push(val); render(); }
 function setVariantTier(vi,val){ state.variants[vi].tier=val; render(); }
+function setVariantName(vi,val){ state.variants[vi].name=val; softUpdate(); }
 
-function addVariant(){ state.variants.push(makeVariant()); render(); }
+/* key that uniquely identifies a base variant within a template */
+function variantKey(v){ return CONFIG_KEYS.map(k=>v.picks[k]||'').join('|'); }
+/* key that uniquely identifies a sub-variant's add-on combination */
+function subKey(sub){ return [sub.config||'',sub.colour||'',sub.size||'',sub.style||''].join('|'); }
+
+function addVariant(){
+  const nv = makeVariant();
+  const nk = variantKey(nv);
+  if(state.variants.some(v=>variantKey(v)===nk)){
+    alert('A variant with the same dimension picks already exists.\nChange at least one configurable axis before adding another.');
+    return;
+  }
+  state.variants.push(nv); render();
+}
 function removeVariant(vi){ state.variants.splice(vi,1); if(!state.variants.length) state.variants=[makeVariant()]; render(); }
 function setPick(vi,k,val){ state.variants[vi].picks[k]=val; render(); }
-function addSub(vi){ state.variants[vi].subs.push(makeSub(state.variants[vi].brands)); render(); }
+function addSub(vi){
+  const newSub = makeSub(state.variants[vi].brands);
+  const nk = subKey(newSub);
+  if(state.variants[vi].subs.some(s=>subKey(s)===nk)){
+    alert('A sub-variant with the same Config / Colour / Size / Style add-on already exists for this item.\nChange at least one add-on axis to create a distinct child.');
+    return;
+  }
+  state.variants[vi].subs.push(newSub); render();
+}
 function removeSub(vi,si){ state.variants[vi].subs.splice(si,1); render(); }
-function setDim(vi,si,key,val){ state.variants[vi].subs[si][key]=val; render(); }
+function setDim(vi,si,key,val){
+  const v=state.variants[vi]; const sub=v.subs[si];
+  const oldVal = sub[key];
+  sub[key]=val;
+  if(v.subs.some((s,i2)=>i2!==si && subKey(s)===subKey(sub))){
+    sub[key]=oldVal;
+    alert('This combination of Config / Colour / Size / Style already exists as another sub-variant of this item. Choose a different value.');
+  }
+  render();
+}
 function toggleVariantBrand(vi,code){
   const v=state.variants[vi]; const a=v.brands; const i=a.indexOf(code); i>=0?a.splice(i,1):a.push(code);
   /* cascade: a sub-variant can only carry brands its parent variant carries */
@@ -637,7 +675,7 @@ function renderTreePreview(){
       lines.push(`    <span class="l3">📁 ${esc(t.code)}</span>  <span class="dim">${esc(t.name||t.fixed['Screw Type']||'range')}</span>`);
       const filled=state.variants.filter(v=>v.brands.includes(b) && v.picks['Major Diameters']);
       if(filled.length) filled.forEach(v=>{
-        lines.push(`      <span class="l4">🔩 ${esc(itemNumber(v))}</span>  <span class="dim">base · ${esc(v.picks['Major Diameters'])}×${esc(v.picks['Lengths'])} ${esc(v.picks['Drive Type'])}</span>`);
+        lines.push(`      <span class="l4">🔩 ${esc(itemNumber(v))}</span>  <span class="dim">${v.name?esc(v.name):'base · '+esc(v.picks['Major Diameters'])+'×'+esc(v.picks['Lengths'])+' '+esc(v.picks['Drive Type'])}</span>`);
         (v.subs||[]).filter(sub=>(sub.brands&&sub.brands.length?sub.brands:v.brands).includes(b)).forEach(sub=>lines.push(`        <span class="l4" style="opacity:.8">🛒 ${esc(subNumber(v,sub))}</span>  <span class="dim">add-on</span>`));
       });
       else if(state.step>=2) lines.push(`      <span class="dim">(add variants: pick Ø / L / drive)</span>`);

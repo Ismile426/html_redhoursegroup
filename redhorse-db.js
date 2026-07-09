@@ -77,13 +77,13 @@ window.RH_DB = {
       merch:{ dk:{released:true}, se:{released:true}, us:{released:false}, ec:{released:true} },
       dims:{ config:['Standard (0)','WSH-EPDM (5)','Long thread (21)'], colour:['No Colour (0)','RAL 9005 Jet Black (59)'], size:['PCS (0)','Box of 100 (8)'], style:['NA (0)','RH C25B (1)'] },
       variants:[
-        { seq:1, brands:['CREO','AXIS'], tier:'Standard',
+        { seq:1, name:'4.8×25 mm TX20', brands:['CREO','AXIS'], tier:'Standard',
           picks:{ 'Drive Type':'TX20','Major Diameters':'4.8 mm','Lengths':'25 mm','Drill Capacity':'2-6 mm steel','Drill Point Diameter':'5 mm','Drill Point Length':'6 mm','Weights':'6 g','Head Diameter':'12 mm','Partial Lengths':'','Effective Lengths':'26 mm' },
           subs:[
             { brands:['CREO','AXIS'], config:'WSH-EPDM (5)', colour:'RAL 9005 Jet Black (59)', size:'', style:'' },
             { brands:['CREO'], config:'', colour:'', size:'Box of 100 (8)', style:'RH C25B (1)' }
           ] },
-        { seq:2, brands:['CREO'], tier:'Premium',
+        { seq:2, name:'5.5×38 mm TX20 Premium', brands:['CREO'], tier:'Premium',
           picks:{ 'Drive Type':'TX20','Major Diameters':'5.5 mm','Lengths':'38 mm','Drill Capacity':'4-8 mm steel','Drill Point Diameter':'6.5 mm','Drill Point Length':'8 mm','Weights':'11 g','Head Diameter':'12 mm','Partial Lengths':'','Effective Lengths':'18 mm' },
           subs:[
             { config:'WSH-EPDM (5)', colour:'RAL 9005 Jet Black (59)', size:'Box of 100 (8)', style:'RH C25B (1)' }
@@ -98,13 +98,13 @@ window.RH_DB = {
       merch:{ dk:{released:true}, se:{released:true}, us:{released:false}, ec:{released:false} },
       dims:{ config:['Standard (0)'], colour:['No Colour (0)'], size:['PCS (0)','Box of 100 (8)'], style:['NA (0)'] },
       variants:[
-        { seq:1, brands:['CREO'], tier:'Standard',
+        { seq:1, name:'7.2×120 mm TX25', brands:['CREO'], tier:'Standard',
           picks:{ 'Drive Type':'TX25','Major Diameters':'7.2 mm','Lengths':'120 mm','Drill Capacity':'','Drill Point Diameter':'','Drill Point Length':'','Weights':'31 g','Head Diameter':'13 mm','Partial Lengths':'91 mm','Effective Lengths':'111 mm' },
           subs:[ { config:'', colour:'', size:'Box of 100 (8)', style:'' } ] },
-        { seq:2, brands:['CREO'], tier:'Standard',
+        { seq:2, name:'8×180 mm TX30', brands:['CREO'], tier:'Standard',
           picks:{ 'Drive Type':'TX30','Major Diameters':'8 mm','Lengths':'180 mm','Drill Capacity':'','Drill Point Diameter':'','Drill Point Length':'','Weights':'45 g','Head Diameter':'15 mm','Partial Lengths':'120 mm','Effective Lengths':'156 mm' },
           subs:[] },
-        { seq:3, brands:['CREO'], tier:'Pro',
+        { seq:3, name:'8×220 mm TX30 Pro', brands:['CREO'], tier:'Pro',
           picks:{ 'Drive Type':'TX30','Major Diameters':'8 mm','Lengths':'220 mm','Drill Capacity':'','Drill Point Diameter':'','Drill Point Length':'','Weights':'62 g','Head Diameter':'15 mm','Partial Lengths':'150 mm','Effective Lengths':'215 mm' },
           subs:[] }
       ] },
@@ -118,14 +118,14 @@ window.RH_DB = {
       merch:{ dk:{released:true}, se:{released:false}, us:{released:true}, ec:{released:true} },
       dims:{ config:['Standard (0)','MAT-SILVER WSH-ALU14B (1)'], colour:['No Colour (0)','RAL 9010 DS (8)','RAL 8371 M (26)'], size:['PCS (0)','150 (3)'], style:['NA (0)','RH C25B (1)','RH4001 C25B (2)'] },
       variants:[
-        { seq:1, brands:['AXIS','ROCO'], tier:'Standard',
+        { seq:1, name:'5.5×50 mm TX25 w. alu washer', brands:['AXIS','ROCO'], tier:'Standard',
           picks:{ 'Drive Type':'TX25','Major Diameters':'5.5 mm','Lengths':'50 mm','Drill Capacity':'4-8 mm steel','Drill Point Diameter':'6.5 mm','Drill Point Length':'8 mm','Weights':'17 g','Head Diameter':'16 mm','Partial Lengths':'','Effective Lengths':'37 mm' },
           subs:[
             { config:'MAT-SILVER WSH-ALU14B (1)', colour:'RAL 8371 M (26)', size:'', style:'' },
             { config:'MAT-SILVER WSH-ALU14B (1)', colour:'RAL 9010 DS (8)', size:'150 (3)', style:'RH C25B (1)' },
             { config:'MAT-SILVER WSH-ALU14B (1)', colour:'RAL 8371 M (26)', size:'150 (3)', style:'RH4001 C25B (2)' }
           ] },
-        { seq:2, brands:['AXIS'], tier:'Premium',
+        { seq:2, name:'6.0×100 mm HX8 Premium', brands:['AXIS'], tier:'Premium',
           picks:{ 'Drive Type':'HX8','Major Diameters':'6.0 mm','Lengths':'100 mm','Drill Capacity':'4-8 mm steel','Drill Point Diameter':'6.5 mm','Drill Point Length':'8 mm','Weights':'28 g','Head Diameter':'16 mm','Partial Lengths':'','Effective Lengths':'78 mm' },
           subs:[ { config:'MAT-SILVER WSH-ALU14B (1)', colour:'RAL 9010 DS (8)', size:'', style:'' } ] }
       ] },
@@ -138,10 +138,10 @@ window.RH_DB = {
       merch:{ dk:{released:true}, se:{released:false}, us:{released:false}, ec:{released:true} },
       dims:{ config:['Standard (0)'], colour:['No Colour (0)'], size:['PCS (0)','Box of 100 (8)'], style:['NA (0)','RH C25B (1)'] },
       variants:[
-        { seq:1, brands:['URSUS'], tier:'Basic',
+        { seq:1, name:'7.5×60 mm TX30', brands:['URSUS'], tier:'Basic',
           picks:{ 'Drive Type':'TX30','Major Diameters':'7.5 mm','Lengths':'60 mm','Drill Capacity':'','Drill Point Diameter':'','Drill Point Length':'','Weights':'22 g','Head Diameter':'13 mm','Partial Lengths':'','Effective Lengths':'47 mm' },
           subs:[ { config:'', colour:'', size:'Box of 100 (8)', style:'RH C25B (1)' } ] },
-        { seq:2, brands:['URSUS'], tier:'Basic',
+        { seq:2, name:'7.5×100 mm TX40', brands:['URSUS'], tier:'Basic',
           picks:{ 'Drive Type':'TX40','Major Diameters':'7.5 mm','Lengths':'100 mm','Drill Capacity':'','Drill Point Diameter':'','Drill Point Length':'','Weights':'34 g','Head Diameter':'13 mm','Partial Lengths':'','Effective Lengths':'58 mm' },
           subs:[] }
       ] },
@@ -154,13 +154,13 @@ window.RH_DB = {
       merch:{ dk:{released:true}, se:{released:true}, us:{released:false}, ec:{released:true} },
       dims:{ config:['Standard (0)'], colour:['No Colour (0)'], size:['PCS (0)','150 (3)','Box of 100 (8)'], style:['NA (0)','RH C25B (1)'] },
       variants:[
-        { seq:1, brands:['CREO','ROCO'], tier:'Standard',
+        { seq:1, name:'4.5×50 mm TX25', brands:['CREO','ROCO'], tier:'Standard',
           picks:{ 'Drive Type':'TX25','Major Diameters':'4.5 mm','Lengths':'50 mm','Drill Capacity':'','Drill Point Diameter':'','Drill Point Length':'','Weights':'7 g','Head Diameter':'8 mm','Partial Lengths':'30 mm','Effective Lengths':'37 mm' },
           subs:[
             { brands:['CREO','ROCO'], config:'', colour:'', size:'150 (3)', style:'' },
             { brands:['CREO'], config:'', colour:'', size:'Box of 100 (8)', style:'RH C25B (1)' }
           ] },
-        { seq:2, brands:['CREO'], tier:'Premium',
+        { seq:2, name:'5.0×70 mm TX30 Premium', brands:['CREO'], tier:'Premium',
           picks:{ 'Drive Type':'TX30','Major Diameters':'5.0 mm','Lengths':'70 mm','Drill Capacity':'','Drill Point Diameter':'','Drill Point Length':'','Weights':'11 g','Head Diameter':'8.5 mm','Partial Lengths':'32 mm','Effective Lengths':'47 mm' },
           subs:[ { brands:['CREO'], config:'', colour:'', size:'150 (3)', style:'RH C25B (1)' } ] }
       ] },
@@ -173,14 +173,14 @@ window.RH_DB = {
       merch:{ dk:{released:true}, se:{released:false}, us:{released:true}, ec:{released:true} },
       dims:{ config:['Standard (0)','WSH-EPDM (5)'], colour:['No Colour (0)','RAL 9010 DS (8)','RAL 8371 M (26)','RAL 9005 Jet Black (59)'], size:['PCS (0)','Box of 100 (8)'], style:['NA (0)','RH C25B (1)'] },
       variants:[
-        { seq:1, brands:['AXIS','URSUS'], tier:'Standard',
+        { seq:1, name:'5.5×25 mm HX8 EPDM', brands:['AXIS','URSUS'], tier:'Standard',
           picks:{ 'Drive Type':'HX8','Major Diameters':'5.5 mm','Lengths':'25 mm','Drill Capacity':'2-6 mm steel','Drill Point Diameter':'5 mm','Drill Point Length':'6 mm','Weights':'8 g','Head Diameter':'15 mm','Partial Lengths':'','Effective Lengths':'18 mm' },
           subs:[
             { brands:['AXIS','URSUS'], config:'WSH-EPDM (5)', colour:'RAL 9010 DS (8)', size:'', style:'' },
             { brands:['AXIS'], config:'WSH-EPDM (5)', colour:'RAL 8371 M (26)', size:'Box of 100 (8)', style:'RH C25B (1)' },
             { brands:['URSUS'], config:'', colour:'RAL 9005 Jet Black (59)', size:'', style:'' }
           ] },
-        { seq:2, brands:['AXIS'], tier:'Premium',
+        { seq:2, name:'6.3×80 mm TX30 Premium', brands:['AXIS'], tier:'Premium',
           picks:{ 'Drive Type':'TX30','Major Diameters':'6.3 mm','Lengths':'80 mm','Drill Capacity':'4-8 mm steel','Drill Point Diameter':'6.5 mm','Drill Point Length':'8 mm','Weights':'28 g','Head Diameter':'16 mm','Partial Lengths':'','Effective Lengths':'58 mm' },
           subs:[ { brands:['AXIS'], config:'WSH-EPDM (5)', colour:'RAL 9010 DS (8)', size:'Box of 100 (8)', style:'RH C25B (1)' } ] }
       ] },
@@ -193,10 +193,10 @@ window.RH_DB = {
       merch:{ dk:{released:true}, se:{released:true}, us:{released:false}, ec:{released:false} },
       dims:{ config:['Standard (0)'], colour:['No Colour (0)'], size:['PCS (0)','Box of 100 (8)'], style:['NA (0)'] },
       variants:[
-        { seq:1, brands:['CREO'], tier:'Standard',
+        { seq:1, name:'3.5×30 mm TX20', brands:['CREO'], tier:'Standard',
           picks:{ 'Drive Type':'TX20','Major Diameters':'3.5 mm','Lengths':'30 mm','Drill Capacity':'','Drill Point Diameter':'','Drill Point Length':'','Weights':'3 g','Head Diameter':'7 mm','Partial Lengths':'20 mm','Effective Lengths':'26 mm' },
           subs:[ { brands:['CREO'], config:'', colour:'', size:'Box of 100 (8)', style:'' } ] },
-        { seq:2, brands:['CREO'], tier:'Standard',
+        { seq:2, name:'4.5×50 mm TX25', brands:['CREO'], tier:'Standard',
           picks:{ 'Drive Type':'TX25','Major Diameters':'4.5 mm','Lengths':'50 mm','Drill Capacity':'','Drill Point Diameter':'','Drill Point Length':'','Weights':'5 g','Head Diameter':'8 mm','Partial Lengths':'25 mm','Effective Lengths':'37 mm' },
           subs:[] }
       ] },
@@ -209,10 +209,10 @@ window.RH_DB = {
       merch:{ dk:{released:true}, se:{released:false}, us:{released:false}, ec:{released:true} },
       dims:{ config:['Standard (0)'], colour:['No Colour (0)'], size:['PCS (0)','Box of 100 (8)'], style:['NA (0)','RH C25B (1)'] },
       variants:[
-        { seq:1, brands:['ROCO'], tier:'Basic',
+        { seq:1, name:'3.5×25 mm PZ2', brands:['ROCO'], tier:'Basic',
           picks:{ 'Drive Type':'PZ2','Major Diameters':'3.5 mm','Lengths':'25 mm','Drill Capacity':'','Drill Point Diameter':'','Drill Point Length':'','Weights':'3 g','Head Diameter':'7 mm','Partial Lengths':'','Effective Lengths':'25 mm' },
           subs:[ { brands:['ROCO'], config:'', colour:'', size:'Box of 100 (8)', style:'RH C25B (1)' } ] },
-        { seq:2, brands:['ROCO'], tier:'Basic',
+        { seq:2, name:'3.5×50 mm TX20', brands:['ROCO'], tier:'Basic',
           picks:{ 'Drive Type':'TX20','Major Diameters':'3.5 mm','Lengths':'50 mm','Drill Capacity':'','Drill Point Diameter':'','Drill Point Length':'','Weights':'5 g','Head Diameter':'7 mm','Partial Lengths':'','Effective Lengths':'50 mm' },
           subs:[] }
       ] },
