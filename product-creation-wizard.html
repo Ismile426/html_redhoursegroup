@@ -185,7 +185,7 @@ header p{font-size:13px;color:var(--mut)}
 <script src="redhorse-db.js"></script>
 <script>
 /* Master data comes from the shared local DB (redhorse-db.js) */
-const CATALOGS = RH_DB.catalogs.map(c=>c.id);
+const CATALOGS = RH_HELPERS.visibleCatalogIds();
 const CATALOG_ICONS = Object.fromEntries(RH_DB.catalogs.map(c=>[c.id,c.icon]));
 const EXISTING_BRANDS = RH_DB.brands;
 const COMPANIES = RH_DB.companies;

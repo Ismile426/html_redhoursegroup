@@ -11,6 +11,19 @@
  * ============================================================ */
 window.RH_DB = {
 
+  /* ----------------------------------------------------------
+   * DISPLAY CONFIG — controls which catalogs are visible in the
+   * wizard (creation) and the product listing.
+   *   showAllCatalogs : false → only `visibleCatalogs` are shown
+   *                     true  → every catalog is shown
+   * Flip showAllCatalogs to true (or add ids to visibleCatalogs)
+   * to reveal Rivets / Hammer / Washer again.
+   * ---------------------------------------------------------- */
+  config: {
+    showAllCatalogs: false,
+    visibleCatalogs: ['Screws']
+  },
+
   companies: [
     { id:'dk', name:'RED HORSE Denmark',    flag:'🇩🇰' },
     { id:'se', name:'Aston Sweden',         flag:'🇸🇪' },
@@ -133,6 +146,77 @@ window.RH_DB = {
           subs:[] }
       ] },
 
+    { code:'30500', catalog:'Screws', name:'Decking screw C4 TX', brands:['CREO','ROCO'],
+      fixed:{ 'Head Type':'CSH','Thread Type':'Wood','Screw Type':'Wood screw','Point Type':'Sharp point (S-point)','Material':'Carbon steel','Target Material':'Timber / decking','Surface Treatment':'Zytec™ XT','Surface Treatment Color':'Black','Self Drilling Y/N':'N','Self Tapping Y/N':'Y','Powder Paint Y/N':'N','Washer Y/N':'N','Washer Type':'—' },
+      pools:{ 'Drive Type':['TX25','TX30'],'Major Diameters':['4.5 mm','5.0 mm'],'Lengths':['50 mm','60 mm','70 mm'],'Drill Capacity':[],'Drill Point Diameter':[],'Drill Point Length':[],'Weights':['7 g','9 g','11 g'],'Head Diameter':['8 mm','8.5 mm'],'Partial Lengths':['30 mm','32 mm'],'Effective Lengths':['37 mm','47 mm'] },
+      features:{ 'Special Features':['Milling ribs','Thread cut'],'Typical Applications':['Exterior decking'] },
+      crossSell:['TX25 bit','Decking spacer'],
+      merch:{ dk:{released:true}, se:{released:true}, us:{released:false}, ec:{released:true} },
+      dims:{ config:['Standard (0)'], colour:['No Colour (0)'], size:['PCS (0)','150 (3)','Box of 100 (8)'], style:['NA (0)','RH C25B (1)'] },
+      variants:[
+        { seq:1, brands:['CREO','ROCO'], tier:'Standard',
+          picks:{ 'Drive Type':'TX25','Major Diameters':'4.5 mm','Lengths':'50 mm','Drill Capacity':'','Drill Point Diameter':'','Drill Point Length':'','Weights':'7 g','Head Diameter':'8 mm','Partial Lengths':'30 mm','Effective Lengths':'37 mm' },
+          subs:[
+            { brands:['CREO','ROCO'], config:'', colour:'', size:'150 (3)', style:'' },
+            { brands:['CREO'], config:'', colour:'', size:'Box of 100 (8)', style:'RH C25B (1)' }
+          ] },
+        { seq:2, brands:['CREO'], tier:'Premium',
+          picks:{ 'Drive Type':'TX30','Major Diameters':'5.0 mm','Lengths':'70 mm','Drill Capacity':'','Drill Point Diameter':'','Drill Point Length':'','Weights':'11 g','Head Diameter':'8.5 mm','Partial Lengths':'32 mm','Effective Lengths':'47 mm' },
+          subs:[ { brands:['CREO'], config:'', colour:'', size:'150 (3)', style:'RH C25B (1)' } ] }
+      ] },
+
+    { code:'40800', catalog:'Screws', name:'Roofing screw HWH self-drill', brands:['AXIS','URSUS'],
+      fixed:{ 'Head Type':'Hex washer head (HWH)','Thread Type':'Type B, medium','Screw Type':'Self-drilling','Point Type':'Drill point #2','Material':'Bi-metal, stainless A2','Target Material':'Steel, alu','Surface Treatment':'Cosmetic zink, ZnB10','Surface Treatment Color':'Silver','Self Drilling Y/N':'Y','Self Tapping Y/N':'Y','Powder Paint Y/N':'Y','Washer Y/N':'Y','Washer Type':'Bonded EPDM' },
+      pools:{ 'Drive Type':['HX8','TX30'],'Major Diameters':['5.5 mm','6.3 mm'],'Lengths':['25 mm','50 mm','80 mm'],'Drill Capacity':['2-6 mm steel','4-8 mm steel'],'Drill Point Diameter':['5 mm','6.5 mm'],'Drill Point Length':['6 mm','8 mm'],'Weights':['8 g','17 g','28 g'],'Head Diameter':['15 mm','16 mm'],'Partial Lengths':[],'Effective Lengths':['18 mm','38 mm','58 mm'] },
+      features:{ 'Special Features':['Drill cut'],'Typical Applications':['Steel sheet to steel','Steel sheet to alu'] },
+      crossSell:['EPDM washers','HX8 wrench bit'],
+      merch:{ dk:{released:true}, se:{released:false}, us:{released:true}, ec:{released:true} },
+      dims:{ config:['Standard (0)','WSH-EPDM (5)'], colour:['No Colour (0)','RAL 9010 DS (8)','RAL 8371 M (26)','RAL 9005 Jet Black (59)'], size:['PCS (0)','Box of 100 (8)'], style:['NA (0)','RH C25B (1)'] },
+      variants:[
+        { seq:1, brands:['AXIS','URSUS'], tier:'Standard',
+          picks:{ 'Drive Type':'HX8','Major Diameters':'5.5 mm','Lengths':'25 mm','Drill Capacity':'2-6 mm steel','Drill Point Diameter':'5 mm','Drill Point Length':'6 mm','Weights':'8 g','Head Diameter':'15 mm','Partial Lengths':'','Effective Lengths':'18 mm' },
+          subs:[
+            { brands:['AXIS','URSUS'], config:'WSH-EPDM (5)', colour:'RAL 9010 DS (8)', size:'', style:'' },
+            { brands:['AXIS'], config:'WSH-EPDM (5)', colour:'RAL 8371 M (26)', size:'Box of 100 (8)', style:'RH C25B (1)' },
+            { brands:['URSUS'], config:'', colour:'RAL 9005 Jet Black (59)', size:'', style:'' }
+          ] },
+        { seq:2, brands:['AXIS'], tier:'Premium',
+          picks:{ 'Drive Type':'TX30','Major Diameters':'6.3 mm','Lengths':'80 mm','Drill Capacity':'4-8 mm steel','Drill Point Diameter':'6.5 mm','Drill Point Length':'8 mm','Weights':'28 g','Head Diameter':'16 mm','Partial Lengths':'','Effective Lengths':'58 mm' },
+          subs:[ { brands:['AXIS'], config:'WSH-EPDM (5)', colour:'RAL 9010 DS (8)', size:'Box of 100 (8)', style:'RH C25B (1)' } ] }
+      ] },
+
+    { code:'20100', catalog:'Screws', name:'Chipboard screw CSH TX', brands:['CREO'],
+      fixed:{ 'Head Type':'CSH','Thread Type':'Type B, medium','Screw Type':'Chipboard screw','Point Type':'Sharp point (S-point)','Material':'Carbon steel','Target Material':'Chipboard / wood','Surface Treatment':'Zytec™+','Surface Treatment Color':'Silver','Self Drilling Y/N':'N','Self Tapping Y/N':'Y','Powder Paint Y/N':'N','Washer Y/N':'N','Washer Type':'—' },
+      pools:{ 'Drive Type':['TX20','TX25'],'Major Diameters':['3.5 mm','4.0 mm','4.5 mm'],'Lengths':['30 mm','40 mm','50 mm'],'Drill Capacity':[],'Drill Point Diameter':[],'Drill Point Length':[],'Weights':['3 g','4 g','5 g'],'Head Diameter':['7 mm','8 mm'],'Partial Lengths':['20 mm','25 mm'],'Effective Lengths':['26 mm','37 mm'] },
+      features:{ 'Special Features':['Thread cut','Knurls'],'Typical Applications':['Chipboard / woodwork'] },
+      crossSell:['TX20 bit'],
+      merch:{ dk:{released:true}, se:{released:true}, us:{released:false}, ec:{released:false} },
+      dims:{ config:['Standard (0)'], colour:['No Colour (0)'], size:['PCS (0)','Box of 100 (8)'], style:['NA (0)'] },
+      variants:[
+        { seq:1, brands:['CREO'], tier:'Standard',
+          picks:{ 'Drive Type':'TX20','Major Diameters':'3.5 mm','Lengths':'30 mm','Drill Capacity':'','Drill Point Diameter':'','Drill Point Length':'','Weights':'3 g','Head Diameter':'7 mm','Partial Lengths':'20 mm','Effective Lengths':'26 mm' },
+          subs:[ { brands:['CREO'], config:'', colour:'', size:'Box of 100 (8)', style:'' } ] },
+        { seq:2, brands:['CREO'], tier:'Standard',
+          picks:{ 'Drive Type':'TX25','Major Diameters':'4.5 mm','Lengths':'50 mm','Drill Capacity':'','Drill Point Diameter':'','Drill Point Length':'','Weights':'5 g','Head Diameter':'8 mm','Partial Lengths':'25 mm','Effective Lengths':'37 mm' },
+          subs:[] }
+      ] },
+
+    { code:'51000', catalog:'Screws', name:'Drywall screw bugle PH', brands:['ROCO'],
+      fixed:{ 'Head Type':'CSH','Thread Type':'Wood','Screw Type':'Chipboard screw','Point Type':'Sharp point (S-point)','Material':'Carbon steel','Target Material':'Chipboard / wood','Surface Treatment':'Zytec™+','Surface Treatment Color':'Black','Self Drilling Y/N':'N','Self Tapping Y/N':'Y','Powder Paint Y/N':'N','Washer Y/N':'N','Washer Type':'—' },
+      pools:{ 'Drive Type':['PZ2','TX20'],'Major Diameters':['3.5 mm'],'Lengths':['25 mm','38 mm','50 mm'],'Drill Capacity':[],'Drill Point Diameter':[],'Drill Point Length':[],'Weights':['3 g','4 g','5 g'],'Head Diameter':['7 mm'],'Partial Lengths':[],'Effective Lengths':['25 mm','38 mm','50 mm'] },
+      features:{ 'Special Features':[],'Typical Applications':['Chipboard / woodwork'] },
+      crossSell:['PZ2 bit'],
+      merch:{ dk:{released:true}, se:{released:false}, us:{released:false}, ec:{released:true} },
+      dims:{ config:['Standard (0)'], colour:['No Colour (0)'], size:['PCS (0)','Box of 100 (8)'], style:['NA (0)','RH C25B (1)'] },
+      variants:[
+        { seq:1, brands:['ROCO'], tier:'Basic',
+          picks:{ 'Drive Type':'PZ2','Major Diameters':'3.5 mm','Lengths':'25 mm','Drill Capacity':'','Drill Point Diameter':'','Drill Point Length':'','Weights':'3 g','Head Diameter':'7 mm','Partial Lengths':'','Effective Lengths':'25 mm' },
+          subs:[ { brands:['ROCO'], config:'', colour:'', size:'Box of 100 (8)', style:'RH C25B (1)' } ] },
+        { seq:2, brands:['ROCO'], tier:'Basic',
+          picks:{ 'Drive Type':'TX20','Major Diameters':'3.5 mm','Lengths':'50 mm','Drill Capacity':'','Drill Point Diameter':'','Drill Point Length':'','Weights':'5 g','Head Diameter':'7 mm','Partial Lengths':'','Effective Lengths':'50 mm' },
+          subs:[] }
+      ] },
+
     /* ================= RIVETS ================= */
     { code:'60100', catalog:'Rivets', name:'Blind rivet alu DxL', brands:['RHRIV'],
       fixed:{ 'Material':'Aluminium AlMg 2.5','Mandrel':'Steel, zinc plated','Head Style':'Dome head','Target Material':'Steel, alu' },
@@ -195,5 +279,15 @@ window.RH_HELPERS = {
     const c = sub.config ? oc(sub.config) : '0', col = sub.colour ? oc(sub.colour) : '0';
     const s = sub.size ? oc(sub.size) : '0', st = sub.style ? oc(sub.style) : '0';
     return `${tpl.code}${v.seq}-${c}-${col}-${s}-${st}`;
+  },
+  /* catalogs to show, honouring the display config */
+  visibleCatalogIds(){
+    const cfg = RH_DB.config || {};
+    if(cfg.showAllCatalogs) return RH_DB.catalogs.map(c=>c.id);
+    return (cfg.visibleCatalogs && cfg.visibleCatalogs.length) ? cfg.visibleCatalogs.slice() : RH_DB.catalogs.map(c=>c.id);
+  },
+  visibleCatalogs(){
+    const ids = window.RH_HELPERS.visibleCatalogIds();
+    return RH_DB.catalogs.filter(c=>ids.includes(c.id));
   }
 };

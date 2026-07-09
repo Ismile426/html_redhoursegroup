@@ -159,9 +159,13 @@ mark{background:#fef08a;border-radius:2px}
 const DB = window.RH_DB, H = window.RH_HELPERS;
 const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
+/* catalogs to display, per redhorse-db.js config */
+const VISIBLE_CATS = H.visibleCatalogIds();
+const VISIBLE_CATALOGS = DB.catalogs.filter(c=>VISIBLE_CATS.includes(c.id));
+
 /* ---------- flatten the DB into searchable rows ---------- */
 const ROWS = [];
-DB.templates.forEach(tpl=>{
+DB.templates.filter(tpl=>VISIBLE_CATS.includes(tpl.catalog)).forEach(tpl=>{
   const poolText = Object.values(tpl.pools||{}).flat().join(' ');
   const fixedText = Object.entries(tpl.fixed||{}).map(([k,v])=>k+' '+v).join(' ');
   ROWS.push({ kind:'template', sku:tpl.code, name:tpl.name, catalog:tpl.catalog, brands:tpl.brands, tier:'', tpl,
@@ -185,9 +189,9 @@ DB.templates.forEach(tpl=>{
 let kindFilter = '';
 function initFilters(){
   const cat=document.getElementById('f-catalog');
-  DB.catalogs.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.icon+' '+c.id; cat.appendChild(o); });
+  VISIBLE_CATALOGS.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.icon+' '+c.id; cat.appendChild(o); });
   const br=document.getElementById('f-brand'); const seen=new Set();
-  Object.values(DB.brands).flat().forEach(b=>{ if(seen.has(b.code))return; seen.add(b.code); const o=document.createElement('option'); o.value=b.code; o.textContent=b.name; br.appendChild(o); });
+  VISIBLE_CATS.flatMap(c=>DB.brands[c]||[]).forEach(b=>{ if(seen.has(b.code))return; seen.add(b.code); const o=document.createElement('option'); o.value=b.code; o.textContent=b.name; br.appendChild(o); });
   document.querySelectorAll('#kind-chips .f-chip').forEach(ch=>ch.onclick=()=>{
     document.querySelectorAll('#kind-chips .f-chip').forEach(x=>x.classList.remove('on'));
     ch.classList.add('on'); kindFilter=ch.dataset.kind; renderList();
@@ -248,7 +252,7 @@ const NOCARET = `<span class="caret-sp"></span>`;
 
 function renderTree(){
   let h='';
-  for(const c of DB.catalogs){
+  for(const c of VISIBLE_CATALOGS){
     const ts=DB.templates.filter(t=>t.catalog===c.id); if(!ts.length) continue;
     h+=`<div class="tr">${CARET}<span class="ic">${c.icon}</span><span class="nm">${esc(c.id)}</span><span class="count-pill">${ts.length} ranges</span></div><div class="kids" data-lvl="catalog">`;
     const brandSet=[...new Set(ts.flatMap(t=>t.brands))];
