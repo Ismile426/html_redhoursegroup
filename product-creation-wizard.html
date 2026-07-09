@@ -127,6 +127,13 @@ header p{font-size:13px;color:var(--mut)}
 .addon-hd{font-size:10.5px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.03em;margin:12px 0 4px;display:flex;align-items:center;gap:6px}
 .add-variant-btn{width:100%;border:1.5px dashed var(--l4);color:var(--l4);background:#faf5ff;border-radius:10px;padding:10px;font-weight:700;font-size:13.5px;cursor:pointer;margin-bottom:6px}
 .add-variant-btn:hover{background:#f3e8ff}
+.sub-card{border:1px dashed var(--line);border-left:3px solid var(--l4);border-radius:10px;padding:12px;margin:0 0 10px 14px;background:#fff}
+.sub-hd{display:flex;align-items:center;gap:10px}
+.sub-num{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:800;color:var(--l4);font-size:13px}
+.sub-hd .mini-x{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;padding:2px 8px;color:#991b1b;font-weight:800;font-size:12px}
+.sub-hd .mini-x:hover{background:#fef2f2}
+.add-sub-btn{border:1.2px dashed var(--l4);color:var(--l4);background:#faf5ff;border-radius:9px;padding:8px 12px;font-weight:700;font-size:12.5px;cursor:pointer;margin:2px 0 2px 14px}
+.add-sub-btn:hover{background:#f3e8ff}
 
 .fixed-box{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--surface-2);margin-bottom:14px}
 .fixed-box .fb-hd{font-size:11px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
@@ -151,8 +158,7 @@ header p{font-size:13px;color:var(--mut)}
   </div>
   <div class="hdr-links">
     <a href="index.html">Catalog Explorer</a>
-    
-    
+    <a href="product-listing.html">Product Listing</a>
     <a href="product-creation-wizard.html">Product Wizard</a>
   </div>
 </header>
@@ -176,22 +182,13 @@ header p{font-size:13px;color:var(--mut)}
   </div>
 </div>
 
+<script src="redhorse-db.js"></script>
 <script>
-const CATALOGS = ['Screws','Rivets','Hammer','Washer'];
-
-const EXISTING_BRANDS = {
-  Screws: [ { code:'CREO', name:'CREO®' }, { code:'AXIS', name:'AXIS®' }, { code:'ROCO', name:'ROCO®' }, { code:'URSUS', name:'URSUS®' } ],
-  Rivets: [ { code:'RHRIV', name:'RedHorse Rivets' } ],
-  Hammer: [ { code:'RHTOOLS', name:'RedHorse Tools' } ],
-  Washer: [ { code:'RHFIX', name:'RedHorse Fixing' } ]
-};
-
-const COMPANIES = [
-  { id:'dk', name:'RED HORSE Denmark',   flag:'🇩🇰' },
-  { id:'se', name:'Aston Sweden',        flag:'🇸🇪' },
-  { id:'us', name:'RED HORSE USA',       flag:'🇺🇸' },
-  { id:'ec', name:'Star Fasteners+ (web)', flag:'🌐' }
-];
+/* Master data comes from the shared local DB (redhorse-db.js) */
+const CATALOGS = RH_DB.catalogs.map(c=>c.id);
+const CATALOG_ICONS = Object.fromEntries(RH_DB.catalogs.map(c=>[c.id,c.icon]));
+const EXISTING_BRANDS = RH_DB.brands;
+const COMPANIES = RH_DB.companies;
 const TIERS = ['Standard','Premium','Mini','Pro','Basic'];
 
 /* ---- Classification straight from the "Screws" sheet ----
@@ -203,7 +200,7 @@ const TIERS = ['Standard','Premium','Mini','Pro','Basic'];
  * FEATURES   = multi-value text describing the whole range (Special Features, Typical Applications)
  * Names are used EXACTLY as they appear in the sheet.                                   */
 
-const FIXED_KEYS = ['Head Type','Thread Type','Screw Type','Point Type','Material','Target Material','Surface Treatment','Surface Treatment Color','Self Drilling Y/N','Self Tapping Y/N','Powder Paint Y/N','Powder paint Color','Washer Y/N','Washer Type'];
+const FIXED_KEYS = ['Head Type','Thread Type','Screw Type','Point Type','Material','Target Material','Surface Treatment','Surface Treatment Color','Self Drilling Y/N','Self Tapping Y/N','Powder Paint Y/N','Washer Y/N','Washer Type'];
 const FIXED_OPTS = {
   'Head Type': ['Countersunk w. turbine ribs (CSH-TR)','Mushroom head (MH)','Hex washer head (HWH)','CSH','CSH-C'],
   'Thread Type': ['Wood','Type B, medium','Special (concrete)','Farmer'],
@@ -216,7 +213,6 @@ const FIXED_OPTS = {
   'Self Drilling Y/N': ['N','Y'],
   'Self Tapping Y/N': ['Y','N'],
   'Powder Paint Y/N': ['N','Y'],
-  'Powder paint Color': ['—','Dark Green','Brown'],
   'Washer Y/N': ['N','Y'],
   'Washer Type': ['—','Bonded EPDM']
 };
@@ -250,40 +246,17 @@ const FEATURE_OPTS = {
  *   Colour        = powder paint colour       (PDF: RAL 9010 DS / RAL 8371 M)
  *   Size          = pack / how it is sold      (PDF: PCS / 150)
  *   Style         = LABEL                      (PDF: RH C25B / RH4001 C25B) — not a washer */
-const DIM_DEFS = [
-  { key:'config', label:'Configuration', rh:'material + washer build — PDF: MAT-SILVER WSH-ALU14B', opts:['Standard (0)','MAT-SILVER WSH-ALU14B (1)','WSH-EPDM (5)','Long thread (21)'] },
-  { key:'colour', label:'Colour · Powder paint', rh:'PDF: Powder paint colour', opts:['No Colour (0)','RAL 9010 DS (8)','RAL 8371 M (26)','RAL 9005 Jet Black (59)'] },
-  { key:'size',   label:'Size · Pack',   rh:'PDF: how it is sold, not screw length', opts:['PCS (0)','150 (3)','Box of 100 (8)'] },
-  { key:'style',  label:'Style · Label',  rh:'PDF: label style — RH C25B / RH4001 C25B', opts:['NA (0)','RH C25B (1)','RH4001 C25B (2)'] }
-];
+const DIM_DEFS = RH_DB.dimDefs;
 
 /* Cross-sell = separate loose items bought alongside the screw (sheet "Cross Sales Products").
  * NOT a suffix — a relation to other products. */
-const CROSS_SELL = {
-  Screws: ['EPDM washers','TX20 bit','TX25 bit','PZ2 bit','Bit socket','Decking spacer','Masonry drill Ø6','HX8 wrench bit'],
-  Rivets: [], Hammer: [], Washer: []
-};
+const CROSS_SELL = RH_DB.crossSellOptions;
 
-/* Example templates (values pulled from the sheet examples) */
-const TEMPLATES = {
-  Screws: [
-    { code:'40400', name:'Self-drilling facade DxL TX', brands:['CREO','AXIS'],
-      fixed:{ 'Head Type':'Mushroom head (MH)','Thread Type':'Type B, medium','Screw Type':'Self-drilling','Point Type':'Drill point #2','Material':'Bi-metal, stainless A2','Target Material':'Steel, alu','Surface Treatment':'Cosmetic zink, ZnB10','Surface Treatment Color':'Silver','Self Drilling Y/N':'Y','Self Tapping Y/N':'Y','Powder Paint Y/N':'Y','Powder paint Color':'Dark Green','Washer Y/N':'Y','Washer Type':'Bonded EPDM' },
-      pools:{ 'Drive Type':['TX20'],'Major Diameters':['4.8 mm','5.5 mm'],'Lengths':['25 mm','38 mm'],'Drill Capacity':['2-6 mm steel','4-8 mm steel'],'Drill Point Diameter':['5 mm','6.5 mm'],'Drill Point Length':['6 mm','8 mm'],'Weights':['6 g','11 g'],'Head Diameter':['12 mm'],'Partial Lengths':[],'Effective Lengths':['26 mm','18 mm'] },
-      features:{ 'Special Features':[],'Typical Applications':['Steel sheet to steel','Steel sheet to alu'] },
-      crossSell:['EPDM washers'],
-      merch:{ dk:{released:true}, se:{released:true}, us:{released:false}, ec:{released:false} },
-      dims:{ config:['Standard (0)','WSH-EPDM (5)','Long thread (21)'], colour:['No Colour (0)','RAL 9005 Jet Black (59)'], size:['PCS (0)','Box of 100 (8)'], style:['NA (0)','RH C25B (1)'] } },
-    { code:'30300', name:'Wood screw DxL-L1 TX', brands:['CREO'],
-      fixed:{ 'Head Type':'Countersunk w. turbine ribs (CSH-TR)','Thread Type':'Wood','Screw Type':'Wood screw','Point Type':'Sharp point (S-point)','Material':'Carbon steel','Target Material':'Wood','Surface Treatment':'Zytec™+','Surface Treatment Color':'Black','Self Drilling Y/N':'N','Self Tapping Y/N':'Y','Powder Paint Y/N':'N','Powder paint Color':'—','Washer Y/N':'N','Washer Type':'—' },
-      pools:{ 'Drive Type':['TX25','TX30'],'Major Diameters':['7.2 mm','8 mm'],'Lengths':['120 mm','180 mm','220 mm'],'Drill Capacity':[],'Drill Point Diameter':[],'Drill Point Length':[],'Weights':['31 g','45 g','62 g'],'Head Diameter':['13 mm','15 mm'],'Partial Lengths':['91 mm','120 mm','150 mm'],'Effective Lengths':['111 mm','156 mm','215 mm'] },
-      features:{ 'Special Features':['Turbine Ribs','Thread cut','Knurls'],'Typical Applications':['Load bearing elements','CLT-connection'] },
-      crossSell:['TX25 bit'],
-      merch:{ dk:{released:true}, se:{released:true}, us:{released:false}, ec:{released:false} },
-      dims:{ config:['Standard (0)'], colour:['No Colour (0)'], size:['PCS (0)','Box of 100 (8)'], style:['NA (0)'] } }
-  ],
-  Rivets: [], Hammer: [], Washer: []
-};
+/* Templates come from the local DB, grouped per catalog.
+ * (The wizard's characteristic editor is wired to the Screws sheet;
+ *  other catalogs are browsable in the Product Listing page.) */
+const TEMPLATES = {};
+CATALOGS.forEach(c => TEMPLATES[c] = RH_DB.templates.filter(t => t.catalog === c));
 
 const STEPS = [
   { key:'catalog',  label:'Catalog',     num:'L1' },
@@ -311,21 +284,22 @@ function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 function js(s){ return String(s??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 function optCode(opt){ const m=String(opt||'').match(/\((\w[\w-]*)\)/); return m ? m[1] : '0'; }
 function isSelfDrilling(){ return state.template.fixed['Self Drilling Y/N']==='Y'; }
+function isPainted(){ return state.template.fixed['Powder Paint Y/N']==='Y'; }
 
-/* Numbering: template code + running sequence; add-on codes appended with dashes */
+/* Numbering:
+ *  L4 variant = template code + running sequence  → 404001  (sellable on its own)
+ *  L5 sub-variant = variant number + add-on codes → 404001-1-12-2-3 (created only when an add-on is applied) */
 function itemNumber(v){ const base = state.template.code || '?????'; return `${base}${v.seq}`; }
-function configuredNumber(v){
-  const item = itemNumber(v);
-  const hasAddon = v.config || v.colour || v.size || v.style;
-  if(!hasAddon) return item;
-  const c=v.config?optCode(v.config):'0', col=v.colour?optCode(v.colour):'0', s=v.size?optCode(v.size):'0', st=v.style?optCode(v.style):'0';
-  return `${item}-${c}-${col}-${s}-${st}`;
+function subNumber(v, sub){
+  const c=sub.config?optCode(sub.config):'0', col=sub.colour?optCode(sub.colour):'0', s=sub.size?optCode(sub.size):'0', st=sub.style?optCode(sub.style):'0';
+  return `${itemNumber(v)}-${c}-${col}-${s}-${st}`;
 }
 function makeVariant(){
   const picks = {};
   CONFIG_KEYS.forEach(k => picks[k] = state.template.pools[k][0] || '');
-  return { seq: state.variants.length+1, brands: state.template.brands.slice(), tier:'Standard', picks, config:'', colour:'', size:'', style:'' };
+  return { seq: state.variants.length+1, brands: state.template.brands.slice(), tier:'Standard', picks, subs: [] };
 }
+function makeSub(){ return { config:'', colour:'', size:'', style:'' }; }
 
 function softUpdate(){ renderTreePreview(); const b=document.getElementById('btn-continue'); if(b) b.disabled=!canAdvance(); }
 function setField(obj,key,el,upper){ let v=el.value; if(upper){ v=v.toUpperCase(); el.value=v; } obj[key]=v; softUpdate(); }
@@ -363,7 +337,7 @@ function renderPanel(){
       <p class="sub">One RedHorse product sheet tab. This demo is wired with the <b>Screws</b> characteristics.</p>
       <div class="choice-grid">
         ${CATALOGS.map(c=>`<div class="choice-card ${state.catalog===c?'selected':''}" onclick="pickCatalog('${c}')">
-          <div class="cc-icon">${c==='Screws'?'🔩':c==='Rivets'?'📌':c==='Hammer'?'🔨':'🔘'}</div>
+          <div class="cc-icon">${CATALOG_ICONS[c]||'📦'}</div>
           <div class="cc-name">${esc(c)}</div>
           <div class="cc-meta">/Catalog/${esc(c)}</div>
         </div>`).join('')}
@@ -480,27 +454,37 @@ function renderPanel(){
           ${allowed.map(o=>`<option ${v.picks[k]===o?'selected':''}>${esc(o)}</option>`).join('')}
         </select></div>`;
     };
-    const dimSelect = (vi,d) => {
-      const allowed = t.dims[d.key]; const v = state.variants[vi];
+    const dimSelect = (vi,si,d) => {
+      const allowed = t.dims[d.key]; const sub = state.variants[vi].subs[si];
+      if(d.key==='colour' && !isPainted()) return `<div class="field-row"><label>${esc(d.label)}</label><select disabled><option>— Powder Paint Y/N = N —</option></select></div>`;
       if(!allowed.length) return `<div class="field-row"><label>${esc(d.label)}</label><select disabled><option>— none —</option></select></div>`;
       return `<div class="field-row"><label>${esc(d.label)}</label>
-        <select onchange="setDim(${vi},'${d.key}',this.value)">
+        <select onchange="setDim(${vi},${si},'${d.key}',this.value)">
           <option value="">— none (0) —</option>
-          ${allowed.map(o=>`<option ${v[d.key]===o?'selected':''}>${esc(o)}</option>`).join('')}
+          ${allowed.map(o=>`<option ${sub[d.key]===o?'selected':''}>${esc(o)}</option>`).join('')}
         </select></div>`;
     };
-    const skuBuild = (v) => {
+    const skuBuild = (v,sub) => {
       const segs=[{code:itemNumber(v),base:true,label:'item #'}];
-      if(v.config||v.colour||v.size||v.style){
-        DIM_DEFS.forEach(d=>{ const val=v[d.key]; const code=val?optCode(val):'0'; segs.push({code,label:d.label,zero:code==='0'}); });
-      }
+      if(sub){ DIM_DEFS.forEach(d=>{ const val=sub[d.key]; const code=val?optCode(val):'0'; segs.push({code,label:d.label,zero:code==='0'}); }); }
       return segs.map((s,i)=>(i>0?'<span class="sku-dash">-</span>':'')+`<div class="sku-seg ${s.base?'base':'dim'}${s.zero?' zero':''}">${esc(s.code)}<div style="font-size:9px;font-weight:600;opacity:.75;margin-top:2px">${esc(s.label)}</div></div>`).join('');
     };
+    const subRow = (vi,v,sub,si) => `
+      <div class="sub-card">
+        <div class="sub-hd">
+          <span class="badge b-par">L5 sub-variant</span>
+          <span class="vnum sub-num">${esc(subNumber(v,sub))}</span>
+          <button class="mini-x" onclick="removeSub(${vi},${si})">✕</button>
+        </div>
+        <div class="sku-build" style="margin:8px 0">${skuBuild(v,sub)}</div>
+        <div class="field-grid">${DIM_DEFS.map(d=>dimSelect(vi,si,d)).join('')}</div>
+      </div>`;
     const cards = state.variants.map((v,vi)=>`
       <div class="variant-card">
         <div class="variant-card-hd">
           <span class="badge b-l4">Variant ${vi+1}</span>
-          <span class="vnum" id="vnum-${vi}">${esc(configuredNumber(v))}</span>
+          <span class="vnum" id="vnum-${vi}">${esc(itemNumber(v))}</span>
+          <span class="badge b-fix">sellable</span>
           ${state.variants.length>1?`<button class="mini-x" onclick="removeVariant(${vi})">✕ remove</button>`:''}
         </div>
         <div class="sku-build">${skuBuild(v)}</div>
@@ -524,12 +508,14 @@ function renderPanel(){
         <div class="addon-hd"><span class="badge b-der">Derived</span> Auto in F&amp;O from Ø/length — pick for the demo</div>
         <div class="field-grid">${DERIVED_KEYS.map(k=>pickSelect(vi,k,'der')).join('')}</div>
 
-        <div class="addon-hd">Add-on (optional) — only these are appended to the item number</div>
-        <div class="field-grid">${DIM_DEFS.map(d=>dimSelect(vi,d)).join('')}</div>
+        <div class="addon-hd">🧩 Configured sub-variants (add-ons) — each one is a child SKU of <code>${esc(itemNumber(v))}</code></div>
+        <div class="hint" style="margin-bottom:8px"><code>${esc(itemNumber(v))}</code> itself stays sellable. Apply an add-on (config / colour / pack / label) to spin off a child like <code>${esc(itemNumber(v))}-1-12-2-3</code>. The base number never gets dashes.</div>
+        ${v.subs.map((sub,si)=>subRow(vi,v,sub,si)).join('') || '<div class="hint" style="margin:4px 0 8px">No add-ons yet — this variant sells as the plain <code>'+esc(itemNumber(v))+'</code>.</div>'}
+        <button class="add-sub-btn" onclick="addSub(${vi})">+ Add configured sub-variant of ${esc(itemNumber(v))}</button>
       </div>`).join('');
     body = `
       <h2><span class="badge b-l4">L4</span> Variants of ${esc(t.code||'—')}</h2>
-      <p class="sub">Each variant picks one value from every configurable pool. Item number = template + running suffix (<code>${esc(t.code||'40400')}</code> → <code>${esc(itemNumber({seq:1}))}</code>). Add-ons append with dashes.</p>
+      <p class="sub">Each variant picks one value from every configurable pool and is <b>sellable on its own</b> (<code>${esc(itemNumber({seq:1}))}</code>). Applying an add-on creates a <b>sub-variant</b> child (<code>${esc(itemNumber({seq:1}))}-1-12-2-3</code>) — the base keeps no dashes.</p>
       ${brandPool.length?'':'<div class="note note-warn">Template has no brands — go back and select at least one.</div>'}
       ${cards}
       <button class="add-variant-btn" onclick="addVariant()">+ Add another variant (${esc(itemNumber({seq:state.variants.length+1}))})</button>`;
@@ -540,12 +526,15 @@ function renderPanel(){
     const merchRows = COMPANIES.map(c=>{ const m=t.merch[c.id]; return `<tr><td>${c.flag} ${esc(c.name)}</td><td>${m.released?'<b style="color:var(--l2)">✓ sells it</b>':'<span style="color:var(--mut)">—</span>'}</td></tr>`; }).join('');
     const variantRows = state.variants.map((v,i)=>`
       <div class="variant-card" style="margin-bottom:8px">
-        <div class="variant-card-hd"><span class="badge b-l4">Variant ${i+1}</span><span class="vnum">${esc(configuredNumber(v))}</span><span class="badge b-par">${esc(v.tier||'Standard')}</span></div>
+        <div class="variant-card-hd"><span class="badge b-l4">Variant ${i+1}</span><span class="vnum">${esc(itemNumber(v))}</span><span class="badge b-fix">sellable</span><span class="badge b-par">${esc(v.tier||'Standard')}</span></div>
         <div style="font-size:12.5px;color:var(--txt-2)">
           <b>Major Diameters:</b> ${esc(v.picks['Major Diameters']||'—')} · <b>Lengths:</b> ${esc(v.picks['Lengths']||'—')} · <b>Drive Type:</b> ${esc(v.picks['Drive Type']||'—')}<br>
-          <b>Brand(s):</b> ${v.brands.length?v.brands.map(esc).join(', '):'—'} · <b>Tier:</b> ${esc(v.tier||'Standard')}<br>
-          <b>Add-on:</b> ${(v.config||v.colour||v.size||v.style)?[v.config,v.colour,v.size,v.style].filter(Boolean).map(esc).join(' · '):'<span style="color:var(--mut)">none</span>'}
+          <b>Brand(s):</b> ${v.brands.length?v.brands.map(esc).join(', '):'—'} · <b>Tier:</b> ${esc(v.tier||'Standard')}
         </div>
+        ${v.subs.length?`<div style="margin-top:8px;font-size:12.5px">
+          <div style="color:var(--mut);text-transform:uppercase;font-size:10.5px;letter-spacing:.4px;margin-bottom:4px">L5 sub-variants (add-ons)</div>
+          ${v.subs.map(sub=>`<div style="display:flex;gap:8px;align-items:center;padding:3px 0"><span class="vnum sub-num">${esc(subNumber(v,sub))}</span><span style="color:var(--txt-2)">${[sub.config,sub.colour,sub.size,sub.style].filter(Boolean).map(esc).join(' · ')||'—'}</span></div>`).join('')}
+        </div>`:'<div style="margin-top:6px;font-size:12px;color:var(--mut)">No add-on sub-variants — sells as the plain base number.</div>'}
       </div>`).join('');
     body = `
       <h2>✅ Review before saving</h2>
@@ -609,11 +598,18 @@ function pickTemplate(code){
   t.crossSell=[...(x.crossSell||[])];
   t.merch=JSON.parse(JSON.stringify(x.merch));
   t.dims={ config:[...x.dims.config], colour:[...x.dims.colour], size:[...x.dims.size], style:[...x.dims.style] };
-  state.template=t; state.variants=[]; render();
+  state.template=t;
+  /* preload the variants + sub-variants stored in the local DB */
+  state.variants=(x.variants||[]).map(v=>({ seq:v.seq, brands:[...v.brands], tier:v.tier||'Standard', picks:{...v.picks}, subs:(v.subs||[]).map(s=>({...s})) }));
+  render();
 }
 function newTemplate(){ state.template=emptyTemplate(); state.template.isNew=true; state.variants=[]; render(); }
 function toggleTemplateBrand(code){ const a=state.template.brands; const i=a.indexOf(code); i>=0?a.splice(i,1):a.push(code); state.variants.forEach(v=>{ v.brands=v.brands.filter(b=>a.includes(b)); }); render(); }
-function setFixed(k,val){ state.template.fixed[k]=val; render(); }
+function setFixed(k,val){
+  state.template.fixed[k]=val;
+  if(k==='Powder Paint Y/N' && val!=='Y') state.variants.forEach(v=>{ (v.subs||[]).forEach(s=>{ s.colour=''; }); });
+  render();
+}
 function togglePool(k,val){
   const a=state.template.pools[k]; const i=a.indexOf(val); i>=0?a.splice(i,1):a.push(val);
   state.variants.forEach(v=>{ if(v.picks[k] && !a.includes(v.picks[k])) v.picks[k]=''; });
@@ -627,7 +623,9 @@ function setVariantTier(vi,val){ state.variants[vi].tier=val; render(); }
 function addVariant(){ state.variants.push(makeVariant()); render(); }
 function removeVariant(vi){ state.variants.splice(vi,1); if(!state.variants.length) state.variants=[makeVariant()]; render(); }
 function setPick(vi,k,val){ state.variants[vi].picks[k]=val; render(); }
-function setDim(vi,key,val){ state.variants[vi][key]=val; render(); }
+function addSub(vi){ state.variants[vi].subs.push(makeSub()); render(); }
+function removeSub(vi,si){ state.variants[vi].subs.splice(si,1); render(); }
+function setDim(vi,si,key,val){ state.variants[vi].subs[si][key]=val; render(); }
 function toggleVariantBrand(vi,code){ const a=state.variants[vi].brands; const i=a.indexOf(code); i>=0?a.splice(i,1):a.push(code); render(); }
 
 function restart(){ state.step=0; state.catalog=null; state.template=emptyTemplate(); state.variants=[]; render(); }
@@ -635,16 +633,26 @@ function restart(){ state.step=0; state.catalog=null; state.template=emptyTempla
 function renderTreePreview(){
   const treeEl=document.getElementById('tree-preview'), kvEl=document.getElementById('summary-kv'), noteEl=document.getElementById('step-note');
   const t=state.template;
-  const lines=[`<span class="l1">/RedHorseV3/Catalog/${esc(state.catalog||'…')}</span>`];
-  if(state.catalog){
-    (t.brands.length?t.brands:['…']).forEach(b=>lines.push(`  <span class="l2">🏷 ${esc(b)}</span>`));
-    if(t.code){
-      lines.push(`    <span class="l3">🔩 ${esc(t.code)}</span>  <span class="dim">${esc(t.fixed['Screw Type']||'range')}</span>`);
-      const filled=state.variants.filter(v=>v.brands.length && v.picks['Major Diameters']);
-      if(filled.length) filled.forEach(v=>lines.push(`      <span class="l4">🛒 ${esc(configuredNumber(v))}</span>  <span class="dim">${esc(v.picks['Major Diameters'])}×${esc(v.picks['Lengths'])} ${esc(v.picks['Drive Type'])}</span>`));
-      else if(state.step>=3) lines.push(`      <span class="dim">(add variants: pick Ø / L / drive)</span>`);
-    } else if(state.step>=1){ lines.push(`    <span class="dim">🔩 …  (set item number + brand)</span>`); }
-  }
+  /* Method B tree: 🏢 Company → 📂 Product type → 🏷 Brand → 📁 Range → 🔩 Item (base) → 🛒 Sub-variant */
+  const lines=[];
+  const releasedCos = COMPANIES.filter(co => t.merch[co.id] && t.merch[co.id].released);
+  const cos = releasedCos.length ? releasedCos : COMPANIES.slice(0,1);
+  cos.forEach(co=>{
+    lines.push(`<span class="l1">🏢 ${co.flag} ${esc(co.name)}</span>${releasedCos.length?'':'  <span class="dim">(nothing released yet)</span>'}`);
+    lines.push(`  <span class="l1">📂 ${esc(state.catalog||'…')}</span>`);
+    if(!state.catalog) return;
+    (t.brands.length?t.brands:['…']).forEach(b=>{
+      lines.push(`    <span class="l2">🏷 ${esc(b)}</span>`);
+      if(!t.code){ if(state.step>=1) lines.push(`      <span class="dim">📁 …  (set range number + name)</span>`); return; }
+      lines.push(`      <span class="l3">📁 ${esc(t.code)}</span>  <span class="dim">${esc(t.name||t.fixed['Screw Type']||'range')}</span>`);
+      const filled=state.variants.filter(v=>v.brands.includes(b) && v.picks['Major Diameters']);
+      if(filled.length) filled.forEach(v=>{
+        lines.push(`        <span class="l4">🔩 ${esc(itemNumber(v))}</span>  <span class="dim">base · ${esc(v.picks['Major Diameters'])}×${esc(v.picks['Lengths'])} ${esc(v.picks['Drive Type'])}</span>`);
+        (v.subs||[]).forEach(sub=>lines.push(`          <span class="l4" style="opacity:.8">🛒 ${esc(subNumber(v,sub))}</span>  <span class="dim">add-on</span>`));
+      });
+      else if(state.step>=3) lines.push(`        <span class="dim">(add variants: pick Ø / L / drive)</span>`);
+    });
+  });
   treeEl.innerHTML=lines.join('\n');
 
   const kv=[];
@@ -655,7 +663,7 @@ function renderTreePreview(){
   const poolCount = CONFIG_KEYS.reduce((n,k)=>n+t.pools[k].length,0);
   if(poolCount) kv.push(['Configurable values', poolCount]);
   const filled=state.variants.filter(v=>v.picks['Major Diameters']);
-  if(filled.length) kv.push(['Variants', filled.map(v=>configuredNumber(v)).join(', ')]);
+  if(filled.length) kv.push(['Variants', filled.map(v=>itemNumber(v)).join(', ')]);
   kvEl.innerHTML=kv.map(([k,v])=>`<div class="row"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`).join('');
 
   const notes={

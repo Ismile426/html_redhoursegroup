@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RedHorse — Product Listing &amp; Hierarchy</title>
+<style>
+:root{
+  --bg:#f6f7fb; --surface:#ffffff; --surface-2:#f8fafc; --line:#e2e8f0;
+  --txt:#0f172a; --txt-2:#334155; --mut:#64748b;
+  --l1:#2563eb; --l2:#16a34a; --l3:#d97706; --l4:#7c3aed;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt)}
+header{background:linear-gradient(120deg,#7f1d1d,#b91c1c);color:#fff;padding:18px 28px;display:flex;align-items:center;gap:14px}
+header .logo{width:42px;height:42px;border-radius:10px;background:#fff2;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;border:1px solid #fff3}
+header h1{font-size:19px}
+header p{font-size:12.5px;opacity:.85}
+.hdr-links{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.hdr-links a{color:#fff;text-decoration:none;font-size:12.5px;font-weight:600;padding:7px 12px;border:1px solid #fff4;border-radius:8px}
+.hdr-links a:hover{background:#fff2}
+
+.wrap{max-width:1400px;margin:0 auto;padding:20px 24px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--mut);margin-bottom:14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.legend b{color:var(--txt-2)}
+
+.layout{display:grid;grid-template-columns:400px 1fr;gap:18px;align-items:start}
+@media(max-width:980px){.layout{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.panel h3{font-size:14px;margin-bottom:10px}
+
+/* ---- tree (Method B) ---- */
+.tree{font-size:13px;max-height:76vh;overflow:auto}
+.tr{display:flex;align-items:center;gap:7px;padding:4px 8px;border-radius:7px;cursor:default;line-height:1.5}
+.tr.click{cursor:pointer}
+.tr.click:hover{background:var(--surface-2)}
+.tr.sel{background:#ede9fe;outline:1px solid #c4b5fd}
+.tr .ic{width:18px;text-align:center;flex:none}
+.tr .nm{font-weight:700;color:var(--txt-2)}
+.tr .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.tr .sub{font-size:11px;color:var(--mut);margin-left:4px;font-weight:500}
+.kids{margin-left:16px;border-left:1.5px dashed var(--line);padding-left:6px}
+.basetag{margin-left:auto;font-size:10px;font-weight:800;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;border-radius:20px;padding:1px 8px;white-space:nowrap}
+.count-pill{margin-left:auto;font-size:10.5px;font-weight:700;color:var(--mut);background:var(--surface-2);border:1px solid var(--line);border-radius:20px;padding:1px 8px}
+
+/* ---- listing ---- */
+.searchbar{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.searchbar input{flex:1;min-width:220px;padding:11px 14px;border:1.5px solid var(--line);border-radius:10px;font-size:14px;background:var(--surface)}
+.searchbar input:focus{outline:none;border-color:var(--l4)}
+.searchbar select{padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;font-size:13px;background:var(--surface)}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.f-chip{font-size:12px;font-weight:700;padding:5px 12px;border:1.5px solid var(--line);border-radius:20px;background:var(--surface);cursor:pointer;color:var(--txt-2)}
+.f-chip.on{background:#7c3aed;border-color:#7c3aed;color:#fff}
+.hitcount{font-size:12.5px;color:var(--mut);margin-bottom:10px}
+.hitcount b{color:var(--txt-2)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.pcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;transition:box-shadow .12s,border-color .12s}
+.pcard:hover{border-color:#c4b5fd;box-shadow:0 4px 14px #7c3aed14}
+.pcard .row1{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.pcard .icon{font-size:20px}
+.pcard .sku{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:800;font-size:14.5px;color:var(--l4)}
+.pcard .name{font-size:12.5px;color:var(--txt-2);font-weight:600;margin-bottom:8px}
+.pcard .meta{font-size:11.5px;color:var(--mut);line-height:1.7}
+.badge{font-size:9.5px;font-weight:800;letter-spacing:.03em;border-radius:20px;padding:2px 8px;text-transform:uppercase}
+.b-base{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}
+.b-sub{background:#faf5ff;color:#7c3aed;border:1px solid #ddd6fe}
+.b-tpl{background:#fffbeb;color:#b45309;border:1px solid #fde68a}
+.b-tier{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+.brand-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.brand-tags span{font-size:10.5px;font-weight:700;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;border-radius:6px;padding:1px 7px}
+mark{background:#fef08a;border-radius:2px}
+.empty{padding:40px;text-align:center;color:var(--mut);font-size:14px}
+
+/* ---- detail drawer ---- */
+.overlay{position:fixed;inset:0;background:#0f172a66;display:none;z-index:40}
+.overlay.open{display:block}
+.drawer{position:fixed;top:0;right:-560px;width:min(560px,100vw);height:100vh;background:var(--surface);z-index:50;box-shadow:-8px 0 30px #0002;transition:right .22s ease;overflow-y:auto;padding:22px}
+.drawer.open{right:0}
+.drawer .close{position:absolute;top:14px;right:16px;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 11px;cursor:pointer;font-weight:800;color:var(--mut)}
+.drawer h2{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:20px;color:var(--l4);margin:4px 0 2px}
+.drawer .dname{font-size:14px;color:var(--txt-2);font-weight:600;margin-bottom:14px}
+.crumb{font-size:12px;background:#0f172a;color:#e2e8f0;font-family:ui-monospace,Menlo,Consolas,monospace;border-radius:10px;padding:12px 14px;line-height:2;white-space:pre;overflow-x:auto;margin-bottom:14px}
+.crumb .c1{color:#93c5fd}.crumb .c2{color:#86efac}.crumb .c3{color:#fcd34d}.crumb .c4{color:#c4b5fd;font-weight:700}.crumb .cd{color:#64748b}
+.dsec{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px;background:var(--surface-2)}
+.dsec h4{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);margin-bottom:8px}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;font-size:12.5px}
+.kv .k{color:var(--mut)}
+.kv .v{font-weight:600;color:var(--txt-2)}
+.addon-line{display:flex;gap:8px;align-items:center;font-size:12.5px;padding:3px 0}
+.addon-line .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:800;color:var(--l4)}
+.subsku{display:flex;gap:8px;align-items:center;padding:5px 8px;border-radius:7px;cursor:pointer}
+.subsku:hover{background:#ede9fe}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">RH</div>
+  <div>
+    <h1>Product Listing &amp; Hierarchy</h1>
+    <p>Browse the local DB — Company → Product type → Brand → Range → Item (base) → Sub-variant</p>
+  </div>
+  <div class="hdr-links">
+    <a href="index.html">Catalog Explorer</a>
+    <a href="product-creation-wizard.html">✨ Product Wizard</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="legend">
+    <span>🏢 <b>Company</b></span><span>📂 <b>Product type</b></span><span>🏷 <b>Brand</b></span>
+    <span>📁 <b>Range</b> (template, e.g. 40400)</span><span>🔩 <b>Item</b> (base, sellable — 404001)</span>
+    <span>🛒 <b>Sub-variant</b> (add-on child — 404001-1-26-3-2)</span>
+  </div>
+
+  <div class="layout">
+    <div class="panel">
+      <h3>🌳 Product tree <span style="font-weight:500;color:var(--mut);font-size:11.5px">(Method B — each company is a root)</span></h3>
+      <div class="tree" id="tree"></div>
+    </div>
+
+    <div class="panel">
+      <h3>🔎 Product listing</h3>
+      <div class="searchbar">
+        <input type="text" id="q" placeholder="Search item no, name, brand, attribute… e.g. 404001, TX20, EPDM, RAL 9010" oninput="renderList()">
+        <select id="f-catalog" onchange="renderList()"><option value="">All product types</option></select>
+        <select id="f-brand" onchange="renderList()"><option value="">All brands</option></select>
+        <select id="f-company" onchange="renderList()"><option value="">All companies</option></select>
+      </div>
+      <div class="filter-row" id="kind-chips">
+        <div class="f-chip on" data-kind="">All</div>
+        <div class="f-chip" data-kind="template">📁 Ranges</div>
+        <div class="f-chip" data-kind="base">🔩 Base items</div>
+        <div class="f-chip" data-kind="sub">🛒 Sub-variants</div>
+      </div>
+      <div class="hitcount" id="hitcount"></div>
+      <div class="cards" id="cards"></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer"></div>
+
+<script src="redhorse-db.js"></script>
+<script>
+const DB = window.RH_DB, H = window.RH_HELPERS;
+const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+/* ---------- flatten the DB into searchable rows ---------- */
+const ROWS = [];
+DB.templates.forEach(tpl=>{
+  const relCos = DB.companies.filter(co=>tpl.merch[co.id] && tpl.merch[co.id].released).map(co=>co.id);
+  const poolText = Object.values(tpl.pools||{}).flat().join(' ');
+  const fixedText = Object.entries(tpl.fixed||{}).map(([k,v])=>k+' '+v).join(' ');
+  ROWS.push({ kind:'template', sku:tpl.code, name:tpl.name, catalog:tpl.catalog, brands:tpl.brands, companies:relCos, tier:'', tpl,
+    text:(tpl.code+' '+tpl.name+' '+tpl.brands.join(' ')+' '+fixedText+' '+poolText).toLowerCase() });
+  (tpl.variants||[]).forEach(v=>{
+    const base = H.itemNumber(tpl,v);
+    const pickText = Object.values(v.picks||{}).filter(Boolean).join(' ');
+    ROWS.push({ kind:'base', sku:base, name:tpl.name, catalog:tpl.catalog, brands:v.brands, companies:relCos, tier:v.tier, tpl, v,
+      text:(base+' '+tpl.name+' '+v.brands.join(' ')+' '+v.tier+' '+pickText+' '+fixedText).toLowerCase() });
+    (v.subs||[]).forEach(sub=>{
+      const sku = H.subNumber(tpl,v,sub);
+      const addonText = [sub.config,sub.colour,sub.size,sub.style].filter(Boolean).join(' ');
+      ROWS.push({ kind:'sub', sku, name:tpl.name, catalog:tpl.catalog, brands:v.brands, companies:relCos, tier:v.tier, tpl, v, sub,
+        text:(sku+' '+base+' '+tpl.name+' '+v.brands.join(' ')+' '+addonText+' '+pickText).toLowerCase() });
+    });
+  });
+});
+
+/* ---------- filters ---------- */
+let kindFilter = '';
+function initFilters(){
+  const cat=document.getElementById('f-catalog');
+  DB.catalogs.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.icon+' '+c.id; cat.appendChild(o); });
+  const br=document.getElementById('f-brand'); const seen=new Set();
+  Object.values(DB.brands).flat().forEach(b=>{ if(seen.has(b.code))return; seen.add(b.code); const o=document.createElement('option'); o.value=b.code; o.textContent=b.name; br.appendChild(o); });
+  const co=document.getElementById('f-company');
+  DB.companies.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.flag+' '+c.name; co.appendChild(o); });
+  document.querySelectorAll('#kind-chips .f-chip').forEach(ch=>ch.onclick=()=>{
+    document.querySelectorAll('#kind-chips .f-chip').forEach(x=>x.classList.remove('on'));
+    ch.classList.add('on'); kindFilter=ch.dataset.kind; renderList();
+  });
+}
+
+function hl(text,q){
+  if(!q) return esc(text);
+  const i=text.toLowerCase().indexOf(q); if(i<0) return esc(text);
+  return esc(text.slice(0,i))+'<mark>'+esc(text.slice(i,i+q.length))+'</mark>'+esc(text.slice(i+q.length));
+}
+
+/* ---------- listing ---------- */
+function filtered(){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const fc=document.getElementById('f-catalog').value;
+  const fb=document.getElementById('f-brand').value;
+  const fco=document.getElementById('f-company').value;
+  return ROWS.filter(r=>{
+    if(kindFilter && r.kind!==kindFilter) return false;
+    if(fc && r.catalog!==fc) return false;
+    if(fb && !r.brands.includes(fb)) return false;
+    if(fco && !r.companies.includes(fco)) return false;
+    if(q && !r.text.includes(q)) return false;
+    return true;
+  });
+}
+
+function brandName(code){ return (Object.values(DB.brands).flat().find(b=>b.code===code)||{name:code}).name; }
+function catIcon(id){ return (DB.catalogs.find(c=>c.id===id)||{icon:'📦'}).icon; }
+
+function renderList(){
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  const rows=filtered();
+  const counts={template:0,base:0,sub:0}; rows.forEach(r=>counts[r.kind]++);
+  document.getElementById('hitcount').innerHTML =
+    `<b>${rows.length}</b> results — 📁 ${counts.template} ranges · 🔩 ${counts.base} base items · 🛒 ${counts.sub} sub-variants`;
+  const cards=rows.map((r,i)=>{
+    const kindBadge = r.kind==='template' ? '<span class="badge b-tpl">📁 range</span>'
+                    : r.kind==='base' ? '<span class="badge b-base">🔩 base · sellable</span>'
+                    : '<span class="badge b-sub">🛒 sub-variant</span>';
+    const meta = r.kind==='template'
+      ? `${(r.tpl.variants||[]).length} base items · ${(r.tpl.variants||[]).reduce((n,v)=>n+(v.subs||[]).length,0)} sub-variants`
+      : r.kind==='base'
+      ? `${esc(Object.entries(r.v.picks).filter(([,val])=>val).slice(0,3).map(([k,val])=>val).join(' · '))}`
+      : `add-on: ${[r.sub.config,r.sub.colour,r.sub.size,r.sub.style].filter(Boolean).map(esc).join(' · ')||'—'}`;
+    return `<div class="pcard" onclick="openDrawer(${ROWS.indexOf(r)})">
+      <div class="row1"><span class="icon">${catIcon(r.catalog)}</span><span class="sku">${hl(r.sku,q)}</span>${kindBadge}${r.tier?`<span class="badge b-tier">${esc(r.tier)}</span>`:''}</div>
+      <div class="name">${hl(r.name,q)}</div>
+      <div class="meta">${meta}</div>
+      <div class="brand-tags">${r.brands.map(b=>`<span>${esc(brandName(b))}</span>`).join('')}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('cards').innerHTML = cards || '<div class="empty">No products match — try another term (e.g. “TX20”, “EPDM”, “RAL”, “404001”).</div>';
+}
+
+/* ---------- tree (Method B: company roots) ---------- */
+function renderTree(){
+  let h='';
+  for(const co of DB.companies){
+    const rel = DB.templates.filter(t=>t.merch[co.id] && t.merch[co.id].released);
+    h+=`<div class="tr"><span class="ic">🏢</span><span class="nm">${co.flag} ${esc(co.name)}</span><span class="count-pill">${rel.length} ranges</span></div><div class="kids">`;
+    if(!rel.length){ h+='<div class="tr"><span class="ic"></span><span class="sub">nothing released here yet</span></div></div>'; continue; }
+    for(const c of DB.catalogs){
+      const ts=rel.filter(t=>t.catalog===c.id); if(!ts.length) continue;
+      h+=`<div class="tr"><span class="ic">${c.icon}</span><span class="nm">${esc(c.id)}</span></div><div class="kids">`;
+      const brandSet=[...new Set(ts.flatMap(t=>t.brands))];
+      for(const bc of brandSet){
+        const bts=ts.filter(t=>t.brands.includes(bc));
+        h+=`<div class="tr"><span class="ic">🏷</span><span class="nm">${esc(brandName(bc))}</span></div><div class="kids">`;
+        for(const tpl of bts){
+          h+=`<div class="tr click" onclick="openBySku('${tpl.code}')"><span class="ic">📁</span><span class="nm mono">${esc(tpl.code)}</span><span class="sub">${esc(tpl.name)}</span></div><div class="kids">`;
+          const vs=(tpl.variants||[]).filter(v=>v.brands.includes(bc));
+          if(!vs.length){ h+='<div class="tr"><span class="ic"></span><span class="sub">no items under this brand</span></div>'; }
+          for(const v of vs){
+            const base=H.itemNumber(tpl,v);
+            h+=`<div class="tr click" onclick="openBySku('${base}')"><span class="ic">🔩</span><span class="nm mono">${esc(base)}</span><span class="basetag">base · sellable</span></div>`;
+            if((v.subs||[]).length){
+              h+='<div class="kids">';
+              for(const sub of v.subs){ const s=H.subNumber(tpl,v,sub);
+                h+=`<div class="tr click" onclick="openBySku('${s}')"><span class="ic">🛒</span><span class="mono" style="font-size:12px">${esc(s)}</span></div>`; }
+              h+='</div>';
+            }
+          }
+          h+='</div>';
+        }
+        h+='</div>';
+      }
+      h+='</div>';
+    }
+    h+='</div>';
+  }
+  document.getElementById('tree').innerHTML=h;
+}
+
+/* ---------- detail drawer ---------- */
+function openBySku(sku){ const i=ROWS.findIndex(r=>r.sku===sku); if(i>=0) openDrawer(i); }
+function openDrawer(i){
+  const r=ROWS[i]; if(!r) return;
+  const tpl=r.tpl;
+  const relCos=DB.companies.filter(co=>tpl.merch[co.id] && tpl.merch[co.id].released);
+  const crumbCo = relCos.length?relCos[0]:DB.companies[0];
+  let crumb=`<span class="c1">🏢 ${crumbCo.flag} ${esc(crumbCo.name)}</span>${relCos.length>1?` <span class="cd">(+${relCos.length-1} more)</span>`:''}\n`;
+  crumb+=`  <span class="c1">📂 ${esc(tpl.catalog)}</span>\n`;
+  crumb+=`    <span class="c2">🏷 ${r.brands.map(b=>esc(brandName(b))).join(' · ')}</span>\n`;
+  crumb+=`      <span class="c3">📁 ${esc(tpl.code)}</span>  <span class="cd">${esc(tpl.name)}</span>`;
+  if(r.kind!=='template'){
+    crumb+=`\n        <span class="c4">🔩 ${esc(H.itemNumber(tpl,r.v))}</span>  <span class="cd">base · sellable</span>`;
+    if(r.kind==='sub') crumb+=`\n          <span class="c4">🛒 ${esc(r.sku)}</span>  <span class="cd">add-on child</span>`;
+  }
+
+  let body='';
+  if(r.kind==='template'){
+    body+=`<div class="dsec"><h4>Fixed spec (one value / range)</h4><div class="kv">${Object.entries(tpl.fixed).map(([k,v])=>`<span class="k">${esc(k)}</span><span class="v">${esc(v||'—')}</span>`).join('')}</div></div>`;
+    body+=`<div class="dsec"><h4>Configurable pools (variant picks one)</h4><div class="kv">${Object.entries(tpl.pools).filter(([,vals])=>vals.length).map(([k,vals])=>`<span class="k">${esc(k)}</span><span class="v">${vals.map(esc).join(', ')}</span>`).join('')}</div></div>`;
+    body+=`<div class="dsec"><h4>Add-on dimensions on this range</h4><div class="kv">${DB.dimDefs.map(d=>`<span class="k">${esc(d.label)}</span><span class="v">${(tpl.dims[d.key]||[]).map(esc).join(', ')||'—'}</span>`).join('')}</div></div>`;
+    body+=`<div class="dsec"><h4>Base items in this range</h4>${(tpl.variants||[]).map(v=>{const b=H.itemNumber(tpl,v);return `<div class="subsku" onclick="openBySku('${b}')"><span>🔩</span><span class="mono" style="font-weight:800;color:var(--l4)">${esc(b)}</span><span style="font-size:11.5px;color:var(--mut)">${esc(Object.values(v.picks).filter(Boolean).slice(0,3).join(' · '))}</span></div>`;}).join('')}</div>`;
+    body+=`<div class="dsec"><h4>Cross-sell (relation — never in the number)</h4><div style="font-size:12.5px;color:var(--txt-2)">${(tpl.crossSell||[]).map(esc).join(', ')||'—'}</div></div>`;
+  } else {
+    body+=`<div class="dsec"><h4>Resolved characteristics (this item)</h4><div class="kv">${Object.entries(r.v.picks).filter(([,v])=>v).map(([k,v])=>`<span class="k">${esc(k)}</span><span class="v">${esc(v)}</span>`).join('')}</div></div>`;
+    body+=`<div class="dsec"><h4>Fixed spec (inherited from range ${esc(tpl.code)})</h4><div class="kv">${Object.entries(tpl.fixed).filter(([,v])=>v&&v!=='—').map(([k,v])=>`<span class="k">${esc(k)}</span><span class="v">${esc(v)}</span>`).join('')}</div></div>`;
+    if(r.kind==='sub'){
+      const segs=[['Configuration',r.sub.config],['Colour · Powder paint',r.sub.colour],['Size · Pack',r.sub.size],['Style · Label',r.sub.style]];
+      body+=`<div class="dsec"><h4>Add-on decode — ${esc(r.sku)}</h4>${segs.map(([label,val])=>`<div class="addon-line"><span class="mono">${val?H.optCode(val):'0'}</span><span style="color:var(--mut)">${esc(label)}:</span><span style="font-weight:600">${esc(val||'none (0)')}</span></div>`).join('')}</div>`;
+      body+=`<div class="dsec"><h4>Parent base item</h4><div class="subsku" onclick="openBySku('${H.itemNumber(tpl,r.v)}')"><span>🔩</span><span class="mono" style="font-weight:800;color:var(--l4)">${esc(H.itemNumber(tpl,r.v))}</span><span class="badge b-base">sellable on its own</span></div></div>`;
+    } else {
+      body+=`<div class="dsec"><h4>Sub-variants of ${esc(r.sku)} (add-on children)</h4>${(r.v.subs||[]).length?(r.v.subs||[]).map(sub=>{const s=H.subNumber(tpl,r.v,sub);return `<div class="subsku" onclick="openBySku('${s}')"><span>🛒</span><span class="mono" style="font-weight:800;color:var(--l4)">${esc(s)}</span><span style="font-size:11.5px;color:var(--mut)">${[sub.config,sub.colour,sub.size,sub.style].filter(Boolean).map(esc).join(' · ')}</span></div>`;}).join(''):'<div style="font-size:12.5px;color:var(--mut)">none — sells only as the plain base number</div>'}</div>`;
+    }
+    body+=`<div class="dsec"><h4>Brand(s) &amp; tier</h4><div style="font-size:12.5px;color:var(--txt-2)">${r.brands.map(b=>esc(brandName(b))).join(', ')} · <b>${esc(r.tier)}</b></div></div>`;
+  }
+  body+=`<div class="dsec"><h4>Released per company</h4><div style="font-size:12.5px;color:var(--txt-2)">${DB.companies.map(co=>`${co.flag} ${esc(co.name)}: ${tpl.merch[co.id]&&tpl.merch[co.id].released?'<b style="color:#047857">✓ sells it</b>':'<span style="color:var(--mut)">—</span>'}`).join('<br>')}</div></div>`;
+
+  document.getElementById('drawer').innerHTML =
+    `<button class="close" onclick="closeDrawer()">✕</button>
+     <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)">${r.kind==='template'?'📁 Range / template':r.kind==='base'?'🔩 Base item — sellable':'🛒 Sub-variant — add-on child'}</div>
+     <h2>${esc(r.sku)}</h2><div class="dname">${esc(r.name)}</div>
+     <div class="crumb">${crumb}</div>${body}`;
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+initFilters(); renderTree(); renderList();
+</script>
+</body>
+</html>

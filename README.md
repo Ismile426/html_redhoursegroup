@@ -10,6 +10,9 @@ Open `index.html` locally or deploy to Vercel for hosting.
 |-----|------|
 | `/` | Catalog Explorer |
 | `/product-creation-wizard.html` | Product Creation Wizard |
+| `/product-listing.html` | Product Listing & Hierarchy (search + Method B tree) |
+
+Product data (templates → variants → sub-variants) lives in `redhorse-db.js`, shared by the wizard and the listing page.
 
 ## Deploy on Vercel
 
