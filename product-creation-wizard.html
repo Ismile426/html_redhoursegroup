@@ -245,13 +245,16 @@ const FEATURE_OPTS = {
 };
 
 /* Add-on dimensions (F&O) — the only thing appended to the item number.
- * Colour = Powder paint (from sheet "Powder paint Color"); Style = assembled Washer/Finish
- * (from sheet "Washer Type"). These are post-configuration add-ons applied on top of a variant. */
+ * Aligned to the PDF (30444-1-8-3-1 = Config-Colour-Size-Style):
+ *   Configuration = material + WASHER build  (PDF: "MAT-SILVER WSH-ALU14B") — the assembled washer lives HERE
+ *   Colour        = powder paint colour       (PDF: RAL 9010 DS / RAL 8371 M)
+ *   Size          = pack / how it is sold      (PDF: PCS / 150)
+ *   Style         = LABEL                      (PDF: RH C25B / RH4001 C25B) — not a washer */
 const DIM_DEFS = [
-  { key:'config', label:'Configuration', rh:'thread / build option', opts:['Standard (0)','MAT-SILVER (1)','Long thread (21)'] },
-  { key:'colour', label:'Colour · Powder paint', rh:'sheet: Powder paint Color', opts:['No Colour (0)','RAL 9005 Jet Black (59)','RAL 9010 White (60)','RAL 8371 M (26)'] },
-  { key:'size',   label:'Size · Pack',   rh:'how it is sold, not screw length', opts:['Single piece / PCS (2)','Box of 100 (8)','150 PCS (3)'] },
-  { key:'style',  label:'Finish · Washer', rh:'sheet: Washer Type (assembled)', opts:['NA (0)','EPDM washer (8)','RH C25B (1)'] }
+  { key:'config', label:'Configuration', rh:'material + washer build — PDF: MAT-SILVER WSH-ALU14B', opts:['Standard (0)','MAT-SILVER WSH-ALU14B (1)','WSH-EPDM (5)','Long thread (21)'] },
+  { key:'colour', label:'Colour · Powder paint', rh:'PDF: Powder paint colour', opts:['No Colour (0)','RAL 9010 DS (8)','RAL 8371 M (26)','RAL 9005 Jet Black (59)'] },
+  { key:'size',   label:'Size · Pack',   rh:'PDF: how it is sold, not screw length', opts:['PCS (0)','150 (3)','Box of 100 (8)'] },
+  { key:'style',  label:'Style · Label',  rh:'PDF: label style — RH C25B / RH4001 C25B', opts:['NA (0)','RH C25B (1)','RH4001 C25B (2)'] }
 ];
 
 /* Cross-sell = separate loose items bought alongside the screw (sheet "Cross Sales Products").
@@ -270,14 +273,14 @@ const TEMPLATES = {
       features:{ 'Special Features':[],'Typical Applications':['Steel sheet to steel','Steel sheet to alu'] },
       crossSell:['EPDM washers'],
       merch:{ dk:{tier:'Standard',released:true}, se:{tier:'Standard',released:true}, us:{tier:'Pro',released:false}, ec:{tier:'Standard',released:false} },
-      dims:{ config:['Standard (0)','Long thread (21)'], colour:['No Colour (0)','RAL 9005 Jet Black (59)'], size:['Single piece / PCS (2)','Box of 100 (8)'], style:['NA (0)','EPDM washer (8)'] } },
+      dims:{ config:['Standard (0)','WSH-EPDM (5)','Long thread (21)'], colour:['No Colour (0)','RAL 9005 Jet Black (59)'], size:['PCS (0)','Box of 100 (8)'], style:['NA (0)','RH C25B (1)'] } },
     { code:'30300', name:'Wood screw DxL-L1 TX', brands:['CREO'],
       fixed:{ 'Head Type':'Countersunk w. turbine ribs (CSH-TR)','Thread Type':'Wood','Screw Type':'Wood screw','Point Type':'Sharp point (S-point)','Material':'Carbon steel','Target Material':'Wood','Surface Treatment':'Zytec™+','Surface Treatment Color':'Black','Self Drilling Y/N':'N','Self Tapping Y/N':'Y','Powder Paint Y/N':'N','Powder paint Color':'—','Washer Y/N':'N','Washer Type':'—' },
       pools:{ 'Drive Type':['TX25','TX30'],'Major Diameters':['7.2 mm','8 mm'],'Lengths':['120 mm','180 mm','220 mm'],'Drill Capacity':[],'Drill Point Diameter':[],'Drill Point Length':[],'Weights':['31 g','45 g','62 g'],'Head Diameter':['13 mm','15 mm'],'Partial Lengths':['91 mm','120 mm','150 mm'],'Effective Lengths':['111 mm','156 mm','215 mm'] },
       features:{ 'Special Features':['Turbine Ribs','Thread cut','Knurls'],'Typical Applications':['Load bearing elements','CLT-connection'] },
       crossSell:['TX25 bit'],
       merch:{ dk:{tier:'Premium',released:true}, se:{tier:'Premium',released:true}, us:{tier:'Premium',released:false}, ec:{tier:'Standard',released:false} },
-      dims:{ config:['Standard (0)'], colour:['No Colour (0)'], size:['Single piece / PCS (2)','Box of 100 (8)'], style:['NA (0)'] } }
+      dims:{ config:['Standard (0)'], colour:['No Colour (0)'], size:['PCS (0)','Box of 100 (8)'], style:['NA (0)'] } }
   ],
   Rivets: [], Hammer: [], Washer: []
 };
