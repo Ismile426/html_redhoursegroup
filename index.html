@@ -154,7 +154,7 @@ header p{font-size:13px;color:var(--mut)}
   <div class="logo">RH</div>
   <div>
     <h1>Product Creation Wizard</h1>
-    <p>Walk through Catalog → Template → Variants</p>
+    <p>Walk through Catalog → Brand → Template → Variants</p>
   </div>
   <div class="hdr-links">
     <a href="product-listing.html">🔎 Product Listing</a>
@@ -261,10 +261,11 @@ function syncTemplates(){
 syncTemplates();
 
 const STEPS = [
-  { key:'catalog',  label:'Catalog',     num:'L1' },
-  { key:'template', label:'Template',    num:'L3' },
-  { key:'variant',  label:'Variants',    num:'L4' },
-  { key:'review',   label:'Review',      num:'✓' }
+  { key:'catalog',  label:'Catalog',  num:'L1' },
+  { key:'brand',    label:'Brand',    num:'L2' },
+  { key:'template', label:'Template', num:'L3' },
+  { key:'variant',  label:'Variants', num:'L4' },
+  { key:'review',   label:'Review',   num:'✓' }
 ];
 
 function emptyTemplate(){
@@ -279,7 +280,7 @@ function emptyTemplate(){
   };
 }
 
-const state = { step:0, catalog:null, template:emptyTemplate(), variants:[] };
+const state = { step:0, catalog:null, brands:[], template:emptyTemplate(), variants:[] };
 
 function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function js(s){ return String(s??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
@@ -317,7 +318,8 @@ function canAdvance(){
   const t = state.template;
   switch(STEPS[state.step].key){
     case 'catalog':  return !!state.catalog;
-    case 'template': return !!(t.code && t.name && t.brands.length && t.fixed['Material'] && t.pools['Major Diameters'].length && t.pools['Lengths'].length && t.pools['Drive Type'].length);
+    case 'brand':    return state.brands.length > 0;
+    case 'template': return !!(t.code && t.name && t.fixed['Material'] && t.pools['Major Diameters'].length && t.pools['Lengths'].length && t.pools['Drive Type'].length);
     case 'variant':  return state.variants.length>0 && state.variants.every(v => v.brands.length && v.picks['Major Diameters'] && v.picks['Lengths'] && v.picks['Drive Type']);
     default:         return true;
   }
@@ -343,9 +345,24 @@ function renderPanel(){
       </div>`;
   }
 
+  else if(key==='brand'){
+    const brandList = EXISTING_BRANDS[state.catalog] || [];
+    body = `
+      <h2><span class="badge b-l2">L2</span> Choose brand(s)</h2>
+      <p class="sub">Select which brand(s) this product range belongs to. Variants will pick a subset; sub-variants narrow further.</p>
+      <div class="choice-grid">
+        ${brandList.map(b=>`
+          <div class="choice-card ${state.brands.includes(b.code)?'selected':''}" onclick="toggleBrand('${b.code}')">
+            <div class="cc-icon">🏷</div>
+            <div class="cc-name">${esc(b.name)}</div>
+            <div class="cc-meta">${esc(b.code)}</div>
+          </div>`).join('')}
+      </div>
+      ${state.brands.length ? `<div class="note note-ok">Selected: <b>${state.brands.map(esc).join(', ')}</b> — these will be pre-filled on the template.</div>` : '<div class="note note-warn">Select at least one brand to continue.</div>'}`;
+  }
+
   else if(key==='template'){
     const list = TEMPLATES[state.catalog] || [];
-    const brandList = EXISTING_BRANDS[state.catalog] || [];
     const fixedSelect = (k) => `
       <div class="field-row" style="margin-bottom:0"><label>${esc(k)}</label>
         <select onchange="setFixed('${js(k)}',this.value)">
@@ -387,8 +404,9 @@ function renderPanel(){
           <div class="field-row"><label>Name</label><input type="text" value="${esc(t.name)}" oninput="setField(state.template,'name',this)" placeholder="e.g. Self-drilling facade DxL TX"></div>
         </div>
 
-        <div class="field-row"><label><span class="badge b-l2">L2</span> Brand(s) — product family <span class="hint">(multi-select)</span></label>
-          <div class="tag-multi">${brandList.map(b=>`<div class="tag-opt ${t.brands.includes(b.code)?'on':''}" onclick="toggleTemplateBrand('${b.code}')">${esc(b.name)}</div>`).join('')}</div>
+        <div class="field-row"><label><span class="badge b-l2">L2</span> Brand(s) — derived from L2 selection</label>
+          <div class="tag-multi">${state.brands.map(code=>{ const b=(EXISTING_BRANDS[state.catalog]||[]).find(x=>x.code===code)||{code,name:code}; return `<div class="tag-opt on">${esc(b.name)}</div>`; }).join('')}
+          <span style="font-size:12px;color:var(--mut);margin-left:6px">← go back to L2 to change</span></div>
         </div>
 
         <div class="fixed-box">
@@ -571,11 +589,23 @@ function renderPanel(){
   el.innerHTML = body;
 }
 
-function pickCatalog(c){ state.catalog=c; state.template=emptyTemplate(); state.variants=[]; render(); }
+function pickCatalog(c){ state.catalog=c; state.brands=[]; state.template=emptyTemplate(); state.variants=[]; render(); }
+function toggleBrand(code){
+  const a=state.brands; const i=a.indexOf(code); i>=0?a.splice(i,1):a.push(code);
+  state.template.brands=[...a];
+  state.variants.forEach(v=>{
+    v.brands=v.brands.filter(b=>a.includes(b));
+    (v.subs||[]).forEach(s=>{ s.brands=(s.brands||[]).filter(b=>v.brands.includes(b)); });
+  });
+  softUpdate();
+  renderPanel();
+  renderTreePreview();
+}
 function pickTemplate(code){
   const x = (TEMPLATES[state.catalog]||[]).find(y=>y.code===code); if(!x) return;
   const t = emptyTemplate();
-  t.code=x.code; t.name=x.name; t.isNew=false; t.brands=[...x.brands];
+  t.code=x.code; t.name=x.name; t.isNew=false;
+  t.brands = state.brands.length ? [...state.brands] : [...x.brands];
   FIXED_KEYS.forEach(k=> t.fixed[k]=x.fixed[k]||'');
   CONFIG_KEYS.forEach(k=> t.pools[k]=[...(x.pools[k]||[])]);
   FEATURE_KEYS.forEach(k=> t.features[k]=[...(x.features[k]||[])]);
@@ -587,7 +617,7 @@ function pickTemplate(code){
   state.variants=(x.variants||[]).map(v=>({ seq:v.seq, name:v.name||'', brands:[...v.brands], tier:v.tier||'Standard', picks:{...v.picks}, subs:(v.subs||[]).map(s=>({ ...s, brands:(s.brands&&s.brands.length?s.brands:v.brands).slice() })) }));
   render();
 }
-function newTemplate(){ state.template=emptyTemplate(); state.template.isNew=true; state.variants=[]; render(); }
+function newTemplate(){ state.template=emptyTemplate(); state.template.brands=[...state.brands]; state.template.isNew=true; state.variants=[]; render(); }
 function toggleTemplateBrand(code){
   const a=state.template.brands; const i=a.indexOf(code); i>=0?a.splice(i,1):a.push(code);
   /* cascade template → variant → sub-variant */
@@ -655,7 +685,7 @@ function toggleSubBrand(vi,si,code){
   const a=state.variants[vi].subs[si].brands; const i=a.indexOf(code); i>=0?a.splice(i,1):a.push(code); render();
 }
 
-function restart(){ state.step=0; state.catalog=null; state.template=emptyTemplate(); state.variants=[]; render(); }
+function restart(){ state.step=0; state.catalog=null; state.brands=[]; state.template=emptyTemplate(); state.variants=[]; render(); }
 
 function renderTreePreview(){
   const treeEl=document.getElementById('tree-preview'), kvEl=document.getElementById('summary-kv'), noteEl=document.getElementById('step-note');
@@ -664,7 +694,8 @@ function renderTreePreview(){
   const lines=[];
   lines.push(`<span class="l1">📂 ${esc(state.catalog||'…')}</span>`);
   if(state.catalog){
-    (t.brands.length?t.brands:['…']).forEach(b=>{
+    const brandDisplay = state.brands.length ? state.brands : (t.brands.length ? t.brands : ['…']);
+    brandDisplay.forEach(b=>{
       lines.push(`  <span class="l2">🏷 ${esc(b)}</span>`);
       if(!t.code){ if(state.step>=1) lines.push(`    <span class="dim">📁 …  (set range number + name)</span>`); return; }
       lines.push(`    <span class="l3">📁 ${esc(t.code)}</span>  <span class="dim">${esc(t.name||t.fixed['Screw Type']||'range')}</span>`);
@@ -680,8 +711,8 @@ function renderTreePreview(){
 
   const kv=[];
   if(state.catalog) kv.push(['Catalog', state.catalog]);
+  if(state.brands.length) kv.push(['Brand(s) — L2', state.brands.join(', ')]);
   if(t.code) kv.push(['Template #', t.code]);
-  if(t.brands.length) kv.push(['Brands', t.brands.join(', ')]);
   if(t.fixed['Screw Type']) kv.push(['Screw Type', t.fixed['Screw Type']]);
   const poolCount = CONFIG_KEYS.reduce((n,k)=>n+t.pools[k].length,0);
   if(poolCount) kv.push(['Configurable values', poolCount]);
@@ -703,7 +734,7 @@ function onCatalogVisChange(){
   syncTemplates();
   const vis = visibleCats();
   if(state.catalog && !vis.includes(state.catalog)){
-    state.catalog=null; state.template=emptyTemplate(); state.variants=[]; state.step=0;
+    state.catalog=null; state.brands=[]; state.template=emptyTemplate(); state.variants=[]; state.step=0;
   }
   render();
 }
