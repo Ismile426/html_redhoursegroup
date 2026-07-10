@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RedHorse — How PIM (Pimcore) manages this flow</title>
+<style>
+:root{
+  --bg:#f6f7fb;--surface:#fff;--surface-2:#f8fafc;--line:#e2e8f0;--line-soft:#eef2f7;
+  --txt:#0f172a;--txt-2:#334155;--mut:#64748b;
+  --blue:#2563eb;--green:#16a34a;--amber:#d97706;--purple:#7c3aed;--pink:#db2777;--brand:#dc2626;
+  --shadow:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);line-height:1.55}
+code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+a{color:var(--blue);text-decoration:none}
+
+header{background:linear-gradient(120deg,#0b3b8c,#1e5fd0);color:#fff;padding:18px 28px;display:flex;align-items:center;gap:14px}
+header .logo{width:42px;height:42px;border-radius:10px;background:#fff2;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;border:1px solid #fff3}
+header h1{font-size:19px}
+header p{font-size:12.5px;opacity:.9}
+.hdr-links{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.hdr-links a{color:#fff;font-size:12.5px;font-weight:600;padding:7px 12px;border:1px solid #fff4;border-radius:8px}
+.hdr-links a:hover{background:#fff2}
+
+.wrap{max-width:1160px;margin:0 auto;padding:22px 24px 60px}
+.lead{font-size:15px;color:var(--txt-2);margin-bottom:18px;max-width:900px}
+.pill{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.03em;background:#e0edff;color:#1e40af;border:1px solid #b6d3ff;border-radius:20px;padding:2px 10px;margin-bottom:10px}
+
+.sec{background:#fff;border:1px solid var(--line-soft);border-radius:14px;padding:18px 20px 20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.sec h2{font-size:17px;font-weight:800;display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.sec h2::before{content:'';width:6px;height:19px;border-radius:3px;background:var(--blue);display:inline-block}
+.sec .sub{font-size:13px;color:var(--mut);margin-bottom:14px}
+
+/* flow chips */
+.flow{display:flex;align-items:stretch;gap:6px;flex-wrap:wrap;margin:6px 0}
+.chip{flex:1;min-width:140px;background:#fff;border:1px solid var(--line);border-top:3px solid #cbd5e1;border-radius:11px;padding:10px;text-align:center}
+.chip .e{font-size:21px}
+.chip .lvt{font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px;color:var(--mut)}
+.chip .t{font-weight:800;font-size:13px;margin-top:2px}
+.chip .ex{font-size:11px;color:var(--txt-2);margin-top:1px}
+.chip .pc{font-size:9.5px;color:#1e40af;background:#eff6ff;border:1px solid #b6d3ff;border-radius:20px;padding:1px 8px;display:inline-block;margin-top:6px;font-family:ui-monospace,Menlo,monospace}
+.chip.l1{border-top-color:#2563eb}.chip.l2{border-top-color:#16a34a}.chip.l3{border-top-color:#d97706}.chip.l4{border-top-color:#7c3aed}.chip.l5{border-top-color:#db2777}.chip.pb{border-top-color:var(--brand)}
+.arr{display:flex;align-items:center;color:#94a3b8;font-size:20px;font-weight:800}
+@media(max-width:760px){.arr{transform:rotate(90deg);justify-content:center}.flow{flex-direction:column}}
+.note{font-size:12.5px;color:var(--txt-2);background:#f8fafc;border:1px solid var(--line);border-left:3px solid var(--blue);border-radius:8px;padding:10px 13px;margin-top:8px}
+
+table{width:100%;border-collapse:collapse;font-size:12.8px;margin-top:6px}
+th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--mut);background:var(--surface-2)}
+td b{color:var(--txt)}
+.badge{font-size:9.5px;font-weight:800;border-radius:20px;padding:2px 8px;white-space:nowrap}
+.tb-l1{background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe}
+.tb-l2{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+.tb-l3{background:#fffbeb;color:#b45309;border:1px solid #fde68a}
+.tb-l4{background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe}
+.tb-l5{background:#fdf2f8;color:#be185d;border:1px solid #fbcfe8}
+
+ul.steps{list-style:none;padding:0;margin:6px 0}
+ul.steps li{position:relative;padding:9px 0 9px 34px;font-size:13.4px;color:var(--txt-2);border-bottom:1px solid var(--line-soft)}
+ul.steps li:last-child{border-bottom:0}
+ul.steps li .n{position:absolute;left:0;top:8px;width:21px;height:21px;border-radius:50%;background:var(--blue);color:#fff;font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
+ul.steps li b{color:var(--txt)}
+
+.banner{background:linear-gradient(135deg,#eff6ff,#f5f3ff);border:1px solid #c7d7fe;border-radius:12px;padding:13px 15px;margin-bottom:12px;font-size:13.4px;color:var(--txt-2)}
+.banner .tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#1e40af;background:#dbeafe;border:1px solid #bfdbfe;border-radius:20px;padding:2px 9px;margin-bottom:6px}
+.tree{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:15px;white-space:pre;overflow-x:auto;line-height:1.85}
+.tree .c1{color:#93c5fd}.tree .c2{color:#86efac}.tree .c3{color:#fcd34d}.tree .c4{color:#c4b5fd}.tree .c5{color:#f9a8d4}.tree .dim{color:#64748b}
+.k{color:#7c3aed;font-weight:700}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+.card{border:1px solid var(--line);border-radius:11px;padding:13px 15px;background:#fff}
+.card h4{font-size:13.5px;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.card p{font-size:12.5px;color:var(--txt-2)}
+.fieldmap{font-size:12.6px}
+.fieldmap tr td:first-child{white-space:nowrap}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">PIM</div>
+  <div>
+    <h1>How PIM (Pimcore) manages this flow</h1>
+    <p>Catalog → Template → Variant → Sub-variant, expressed in Pimcore objects, inheritance &amp; publishing</p>
+  </div>
+  <div class="hdr-links">
+    <a href="/">✨ Product Wizard</a>
+    <a href="product-listing.html">🔎 Product Listing</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <span class="pill">Techno-functional · Pimcore platform view</span>
+  <p class="lead">The wizard and listing show the <b>business</b> model. This page shows how the same
+  five levels are actually stored and managed inside <b>Pimcore PIM</b> — which object type each level
+  becomes, how attributes flow down through <b>inheritance</b>, how <b>variants</b> and add-ons are built,
+  and how a product finally reaches the webshop and Dynamics&nbsp;365 F&amp;O.</p>
+
+  <!-- 1. FLOW AT A GLANCE -->
+  <div class="sec">
+    <h2>The flow at a glance</h2>
+    <p class="sub">Our level → what it becomes in Pimcore, left to right</p>
+    <div class="flow">
+      <div class="chip l1"><div class="lvt" style="color:#2563eb">Catalog</div><div class="e">🗂️</div><div class="t">Object folder</div><div class="ex">Screws</div><div class="pc">Folder + Class</div></div>
+      <div class="arr">→</div>
+      <div class="chip l2"><div class="lvt" style="color:#16a34a">Brand / group</div><div class="e">🏷</div><div class="t">Folder / relation</div><div class="ex">CREO®</div><div class="pc">Object relation</div></div>
+      <div class="arr">→</div>
+      <div class="chip l3"><div class="lvt" style="color:#d97706">Template</div><div class="e">📋</div><div class="t">Parent Object</div><div class="ex">40400</div><div class="pc">allowInherit</div></div>
+      <div class="arr">→</div>
+      <div class="chip l4"><div class="lvt" style="color:#7c3aed">Variant</div><div class="e">🔩</div><div class="t">Object Variant</div><div class="ex">404001</div><div class="pc">type=variant</div></div>
+      <div class="arr">→</div>
+      <div class="chip l5"><div class="lvt" style="color:#db2777">Sub-variant</div><div class="e">🛒</div><div class="t">Nested Variant</div><div class="ex">404001-1-26-3-2</div><div class="pc">child of variant</div></div>
+      <div class="arr">→</div>
+      <div class="chip pb"><div class="lvt" style="color:var(--mut)">Publish</div><div class="e">🌐</div><div class="t">Publish + DataHub</div><div class="ex">web · ERP</div><div class="pc">GraphQL / export</div></div>
+    </div>
+    <div class="note">In one line: <b>Object folder (Screws) → parent Data Object (40400) → object variants (404001) → nested variants (add-ons) → publish → push out via DataHub to webshop &amp; F&amp;O.</b></div>
+  </div>
+
+  <!-- 2. HIERARCHY MAPPING -->
+  <div class="sec">
+    <h2>1 · Hierarchy levels in Pimcore</h2>
+    <p class="sub">Our term → Pimcore term → Pimcore object type in the tree</p>
+    <table>
+      <thead><tr><th>Our level</th><th>Example</th><th>Pimcore / PIM term</th><th>Pimcore object type</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge tb-l1">Catalog</span></td><td class="mono">Screws</td><td><b>Product catalog</b> / root category</td><td>Object <b>folder</b> under <code>/Products</code></td></tr>
+        <tr><td><span class="badge tb-l2">Brand / group</span></td><td class="mono">CREO®</td><td><b>Product family</b> / classification</td><td>Sub-folder or a <b>relation</b> to a Brand object</td></tr>
+        <tr><td><span class="badge tb-l3">Template</span></td><td class="mono">40400</td><td><b>Product master</b> / parent product / abstract product</td><td><b>Data Object</b> (class <code>Product</code>), <code>allowVariants + allowInherit</code></td></tr>
+        <tr><td><span class="badge tb-l4">Variant</span></td><td class="mono">404001</td><td><b>Product variant</b> / concrete SKU</td><td><b>Object variant</b> (<code>o_type = variant</code>)</td></tr>
+        <tr><td><span class="badge tb-l5">Sub-variant</span></td><td class="mono">404001-1-26-3-2</td><td><b>Derived SKU</b> / bundled add-on</td><td><b>Nested object variant</b> (variant of a variant)</td></tr>
+      </tbody>
+    </table>
+    <div class="note">Pimcore stores all five levels as rows in the <b>same object tree</b>. What separates a template from a variant is not a different table — it is the object's <b>type flag</b> (<code>object</code> vs <code>variant</code>) and whether inheritance is enabled.</div>
+  </div>
+
+  <!-- 3. THE OBJECT TREE -->
+  <div class="sec">
+    <h2>2 · What the Pimcore object tree actually looks like</h2>
+    <p class="sub">The admin "Data Objects" tree for range 40400</p>
+    <div class="tree"><span class="dim">/Products</span>
+ <span class="c1">📁 Screws</span>                         <span class="dim">← object folder (catalog)</span>
+    <span class="c3">📋 40400  Self-drilling facade DxL TX</span>   <span class="dim">← Parent Data Object (template)</span>
+       <span class="dim">·</span> fields: head_type, material, self_drilling=Y   <span class="dim">(inherited by all children)</span>
+       <span class="c4">🔩 404001  "4.8×25 mm TX20"</span>          <span class="dim">← Object variant (sellable)</span>
+          <span class="dim">·</span> overrides: drive=TX20, dia=4.8, length=25
+          <span class="c5">🛒 404001-1-26-3-2</span>                <span class="dim">← nested variant (add-on child)</span>
+          <span class="c5">🛒 404001-0-59-0-0</span>                <span class="dim">← paint-only add-on</span>
+       <span class="c4">🔩 404002  "5.5×38 mm TX20 Premium"</span>
+</div>
+    <div class="note">A <b>variant</b> always sits <b>under</b> its parent. Move it out and it stops being a variant. This physical parent→child nesting is exactly how the wizard's live tree and the listing's Method-B tree are drawn.</div>
+  </div>
+
+  <!-- 4. INHERITANCE -->
+  <div class="sec">
+    <h2>3 · Inheritance — how attributes flow down</h2>
+    <p class="sub">The single most important PIM concept for this model</p>
+    <div class="banner"><span class="tag">Rule</span> A child object shows the <b>parent's value</b> for any field it doesn't set itself. Set a value on the child and it <b>overrides</b> just that field. This is Pimcore <b>attribute inheritance</b> (<code>allowInherit=true</code> on the class).</div>
+    <div class="two">
+      <div class="card">
+        <h4>🟠 Fixed on the template</h4>
+        <p><code>head_type</code>, <code>material</code>, <code>self_drilling</code>… set <b>once</b> on <code>40400</code>. Every variant &amp; sub-variant inherits them automatically — no re-typing, and a later edit on the parent cascades to all children.</p>
+      </div>
+      <div class="card">
+        <h4>🟣 Configurable on the variant</h4>
+        <p><code>drive</code>, <code>major_diameter</code>, <code>length</code> are <b>empty on the parent</b> and <b>filled on each variant</b>. That override is what makes <code>404001</code> a distinct SKU.</p>
+      </div>
+    </div>
+    <table class="fieldmap" style="margin-top:12px">
+      <thead><tr><th>Our classification</th><th>Pimcore field type</th><th>Where the value lives</th><th>Inherited?</th></tr></thead>
+      <tbody>
+        <tr><td><b>Fixed</b> (Head Type, Material…)</td><td>Select / Input / Boolean</td><td>Parent (template)</td><td>✅ down to all children</td></tr>
+        <tr><td><b>Configurable pool</b> (Drive, Ø, Length)</td><td>Select with allowed values</td><td>Set on each variant</td><td>Override per variant</td></tr>
+        <tr><td><b>Derived</b> (Weight, Head Ø…)</td><td>Calculated Value field</td><td>Computed from Ø/L</td><td>Recomputed per variant</td></tr>
+        <tr><td><b>Descriptors</b> (Applications)</td><td>Multiselect</td><td>Parent</td><td>✅ inherited</td></tr>
+        <tr><td><b>Add-on axes</b> (Config/Colour/Size/Style)</td><td>Select (on nested variant)</td><td>Sub-variant</td><td>Override per sub-variant</td></tr>
+        <tr><td><b>Cross-sell</b></td><td>Many-to-many Relation</td><td>Parent</td><td>✅ inherited (relation)</td></tr>
+        <tr><td><b>Brand(s)</b></td><td>Multiselect / Relation</td><td>Template → narrowed on child</td><td>Override (narrow only)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 5. CLASS / MODELLING CONCEPTS -->
+  <div class="sec">
+    <h2>4 · Pimcore platform concepts used</h2>
+    <table>
+      <thead><tr><th>Pimcore term</th><th>What it is</th><th>Maps to our model</th></tr></thead>
+      <tbody>
+        <tr><td><b>Class</b> (Class Definition)</td><td>The blueprint of fields — the "schema" for a Product object</td><td>Defines every characteristic once</td></tr>
+        <tr><td><b>Data Object</b></td><td>One product record in the object tree</td><td>All levels L1–L5</td></tr>
+        <tr><td><b>Parent object</b> (allowVariants)</td><td>Master with variants enabled</td><td>L3 Template (40400)</td></tr>
+        <tr><td><b>Object variant</b></td><td>Child variant that inherits from parent</td><td>L4 Variant · L5 Sub-variant</td></tr>
+        <tr><td><b>Attribute inheritance</b></td><td>Child reads parent field values unless overridden</td><td>Fixed spec flows template → variant</td></tr>
+        <tr><td><b>Object Brick</b></td><td>A reusable block of fields attached only when needed</td><td>e.g. "Washer add-on" block on painted ranges</td></tr>
+        <tr><td><b>Field Collection</b></td><td>Repeatable set of fields (0..n rows)</td><td>e.g. list of add-on options</td></tr>
+        <tr><td><b>Classification Store</b></td><td>Attribute groups that vary by product family</td><td>Screw attrs vs Rivet attrs</td></tr>
+        <tr><td><b>Calculated Value</b></td><td>A field computed by a formula/PHP</td><td>Weight, Effective Length (derived)</td></tr>
+        <tr><td><b>Relation (many-to-many)</b></td><td>Link to other objects</td><td>Cross-sell, Brand</td></tr>
+        <tr><td><b>Assets / DAM</b></td><td>Images, datasheets, CAD linked to objects</td><td>Product photo, PDF spec</td></tr>
+        <tr><td><b>Publish / Unpublish</b></td><td>Only published objects reach channels</td><td>Go-live switch per SKU</td></tr>
+        <tr><td><b>Workflow</b></td><td>State machine (Draft → Review → Approved)</td><td>Data-quality gate before publish</td></tr>
+        <tr><td><b>DataHub (GraphQL)</b></td><td>API layer that serves objects to channels</td><td>Feeds webshop &amp; F&amp;O</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 6. HOW IT ACTUALLY WORKS -->
+  <div class="sec">
+    <h2>5 · How it actually works — a product manager in Pimcore</h2>
+    <p class="sub">Building range 40400 and its SKUs, step by step in the admin UI</p>
+
+    <div class="banner"><span class="tag">A · Create the template (parent)</span>
+      <ul class="steps">
+        <li><span class="n">1</span>In <b>Data Objects</b>, open the <code>Screws</code> folder → <b>Add Object → Product</b>. Name it <code>40400</code>.</li>
+        <li><span class="n">2</span>On the object, tick <b>"Allow variants"</b>. Inheritance is already on for the class.</li>
+        <li><span class="n">3</span>Fill the <b>fixed</b> fields once: Head Type = HWH, Material = Bi-metal A2, Self-drilling = Y, Washer = Y… These will flow to every child.</li>
+        <li><span class="n">4</span>Set the <b>allowed values</b> for the configurable selects (Drive: TX20; Ø: 4.8/5.5; Length: 25/38). Leave them empty on the parent.</li>
+        <li><span class="n">5</span>Attach relations: <b>Brands</b> (CREO, AXIS) and <b>Cross-sell</b> (EPDM washers, TX20 bit). Add <b>Assets</b> (photo, datasheet).</li>
+        <li><span class="n">6</span><b>Save</b> as Draft. The template is a spec — it is <b>never sold</b>.</li>
+      </ul>
+    </div>
+
+    <div class="banner"><span class="tag">B · Add a variant (the sellable SKU)</span>
+      <ul class="steps">
+        <li><span class="n">1</span>Right-click <code>40400</code> → <b>Add Variant</b>. Pimcore creates a child of type <code>variant</code> → key <code>404001</code>.</li>
+        <li><span class="n">2</span>Notice head_type/material are already filled — <b>inherited, greyed</b>. You don't touch them.</li>
+        <li><span class="n">3</span>Set the <b>variant name</b> ("4.8×25 mm TX20") and the <b>configurable picks</b>: drive=TX20, Ø=4.8, length=25.</li>
+        <li><span class="n">4</span><b>Narrow the brands</b> to those this SKU actually sells under (e.g. CREO + AXIS ⊆ template brands).</li>
+        <li><span class="n">5</span>The <b>Calculated Value</b> fields (weight, effective length) auto-fill from Ø/length.</li>
+        <li><span class="n">6</span><b>Save &amp; Publish.</b> <code>404001</code> is now a live, sellable SKU.</li>
+      </ul>
+    </div>
+
+    <div class="banner"><span class="tag">C · Add a sub-variant (add-on)</span>
+      <ul class="steps">
+        <li><span class="n">1</span>Right-click <code>404001</code> → <b>Add Variant</b> again → a <b>nested variant</b>.</li>
+        <li><span class="n">2</span>Set the four add-on axes: Configuration = WSH-ALU14B, Colour = RAL 8371 M, Size = 150, Style = RH4001 C25B.</li>
+        <li><span class="n">3</span>The SKU key becomes <code>404001-1-26-3-2</code> (codes from each option). Brands narrow again (⊆ variant brands).</li>
+        <li><span class="n">4</span>Everything else is still <b>inherited</b> from 404001 → 40400. <b>Publish.</b></li>
+      </ul>
+    </div>
+
+    <div class="banner"><span class="tag">D · Quality gate &amp; publish out</span>
+      <ul class="steps">
+        <li><span class="n">1</span>A <b>Workflow</b> moves each object Draft → In-Review → Approved. Only Approved+Published objects leave PIM.</li>
+        <li><span class="n">2</span><b>Completeness</b> check flags missing images/attributes before go-live.</li>
+        <li><span class="n">3</span><b>DataHub (GraphQL)</b> exposes published objects; the <b>webshop</b> reads them, and an <b>export</b> feeds <b>Dynamics 365 F&amp;O</b> (product master + released variants).</li>
+        <li><span class="n">4</span>F&amp;O then owns <b>price, stock &amp; release-per-company</b> — PIM owns the <b>content &amp; structure</b>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 7. PIM vs F&O split -->
+  <div class="sec">
+    <h2>6 · Who owns what — PIM vs F&amp;O</h2>
+    <p class="sub">Same product, two systems, clear boundary</p>
+    <table>
+      <thead><tr><th>Concern</th><th>Owned by PIM (Pimcore)</th><th>Owned by ERP (F&amp;O)</th></tr></thead>
+      <tbody>
+        <tr><td>Structure (catalog → template → variant → add-on)</td><td>✅ master structure &amp; inheritance</td><td>Mirrors as product master + variants</td></tr>
+        <tr><td>Marketing content (names, descriptions, images, datasheets)</td><td>✅</td><td>—</td></tr>
+        <tr><td>Attributes / technical specs</td><td>✅ single source of truth</td><td>Consumes for config model</td></tr>
+        <tr><td>Item numbering scheme</td><td>✅ defines the SKU keys</td><td>Uses as item/config IDs</td></tr>
+        <tr><td>Price, currency, tax</td><td>—</td><td>✅ per company</td></tr>
+        <tr><td>Stock / warehouse</td><td>—</td><td>✅</td></tr>
+        <tr><td>Release per legal entity</td><td>—</td><td>✅</td></tr>
+        <tr><td>Sales orders / production</td><td>—</td><td>✅</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 8. SEARCH -->
+  <div class="sec">
+    <h2>7 · How search works inside Pimcore</h2>
+    <p class="sub">Why "red colour screw" finds the right object</p>
+    <div class="banner">Pimcore's backend search uses a <b>MySQL InnoDB FULLTEXT</b> index on the
+      <code>search_backend_data</code> table — <b>not</b> Elasticsearch by default. When an object is saved,
+      Pimcore concatenates its readable fields (name, input/select/textarea values, key) into that index.</div>
+    <table>
+      <thead><tr><th>Field type</th><th>Indexed for search?</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td>Input / Textarea / WYSIWYG</td><td>✅ yes</td><td>Free text is fully searchable</td></tr>
+        <tr><td>Select / Multiselect</td><td>✅ yes (the stored value)</td><td>e.g. colour = "RAL 9005"</td></tr>
+        <tr><td>Numeric / Boolean</td><td>✅ as text</td><td>Diameter "4.8", self_drilling "Y"</td></tr>
+        <tr><td>Object relations (Brand, Cross-sell)</td><td>⚠️ not by default</td><td>Stored as links, not text — needs a helper/index field</td></tr>
+        <tr><td>Inherited values</td><td>Depends on config</td><td>Often the child re-indexes inherited text</td></tr>
+      </tbody>
+    </table>
+    <div class="note">So a search for <b>"red screw"</b> matches because the colour <b>select value</b> and the product
+      <b>name/type</b> are text-indexed. A pure <b>relation</b> (e.g. linked Brand object) won't match unless you
+      add a searchable mirror field — a common reason a term "should match but doesn't". For large catalogs teams
+      bolt on the <b>Elasticsearch / Advanced Index</b> bundle for faceted, typo-tolerant search on the storefront.</div>
+  </div>
+
+  <div class="note" style="border-left-color:var(--brand);background:#fff7f7">
+    <b>Honest scope note:</b> this page describes the <b>target Pimcore design</b>. The live demo
+    (<a href="/">wizard</a> + <a href="product-listing.html">listing</a>) is a static front-end over
+    <code>redhorse-db.js</code>; it imitates this structure but does not yet write to a real Pimcore backend.
+  </div>
+</div>
+
+</body>
+</html>
