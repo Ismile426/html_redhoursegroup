@@ -280,8 +280,23 @@ window.RH_HELPERS = {
     const s = sub.size ? oc(sub.size) : '0', st = sub.style ? oc(sub.style) : '0';
     return `${tpl.code}${v.seq}-${c}-${col}-${s}-${st}`;
   },
-  /* catalogs to show, honouring the display config */
+  /* catalogs to show — localStorage override, then DB config default */
+  getVisibleCatalogOverride(){
+    try{ const r=localStorage.getItem('rh_visible_catalogs'); if(r) return JSON.parse(r); }catch(e){}
+    return null;
+  },
+  setVisibleCatalogIds(ids){
+    localStorage.setItem('rh_visible_catalogs', JSON.stringify(ids));
+  },
+  resetVisibleCatalogs(){
+    localStorage.removeItem('rh_visible_catalogs');
+  },
+  templateCount(catalogId){
+    return RH_DB.templates.filter(t=>t.catalog===catalogId).length;
+  },
   visibleCatalogIds(){
+    const o = RH_HELPERS.getVisibleCatalogOverride();
+    if(o && Array.isArray(o) && o.length) return o.slice();
     const cfg = RH_DB.config || {};
     if(cfg.showAllCatalogs) return RH_DB.catalogs.map(c=>c.id);
     return (cfg.visibleCatalogs && cfg.visibleCatalogs.length) ? cfg.visibleCatalogs.slice() : RH_DB.catalogs.map(c=>c.id);

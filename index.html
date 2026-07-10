@@ -162,6 +162,7 @@ header p{font-size:13px;color:var(--mut)}
 </header>
 
 <div class="wrap">
+  <div id="cat-vis"></div>
 
   <div class="stepper" id="stepper"></div>
 
@@ -180,9 +181,10 @@ header p{font-size:13px;color:var(--mut)}
 </div>
 
 <script src="redhorse-db.js"></script>
+<script src="catalog-visibility.js"></script>
 <script>
 /* Master data comes from the shared local DB (redhorse-db.js) */
-const CATALOGS = RH_HELPERS.visibleCatalogIds();
+function visibleCats(){ return RH_HELPERS.visibleCatalogIds(); }
 const CATALOG_ICONS = Object.fromEntries(RH_DB.catalogs.map(c=>[c.id,c.icon]));
 const EXISTING_BRANDS = RH_DB.brands;
 const COMPANIES = RH_DB.companies;
@@ -253,7 +255,10 @@ const CROSS_SELL = RH_DB.crossSellOptions;
  * (The wizard's characteristic editor is wired to the Screws sheet;
  *  other catalogs are browsable in the Product Listing page.) */
 const TEMPLATES = {};
-CATALOGS.forEach(c => TEMPLATES[c] = RH_DB.templates.filter(t => t.catalog === c));
+function syncTemplates(){
+  visibleCats().forEach(c => TEMPLATES[c] = RH_DB.templates.filter(t => t.catalog === c));
+}
+syncTemplates();
 
 const STEPS = [
   { key:'catalog',  label:'Catalog',     num:'L1' },
@@ -329,15 +334,13 @@ function renderPanel(){
   if(key==='catalog'){
     body = `
       <h2><span class="badge b-l1">L1</span> Choose a catalog</h2>
-      <p class="sub">One RedHorse product sheet tab. This demo is wired with the <b>Screws</b> characteristics.</p>
       <div class="choice-grid">
-        ${CATALOGS.map(c=>`<div class="choice-card ${state.catalog===c?'selected':''}" onclick="pickCatalog('${c}')">
+        ${visibleCats().map(c=>{const n=RH_HELPERS.templateCount(c);return `<div class="choice-card ${state.catalog===c?'selected':''}" onclick="pickCatalog('${c}')">
           <div class="cc-icon">${CATALOG_ICONS[c]||'📦'}</div>
           <div class="cc-name">${esc(c)}</div>
-          <div class="cc-meta">/Catalog/${esc(c)}</div>
-        </div>`).join('')}
-      </div>
-      ${state.catalog && state.catalog!=='Screws' ? '<div class="note note-warn">Only <b>Screws</b> is populated with sheet data in this demo.</div>' : ''}`;
+          <div class="cc-meta">${n} range${n!==1?'s':''}</div>
+        </div>`;}).join('')}
+      </div>`;
   }
 
   else if(key==='template'){
@@ -696,7 +699,17 @@ function renderTreePreview(){
   noteEl.textContent=notes[STEPS[state.step].key]||'';
 }
 
+function onCatalogVisChange(){
+  syncTemplates();
+  const vis = visibleCats();
+  if(state.catalog && !vis.includes(state.catalog)){
+    state.catalog=null; state.template=emptyTemplate(); state.variants=[]; state.step=0;
+  }
+  render();
+}
+
 function render(){ renderStepper(); renderPanel(); renderTreePreview(); }
+RH_CATALOG_VIS.render('cat-vis', onCatalogVisChange);
 render();
 </script>
 </body>

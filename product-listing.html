@@ -127,6 +127,7 @@ mark{background:#fef08a;border-radius:2px}
 </header>
 
 <div class="wrap">
+  <div id="cat-vis"></div>
   <div class="legend">
     <span>📂 <b>Product type</b></span><span>🏷 <b>Brand</b></span>
     <span>📁 <b>Range</b> (template, e.g. 40400)</span><span>🔩 <b>Item</b> (base, sellable — 404001)</span>
@@ -183,17 +184,22 @@ mark{background:#fef08a;border-radius:2px}
 <div class="drawer" id="drawer"></div>
 
 <script src="redhorse-db.js"></script>
+<script src="catalog-visibility.js"></script>
 <script>
 const DB = window.RH_DB, H = window.RH_HELPERS;
 const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-/* catalogs to display, per redhorse-db.js config */
-const VISIBLE_CATS = H.visibleCatalogIds();
-const VISIBLE_CATALOGS = DB.catalogs.filter(c=>VISIBLE_CATS.includes(c.id));
+function getVisibleCatalogs(){
+  const vis = H.visibleCatalogIds();
+  return DB.catalogs.filter(c=>vis.includes(c.id));
+}
 
 /* ---------- flatten the DB into searchable rows ---------- */
-const ROWS = [];
-DB.templates.filter(tpl=>VISIBLE_CATS.includes(tpl.catalog)).forEach(tpl=>{
+let ROWS = [];
+function buildRows(){
+  ROWS = [];
+  const vis = H.visibleCatalogIds();
+  DB.templates.filter(tpl=>vis.includes(tpl.catalog)).forEach(tpl=>{
   const poolText = Object.values(tpl.pools||{}).flat().join(' ');
   const fixedText = Object.entries(tpl.fixed||{}).map(([k,v])=>k+' '+v).join(' ');
   ROWS.push({ kind:'template', sku:tpl.code, name:tpl.name, catalog:tpl.catalog, brands:tpl.brands, tier:'', tpl,
@@ -212,15 +218,19 @@ DB.templates.filter(tpl=>VISIBLE_CATS.includes(tpl.catalog)).forEach(tpl=>{
         text:(sku+' '+base+' '+tpl.name+' '+(v.name||'')+' '+subBrands.join(' ')+' '+addonText+' '+pickText).toLowerCase() });
     });
   });
-});
+}
+buildRows();
 
 /* ---------- filters ---------- */
 let kindFilter = '';
 function initFilters(){
   const cat=document.getElementById('f-catalog');
-  VISIBLE_CATALOGS.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.icon+' '+c.id; cat.appendChild(o); });
-  const br=document.getElementById('f-brand'); const seen=new Set();
-  VISIBLE_CATS.flatMap(c=>DB.brands[c]||[]).forEach(b=>{ if(seen.has(b.code))return; seen.add(b.code); const o=document.createElement('option'); o.value=b.code; o.textContent=b.name; br.appendChild(o); });
+  cat.innerHTML='<option value="">All product types</option>';
+  getVisibleCatalogs().forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.icon+' '+c.id; cat.appendChild(o); });
+  const br=document.getElementById('f-brand');
+  br.innerHTML='<option value="">All brands</option>';
+  const seen=new Set();
+  H.visibleCatalogIds().flatMap(c=>DB.brands[c]||[]).forEach(b=>{ if(seen.has(b.code))return; seen.add(b.code); const o=document.createElement('option'); o.value=b.code; o.textContent=b.name; br.appendChild(o); });
   document.querySelectorAll('#kind-chips .f-chip').forEach(ch=>ch.onclick=()=>{
     document.querySelectorAll('#kind-chips .f-chip').forEach(x=>x.classList.remove('on'));
     ch.classList.add('on'); kindFilter=ch.dataset.kind; renderList();
@@ -303,7 +313,7 @@ const NOCARET = `<span class="caret-sp"></span>`;
 
 function renderTree(){
   let h='';
-  for(const c of VISIBLE_CATALOGS){
+  for(const c of getVisibleCatalogs()){
     const ts=DB.templates.filter(t=>t.catalog===c.id); if(!ts.length) continue;
     h+=`<div class="tr">${CARET}<span class="ic">${c.icon}</span><span class="nm">${esc(c.id)}</span><span class="count-pill">${ts.length} ranges</span></div><div class="kids" data-lvl="catalog">`;
     const brandSet=[...new Set(ts.flatMap(t=>t.brands))];
@@ -409,7 +419,16 @@ function closeDrawer(){
   document.getElementById('overlay').classList.remove('open');
 }
 
+function onCatalogVisChange(){
+  buildRows();
+  initFilters();
+  closeDrawer();
+  renderTree();
+  renderList();
+}
+
 initFilters(); renderTree(); renderList();
+RH_CATALOG_VIS.render('cat-vis', onCatalogVisChange);
 </script>
 </body>
 </html>
