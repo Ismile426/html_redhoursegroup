@@ -154,19 +154,15 @@ header p{font-size:13px;color:var(--mut)}
   <div class="logo">RH</div>
   <div>
     <h1>Product Creation Wizard</h1>
-    <p>Walk through Catalog → <b>Template (fixed spec + configurable pools)</b> → Variants</p>
+    <p>Walk through Catalog → Template → Variants</p>
   </div>
   <div class="hdr-links">
-    <a href="RedHorse_Product_Listing.html">Product listing</a>
-    <a href="RedHorse_Levels_Attributes_Guide.html">Levels &amp; attributes</a>
-    <a href="RedHorse_PIM_v2_Architecture.html">Architecture</a>
-    <a href="RedHorse_Screws_Flow_Example.html">Screws flow</a>
-    <a href="RedHordse_PIM_V3_Explorer.html">Catalog Explorer</a>
+    <a href="product-listing.html">Product listing</a>
+    <a href="index.html">Catalog Explorer</a>
   </div>
 </header>
 
 <div class="wrap">
-  <p class="lead">Built from the <b>RedHorse Product Characteristics</b> sheet. Only the characteristics that hold <b>one value across the whole range</b> are <b>fixed</b> on the Template. Anything the sheet lists with <b>more than one value in a single range cannot be fixed</b> — it becomes a <b>configurable pool</b> on the template that each Variant picks from. Some are <b>derived</b> (calculated once Ø &amp; length are chosen). Each Variant gets its own item number (<code>40400</code> → <code>404001</code>), plus an optional add-on suffix (<code>404001-1-12-2-3</code>).</p>
 
   <div class="stepper" id="stepper"></div>
 
@@ -367,8 +363,7 @@ function renderPanel(){
         </div>
       </div>`;
     body = `
-      <h2><span class="badge b-l3">L3</span> Template — what is fixed vs what can vary</h2>
-      <p class="sub">A characteristic is <b>fixed</b> only if the sheet shows one value for the whole range. Everything the sheet lists with several values in a range is a <b>configurable pool</b> — it cannot be fixed here.</p>
+      <h2><span class="badge b-l3">L3</span> Template</h2>
       <div class="legend">
         <span><span class="badge b-fix">Fixed</span> one value / range</span>
         <span><span class="badge b-cfg">Configurable</span> variant picks one</span>
@@ -563,9 +558,7 @@ function renderPanel(){
         <div class="content" style="font-size:13px">${txt(t.crossSell)}</div>
       </div>
 
-      <div class="review-section"><h4>Variants (L4)</h4>${variantRows}</div>
-
-      <div class="note note-ok">Fixed = one value / range. Every characteristic the sheet lists with 2+ values in a range is a <b>configurable pool</b>, never fixed. Item number = <code>${esc(itemNumber({seq:1}))}</code>; add-ons only via the dashed suffix.</div>`;
+      <div class="review-section"><h4>Variants (L4)</h4>${variantRows}</div>`;
   }
 
   const isFirst=state.step===0, isLast=state.step===STEPS.length-1;
@@ -695,11 +688,12 @@ function renderTreePreview(){
   kvEl.innerHTML=kv.map(([k,v])=>`<div class="row"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`).join('');
 
   const notes={
-    catalog:'Pick the product world first.',
-    template:'Fixed = one value / range. Sheet values that repeat within a range become configurable pools.',
-    variant:'Each variant picks one value per configurable pool. Number = template + running suffix.',
-    review:'Nothing configurable is fixed. Only add-on codes append to the number.'
+    catalog:'',
+    template:'',
+    variant:'',
+    review:''
   };
+  noteEl.style.display = (notes[STEPS[state.step].key]||'') ? '' : 'none';
   noteEl.textContent=notes[STEPS[state.step].key]||'';
 }
 
