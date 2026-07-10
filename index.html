@@ -351,12 +351,13 @@ function renderPanel(){
       <h2><span class="badge b-l2">L2</span> Choose brand(s)</h2>
       <p class="sub">Select which brand(s) this product range belongs to. Variants will pick a subset; sub-variants narrow further.</p>
       <div class="choice-grid">
-        ${brandList.map(b=>`
-          <div class="choice-card ${state.brands.includes(b.code)?'selected':''}" onclick="toggleBrand('${b.code}')">
-            <div class="cc-icon">🏷</div>
+        ${brandList.map(b=>{ const on=state.brands.includes(b.code); return `
+          <div class="choice-card ${on?'selected':''}" onclick="toggleBrand('${b.code}')" style="position:relative">
+            <span style="position:absolute;top:8px;left:8px;width:16px;height:16px;border-radius:4px;border:2px solid ${on?'var(--l2)':'var(--line)'};background:${on?'var(--l2)':'#fff'};display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:800;flex-shrink:0">${on?'✓':''}</span>
+            <div class="cc-icon" style="margin-top:4px;margin-left:18px">🏷</div>
             <div class="cc-name">${esc(b.name)}</div>
             <div class="cc-meta">${esc(b.code)}</div>
-          </div>`).join('')}
+          </div>`; }).join('')}
       </div>
       ${state.brands.length ? `<div class="note note-ok">Selected: <b>${state.brands.map(esc).join(', ')}</b> — these will be pre-filled on the template.</div>` : '<div class="note note-warn">Select at least one brand to continue.</div>'}`;
   }
