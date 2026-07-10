@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RedHorse PIM — PIM Terminology</title>
+<style>
+:root{
+  --bg:#f8fafc;--surface:#fff;--surface-2:#f1f5f9;--line:#e2e8f0;
+  --txt:#0f172a;--txt-2:#334155;--mut:#64748b;
+  --rh:#dc2626;--l1:#2563eb;--l2:#16a34a;--l3:#d97706;--l4:#7c3aed;
+  --shadow:0 2px 8px rgba(15,23,42,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--l1);text-decoration:none}
+
+header{background:#fff;border-bottom:1px solid var(--line);padding:16px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--rh),#7c2d12);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+header h1{font-size:19px}
+header p{font-size:13px;color:var(--mut)}
+.hdr-links{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.hdr-links a{font-size:13px;font-weight:600;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--txt-2)}
+.hdr-links a:hover{background:var(--surface-2)}
+
+.hero{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:#e2e8f0;padding:48px 24px 40px;text-align:center}
+.hero h2{font-size:28px;font-weight:800;margin-bottom:10px}
+.hero p{font-size:15px;color:#94a3b8;max-width:680px;margin:0 auto}
+
+.wrap{max-width:960px;margin:0 auto;padding:32px 22px 80px}
+
+.section{margin-bottom:40px}
+.section-title{font-size:13px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--line);padding-bottom:8px;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+
+table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+th{background:var(--surface-2);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);padding:10px 14px;text-align:left;border-bottom:2px solid var(--line)}
+td{padding:11px 14px;font-size:13.5px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+tr:hover td{background:#fafafa}
+td.term{font-weight:700;color:var(--txt);white-space:nowrap}
+td.std{font-size:12px;color:var(--mut);font-style:italic}
+td.plain{color:var(--txt-2)}
+td.rh{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--l4);font-size:12.5px}
+
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:800;border:1px solid;white-space:nowrap;margin:2px 2px 0 0}
+.b-core{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
+.b-struct{background:#dcfce7;color:#166534;border-color:#86efac}
+.b-attr{background:#fef3c7;color:#92400e;border-color:#fcd34d}
+.b-wf{background:#ede9fe;color:#5b21b6;border-color:#c4b5fd}
+.b-int{background:#cffafe;color:#0e7490;border-color:#67e8f9}
+
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow)}
+.card .icon{font-size:26px;margin-bottom:8px}
+.card h3{font-size:14.5px;font-weight:800;margin-bottom:4px}
+.card p{font-size:13px;color:var(--txt-2)}
+.card .also{font-size:11.5px;color:var(--mut);margin-top:6px}
+.card .also b{color:var(--l4)}
+
+.flow{display:flex;align-items:center;flex-wrap:wrap;gap:0;margin:18px 0;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+.flow-step{flex:1;min-width:120px;padding:14px 10px;text-align:center;border-right:1px solid var(--line)}
+.flow-step:last-child{border-right:0}
+.flow-step .fs-lv{font-size:10.5px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+.flow-step .fs-icon{font-size:22px;margin:4px 0}
+.flow-step .fs-name{font-size:13px;font-weight:700}
+.flow-step .fs-std{font-size:11px;color:var(--mut);margin-top:2px}
+
+.note{font-size:13px;border-radius:8px;padding:10px 14px;margin:14px 0}
+.note-blue{background:#eff6ff;border:1px solid #93c5fd;color:#1e40af}
+.note-amber{background:#fffbeb;border:1px solid #fcd34d;color:#92400e}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">RH</div>
+  <div>
+    <h1>PIM Terminology</h1>
+    <p>Standard PIM industry terms — what they mean in the market and in RedHorse's model</p>
+  </div>
+  <div class="hdr-links">
+    <a href="/">✨ Wizard</a>
+    <a href="product-listing.html">🔎 Listing</a>
+    <a href="https://v2-0-fno-terminology.vercel.app/" target="_blank">⚙️ F&amp;O Terms ↗</a>
+  </div>
+</header>
+
+<div class="hero">
+  <h2>📖 PIM in plain words</h2>
+  <p>Product Information Management (PIM) is the single source of truth for all product data — descriptions, specs, media, pricing rules and channel-readiness — before it reaches any channel, ERP or storefront.</p>
+</div>
+
+<div class="wrap">
+
+  <!-- HIERARCHY FLOW -->
+  <div class="section">
+    <div class="section-title">🗂️ RedHorse hierarchy — PIM standard name at each level</div>
+    <div class="flow">
+      <div class="flow-step"><div class="fs-lv">L1</div><div class="fs-icon">📂</div><div class="fs-name">Catalog</div><div class="fs-std">Category / Taxonomy node</div></div>
+      <div class="flow-step"><div class="fs-lv">L2</div><div class="fs-icon">🏷</div><div class="fs-name">Brand</div><div class="fs-std">Product attribute / label</div></div>
+      <div class="flow-step"><div class="fs-lv">L3</div><div class="fs-icon">📁</div><div class="fs-name">Template / Range</div><div class="fs-std">Product master / family</div></div>
+      <div class="flow-step"><div class="fs-lv">L4</div><div class="fs-icon">🔩</div><div class="fs-name">Variant</div><div class="fs-std">Product variant / SKU</div></div>
+      <div class="flow-step"><div class="fs-lv">L5</div><div class="fs-icon">🛒</div><div class="fs-name">Sub-variant</div><div class="fs-std">Configured variant / child SKU</div></div>
+    </div>
+  </div>
+
+  <!-- CORE CONCEPTS -->
+  <div class="section">
+    <div class="section-title">🏗️ Core PIM concepts</div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="icon">📦</div>
+        <h3>Product Master / Family</h3>
+        <p>The central record that holds all shared data for a product group. Never sold on its own — it is the recipe from which variants are made.</p>
+        <div class="also">RedHorse: <b>Template / Range (L3)</b> e.g. 40400</div>
+      </div>
+      <div class="card">
+        <div class="icon">🔩</div>
+        <h3>SKU (Stock Keeping Unit)</h3>
+        <p>A unique, buyable item with its own price, stock, and barcode. One SKU = one concrete sellable thing.</p>
+        <div class="also">RedHorse: <b>Variant (L4)</b> e.g. 404001</div>
+      </div>
+      <div class="card">
+        <div class="icon">🧬</div>
+        <h3>Product Variant</h3>
+        <p>A specific combination of dimension values (size, colour, drive type) that makes one SKU distinct from another within the same family.</p>
+        <div class="also">RedHorse: <b>404001 vs 404002</b> (different Ø/length)</div>
+      </div>
+      <div class="card">
+        <div class="icon">🗂️</div>
+        <h3>Catalog / Taxonomy</h3>
+        <p>A structured folder tree that organises products into categories. Every product belongs to at least one node. Drives search, navigation and channel exports.</p>
+        <div class="also">RedHorse: <b>Screws, Rivets, Hammers…</b></div>
+      </div>
+      <div class="card">
+        <div class="icon">🏷</div>
+        <h3>Attribute</h3>
+        <p>A single piece of product information — e.g. "Head Type = CSH", "Length = 38 mm". Attributes are typed (text, number, select, boolean) and can be fixed or per-variant.</p>
+        <div class="also">RedHorse: <b>Fixed spec + configurable pools</b></div>
+      </div>
+      <div class="card">
+        <div class="icon">📋</div>
+        <h3>Attribute Set / Template</h3>
+        <p>A named collection of attributes assigned to a product family. All products in the family share the same attribute set, ensuring consistent data structure.</p>
+        <div class="also">RedHorse: <b>Fixed + configurable keys on each range</b></div>
+      </div>
+      <div class="card">
+        <div class="icon">🔢</div>
+        <h3>Product Dimensions</h3>
+        <p>The axes that generate variants: Configuration, Colour, Size, Style. Each combination of dimension values creates one unique SKU or sub-variant suffix.</p>
+        <div class="also">RedHorse: <b>Drive Type, Ø, Length + add-on Config/Colour/Size/Style</b></div>
+      </div>
+      <div class="card">
+        <div class="icon">🌐</div>
+        <h3>Channel / Storefront</h3>
+        <p>The destination where product data is published — a webshop, marketplace, print catalogue, or ERP. PIM enriches once, then distributes to many channels.</p>
+        <div class="also">RedHorse: <b>DK, SE, US, EC storefronts</b></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FULL GLOSSARY TABLE -->
+  <div class="section">
+    <div class="section-title">📖 Full PIM glossary</div>
+    <table>
+      <thead>
+        <tr>
+          <th>PIM term</th>
+          <th>Also called</th>
+          <th>In plain words</th>
+          <th>RedHorse equivalent</th>
+          <th>Tag</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="term">PIM</td><td class="std">Product Information Management</td><td class="plain">The single system of record for all product data — specs, media, copy, channel rules.</td><td class="rh">Pimcore (this system)</td><td><span class="badge b-core">Core</span></td></tr>
+        <tr><td class="term">Product master</td><td class="std">Product family, product model</td><td class="plain">The parent record that all variants inherit from. Contains the shared spec. Not sold on its own.</td><td class="rh">Template / Range (L3) — e.g. 40400</td><td><span class="badge b-core">Core</span></td></tr>
+        <tr><td class="term">Product variant</td><td class="std">SKU, child product, item</td><td class="plain">One concrete, buyable combination of dimension values (e.g. Ø 4.8 × 38 mm, TX20). Has its own price and stock.</td><td class="rh">Variant (L4) — e.g. 404001</td><td><span class="badge b-core">Core</span></td></tr>
+        <tr><td class="term">Configured variant</td><td class="std">Sub-variant, add-on child, child SKU</td><td class="plain">A variant dressed with optional add-ons (washer, paint, pack, label). Shares a base SKU but has a unique number tail.</td><td class="rh">Sub-variant (L5) — e.g. 404001-5-59-0-0</td><td><span class="badge b-core">Core</span></td></tr>
+        <tr><td class="term">Catalog</td><td class="std">Category tree, taxonomy</td><td class="plain">The folder hierarchy products live in. Drives navigation, filtering and channel exports.</td><td class="rh">Screws, Rivets, Hammers… (L1)</td><td><span class="badge b-struct">Structure</span></td></tr>
+        <tr><td class="term">Category node</td><td class="std">Category, folder</td><td class="plain">One node in the catalog tree. Products are assigned to leaf nodes; parent nodes provide breadcrumbs.</td><td class="rh">Screws → Wood → Facade</td><td><span class="badge b-struct">Structure</span></td></tr>
+        <tr><td class="term">Product family</td><td class="std">Brand family, MGPG</td><td class="plain">A named brand or range grouping that spans multiple templates. Used for brand labelling and white-labelling.</td><td class="rh">CREO®, ASTON®, RED HORSE® (L2)</td><td><span class="badge b-struct">Structure</span></td></tr>
+        <tr><td class="term">Attribute</td><td class="std">Property, field, characteristic</td><td class="plain">A single typed data point on a product — text, number, boolean, select, multi-select, image, etc.</td><td class="rh">Head Type, Drive Type, Length…</td><td><span class="badge b-attr">Attribute</span></td></tr>
+        <tr><td class="term">Fixed attribute</td><td class="std">Inherited attribute, range attribute</td><td class="plain">One value that applies to all variants in the family. Set once on the template; inherited downward.</td><td class="rh">Head Type, Material, Screw Type…</td><td><span class="badge b-attr">Attribute</span></td></tr>
+        <tr><td class="term">Configurable attribute</td><td class="std">Variant axis, dimension, pool</td><td class="plain">The attribute whose value differs between variants. Each allowed value is in the pool; the variant picks one.</td><td class="rh">Drive Type, Major Diameter, Length</td><td><span class="badge b-attr">Attribute</span></td></tr>
+        <tr><td class="term">Attribute set</td><td class="std">Attribute template, field set</td><td class="plain">The named group of attributes assigned to a product family. All members share the same structure.</td><td class="rh">Fixed spec + configurable pools per range</td><td><span class="badge b-attr">Attribute</span></td></tr>
+        <tr><td class="term">Localised attribute</td><td class="std">Translatable field</td><td class="plain">An attribute with different values per language/locale — e.g. product name or description in EN/DA/SE.</td><td class="rh">Name, description per market</td><td><span class="badge b-attr">Attribute</span></td></tr>
+        <tr><td class="term">Digital asset (DAM)</td><td class="std">Media, asset</td><td class="plain">Images, PDFs, videos, 3D files linked to a product. Stored in a DAM and referenced from the PIM record.</td><td class="rh">Product images, datasheets</td><td><span class="badge b-attr">Attribute</span></td></tr>
+        <tr><td class="term">Enrichment</td><td class="std">Data enrichment, content enrichment</td><td class="plain">The process of filling in missing or incomplete product attributes — copy, media, translations, compliance data.</td><td class="rh">Filling fixed spec, pools, features, cross-sell</td><td><span class="badge b-wf">Workflow</span></td></tr>
+        <tr><td class="term">Completeness</td><td class="std">Data quality score, fill rate</td><td class="plain">A percentage showing how much of a product's required attributes are filled. Often used to gate publication.</td><td class="rh">Required: code, name, material, Ø, length, drive</td><td><span class="badge b-wf">Workflow</span></td></tr>
+        <tr><td class="term">Publication / syndication</td><td class="std">Export, channel push, feed</td><td class="plain">Sending enriched product data to a destination — webshop, marketplace, ERP, print. PIM enriches once, syndicates everywhere.</td><td class="rh">Release to DK / SE / US storefronts</td><td><span class="badge b-wf">Workflow</span></td></tr>
+        <tr><td class="term">Workflow / approval</td><td class="std">Review gate, sign-off</td><td class="plain">A controlled sequence of states (draft → review → approved → published) that a product must pass through before going live.</td><td class="rh">Draft → Enriched → Released</td><td><span class="badge b-wf">Workflow</span></td></tr>
+        <tr><td class="term">Cross-sell / up-sell</td><td class="std">Related products, accessories</td><td class="plain">Linked products shown alongside: cross-sell = complementary items (washers with screws); up-sell = premium alternatives.</td><td class="rh">Cross-sell relation on template (not part of item #)</td><td><span class="badge b-attr">Attribute</span></td></tr>
+        <tr><td class="term">MDM</td><td class="std">Master Data Management</td><td class="plain">The broader discipline of maintaining a single, authoritative record for core business entities — products, customers, suppliers. PIM is the product slice of MDM.</td><td class="rh">Pimcore as product MDM hub</td><td><span class="badge b-int">Integration</span></td></tr>
+        <tr><td class="term">ERP integration</td><td class="std">Back-office sync, F&amp;O connector</td><td class="plain">Sending approved product masters and variants to the ERP (e.g. D365 F&amp;O) so they can be priced, stocked and ordered.</td><td class="rh">Pimcore → D365 F&amp;O via API/connector</td><td><span class="badge b-int">Integration</span></td></tr>
+        <tr><td class="term">GTIN / EAN / UPC</td><td class="std">Barcode, global trade number</td><td class="plain">A globally unique number that identifies one sellable unit. Usually assigned at variant level, sometimes at sub-variant level for retail.</td><td class="rh">One GTIN per variant (L4) or sub-variant (L5)</td><td><span class="badge b-attr">Attribute</span></td></tr>
+        <tr><td class="term">Packaging hierarchy</td><td class="std">Unit of measure, UOM conversion</td><td class="plain">The chain: each → inner pack → master carton. PIM stores these ratios so the ERP can order and pick in any UOM.</td><td class="rh">Size add-on axis (PCS / 150, box of 500)</td><td><span class="badge b-struct">Structure</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PIM vs ERP -->
+  <div class="section">
+    <div class="section-title">⚖️ PIM vs ERP — who owns what</div>
+    <div class="note note-blue">PIM and ERP each own a distinct slice of product data. PIM is the master of <b>what the product is</b>; ERP is the master of <b>what it costs and where it lives</b>.</div>
+    <table>
+      <thead>
+        <tr><th>Data point</th><th>Master in PIM</th><th>Master in ERP (F&amp;O)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="term">Product structure (master / variant)</td><td>✅ Created here first</td><td>Received via sync</td></tr>
+        <tr><td class="term">Attributes (spec, material, dimensions)</td><td>✅ Enriched here</td><td>Read-only reference</td></tr>
+        <tr><td class="term">Product descriptions &amp; translations</td><td>✅ Authored here</td><td>Not stored</td></tr>
+        <tr><td class="term">Images &amp; digital assets</td><td>✅ Managed here (DAM)</td><td>Not stored</td></tr>
+        <tr><td class="term">Price &amp; trade agreements</td><td>Reference only</td><td>✅ Owned here</td></tr>
+        <tr><td class="term">Stock / on-hand quantity</td><td>Not stored</td><td>✅ Owned here</td></tr>
+        <tr><td class="term">Item number / SKU code</td><td>✅ Defined here</td><td>Used as key for sync</td></tr>
+        <tr><td class="term">Release to companies / storefronts</td><td>Visibility flag</td><td>✅ Formal release here</td></tr>
+        <tr><td class="term">BOM / route (manufacturing)</td><td>Not stored</td><td>✅ Owned here</td></tr>
+        <tr><td class="term">GTIN / EAN barcode</td><td>✅ Assigned here</td><td>Synced in</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PIMCORE SPECIFIC -->
+  <div class="section">
+    <div class="section-title">🔧 Pimcore-specific terms</div>
+    <table>
+      <thead>
+        <tr><th>Pimcore term</th><th>General PIM equivalent</th><th>In plain words</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="term">Data Object</td><td class="std">Product record</td><td class="plain">Any structured record stored in Pimcore — a product, a brand, a category. Typed by its Class.</td></tr>
+        <tr><td class="term">Class</td><td class="std">Attribute set / schema</td><td class="plain">The definition of all fields and their types for one kind of Data Object (e.g. ProductSeries, ScrewVariant).</td></tr>
+        <tr><td class="term">Object brick</td><td class="std">Extension attribute group</td><td class="plain">Optional blocks of attributes that can be added to a class at runtime — e.g. self-drilling specs only when relevant.</td></tr>
+        <tr><td class="term">Field collection</td><td class="std">Repeatable attribute group</td><td class="plain">A list of repeating structured rows on a record — e.g. multiple packaging units each with a GTIN and quantity.</td></tr>
+        <tr><td class="term">Many-to-one relation</td><td class="std">Lookup / reference attribute</td><td class="plain">A field that points to one other Data Object — e.g. headType → HeadType object. Clean normalised reference.</td></tr>
+        <tr><td class="term">Many-to-many relation</td><td class="std">Multi-select relation</td><td class="plain">A field that points to multiple Data Objects — e.g. rangeBrands → [CREO, ASTON]. Used for brand pools.</td></tr>
+        <tr><td class="term">Multiselect field</td><td class="std">Multi-value enum</td><td class="plain">A controlled-vocabulary field where one or more values can be ticked — e.g. pool of allowed Drive Types on a template.</td></tr>
+        <tr><td class="term">Localized field</td><td class="std">Translatable field</td><td class="plain">A field with separate values per language/locale stored in one record — powered by Pimcore's i18n layer.</td></tr>
+        <tr><td class="term">Asset</td><td class="std">Digital asset (DAM)</td><td class="plain">An image, PDF or any file stored in Pimcore's built-in DAM and linked to a product.</td></tr>
+        <tr><td class="term">Layout / panel</td><td class="std">Field group / tab</td><td class="plain">Visual grouping of fields in the Pimcore admin UI — e.g. "Fixed Specification", "Configurable Pools".</td></tr>
+        <tr><td class="term">Object tree</td><td class="std">Product hierarchy / folder tree</td><td class="plain">The left-side navigator in Pimcore admin showing the folder structure: /RedHorseV3/Screws/40400/404001.</td></tr>
+        <tr><td class="term">Grid / listing</td><td class="std">Product list view</td><td class="plain">The flat searchable table in Pimcore admin where you can filter, sort and bulk-edit Data Objects.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note note-amber" style="margin-top:8px">
+    For the matching <b>Dynamics 365 F&amp;O terminology</b> (Product master, Released product variant, Product dimensions, BOM…) see the
+    <a href="https://v2-0-fno-terminology.vercel.app/" target="_blank" style="font-weight:700">F&amp;O Terminology page ↗</a>.
+  </div>
+
+</div>
+</body>
+</html>
