@@ -412,8 +412,9 @@ Content-Type: application/json
   <h3><span class="badge drop">HOLD</span> <code>/relations</code> (accessory / alternative / sparePart)</h3>
   <p>Those types are not fields today. The one product-to-product link we have is <code>washerProduct</code> on a screw SKU (“with washer”). Cross-sell/related is a real shop feature — but it is a modelling decision with Red Horse, then a feed. Not v1.</p>
 
-  <h3><span class="badge plan">GAP</span> Assets — images &amp; compliance documents</h3>
-  <p>This one is on us, not you. The classes already have <code>technicalImages</code>, <code>labelImages</code> (image galleries) and <code>complianceDocuments</code> (certificates / CE / ETA). Your HTML flags images and certifications as open too. So we <b>will</b> need a media feed or asset references — where does F&amp;O hold the files (URL? blob? DAM?). Bring that and we design it.</p>
+  <h3>Images &amp; documents — not an F&amp;O feed</h3>
+  <p>Shop hero and shop description are already agreed as <b>PIM-only</b>. Technical pictures, pack labels, and certificates also live as PIM fields for PIM users to upload. Do not build a media POST.</p>
+  <p class="small">Your HTML listed “where images live in F&amp;O” as an open question to Red Horse. Until RH says F&amp;O is the source of drawings/certs, there is no Function work. If they later say F&amp;O holds files, that is a new contract — not v1.</p>
 
   <p class="small">Moved out of this tab after re-check: <code>/dimensions</code> → Master data (needed). <code>/attribute-setup</code> → Attribute groups (setup is PIM, values are F&amp;O). <code>/translations</code> → its own tab (PIM owns locales; F&amp;O has no da/sv).</p>
 </div>
