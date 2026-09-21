@@ -326,16 +326,36 @@ Content-Type: application/json
 <!-- LATER -->
 <div class="tab panel" id="tab-later">
   <h2><span class="badge drop">NOT v1</span> Do not build these POSTs</h2>
-  <p>They are not Pimcore ingest. There will be no tab marked LIVE for them unless Red Horse adds a new contract.</p>
-  <table>
-    <tr><th>Your path</th><th>Why not</th></tr>
-    <tr><td><code>/translations</code></td><td>PIM locales are <code>en</code> / <code>da</code> / <code>sv</code>. F&amp;O <code>en-CA</code> / <code>zh-Hant</code> cannot be stored as-is. Shop copy is PIM. Optional single <code>name</code> on <code>/products</code>.</td></tr>
-    <tr><td><code>/attribute-setup</code></td><td>Classes, groups, lookups already exist in PIM. F&amp;O does not create schema.</td></tr>
-    <tr><td><code>/units</code></td><td>PIM setup. Measure units are not a nightly feed.</td></tr>
-    <tr><td><code>/dimensions</code></td><td>Not a feed. Short codes go on the variant row in <code>/products</code>.</td></tr>
-    <tr><td><code>/barcodes</code> <code>/relations</code></td><td>Not in this catalogue contract.</td></tr>
-    <tr><td>Price / stock</td><td>Never sent to Pimcore.</td></tr>
-  </table>
+  <p>Not dropped because we “don’t want extra APIs.” Each payload below has <b>no field on <code>PtScrew</code> / <code>PtWasher</code></b> that can store it. Building the Function would POST JSON we cannot apply.</p>
+
+  <h3><code>/translations</code></h3>
+  <p>You send <code>itemNumber</code> + <code>texts[]</code> with F&amp;O <code>languageId</code> (<code>en-CA</code>, <code>en-HK</code>, <code>zh-Hant</code>) and per-language <code>name</code> / <code>description</code>.</p>
+  <p>Pimcore product <code>name</code> is one plain text field — not a locale map. Shop <code>description</code> is a localized WYSIWYG on the <b>storefront brick</b> (<code>en</code> / <code>da</code> / <code>sv</code>), filled by PIM, not F&amp;O. There is nowhere to store <code>en-CA</code> vs <code>zh-Hant</code>.</p>
+  <p><b>Instead:</b> optional single <code>name</code> on <code>/products</code>. Shop copy stays in PIM.</p>
+
+  <h3><code>/attribute-setup</code></h3>
+  <p>You send attribute <i>definitions</i>: codes, data types, pick-list options, groups, and which folder uses which group. Your own HTML marks this as a proposal.</p>
+  <p>That is class/schema. PIM already has it in PHP: <code>PtScrew</code>/<code>PtWasher</code> fields, locked Classification Store groups per layer, lookup classes (head type, colour, …). F&amp;O creating <code>THREAD_PITCH</code> groups at runtime would fight that model and duplicate vocab.</p>
+  <p><b>Instead:</b> <code>/attributes</code> sends <b>values</b> (<code>name</code> + <code>value</code>). PIM maps. Spreadsheet is homework, not an API.</p>
+
+  <h3><code>/units</code></h3>
+  <p>You send <code>PCS</code> / <code>BOX</code> and <code>factor: 100</code> (order quantity conversions).</p>
+  <p>That is ERP packing / how many pieces are in a box. Pimcore is not the order system. Price and stock were already agreed never to enter PIM. Catalogue measures use PIM units already on the CS key (<code>mm</code> / <code>in</code> on <code>kl_lengthMm</code>, etc.) — not a nightly BOX→PCS table.</p>
+  <p><b>Instead:</b> if Length is <code>"35.00 mm"</code> in F&amp;O, send that string on <code>/attributes</code>. We parse onto the existing measure key.</p>
+
+  <h3><code>/dimensions</code></h3>
+  <p>You send master lists: colour <code>59</code> = <code>RAL 1003</code>, and so on, because <code>/products</code> currently sends the <b>name</b>.</p>
+  <p>PIM already has lookup objects (<code>PtConfigOption</code>, <code>PtColourOption</code>, <code>PtSizeOption</code>, <code>PtStyleOption</code>). The variant fields are many-to-one on <b>code</b>. This extra feed exists only as a workaround for sending display names on the product row.</p>
+  <p><b>Instead:</b> put the short code on the variant in <code>/products</code> (<code>"colour": "59"</code>). No second endpoint.</p>
+
+  <h3><code>/barcodes</code></h3>
+  <p>You send EAN13 / UPC per item. There is <b>no barcode / EAN / GTIN field</b> on <code>PtScrew</code> or <code>PtWasher</code>. Red Horse has not asked to store scanner codes in this catalogue. Your own “not covered yet” list is images and certifications — not barcodes.</p>
+  <p><b>Instead:</b> nothing in v1. If RH later wants EAN in PIM, we add a field first, then a feed.</p>
+
+  <h3><code>/relations</code></h3>
+  <p>You send Magento-style <code>accessory</code> / <code>alternative</code> / <code>sparePart</code> links. Those types are not fields on our classes.</p>
+  <p>The only product-to-product link in this model is <code>washerProduct</code> on a screw SKU (style “with washer”). That is catalogue modelling, not an accessories feed, and it is not in v1 F&amp;O ingest.</p>
+  <p><b>Instead:</b> nothing in v1. Do not POST related items we cannot attach.</p>
 </div>
 
 </div>
