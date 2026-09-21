@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>F&amp;O → Pimcore — live API</title>
+<title>F&amp;O → Pimcore — API payload</title>
 <style>
   :root { --ink:#1f2328; --muted:#57606a; --line:#d0d7de; --red:#b22222; --ok:#1a7f37; --wait:#9a6700; --post:#1a7f37; --get:#0969da; }
   * { box-sizing: border-box; }
   body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; color: var(--ink); line-height: 1.55; background: #f6f8fa; }
-  .wrap { max-width: 960px; margin: 0 auto; padding: 20px 16px 64px; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 20px 16px 64px; }
   h1 { font-size: 22px; margin: 0 0 6px; }
   h2 { font-size: 17px; margin: 22px 0 10px; }
   h3 { font-size: 14px; color: #8b1a1a; margin: 18px 0 8px; }
@@ -37,101 +37,162 @@
   .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; margin-right: 6px; vertical-align: middle; }
   .badge.live { background: #dafbe1; color: var(--ok); }
   .badge.plan { background: #fff8c5; color: var(--wait); }
+  .badge.keep { background: #dafbe1; color: var(--ok); }
+  .badge.fix { background: #fff8c5; color: var(--wait); }
+  .badge.drop { background: #ffebe9; color: #cf222e; }
   ul { margin: 8px 0 12px; padding-left: 20px; }
+  td.keep { background: #f2fbf4; }
+  td.fix { background: #fff8e8; }
+  td.drop { background: #fff5f5; }
   @media (max-width: 640px) { .tabs button { flex: 1 1 46%; } }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<h1>F&amp;O → Pimcore — live API</h1>
-<p class="small">Updated <b>21 Sep 2026</b>. One tab = one call. This is what PIM requires <b>in code today</b>. TEST: <code>http://10.100.16.4:82/api/v1</code> (RH LAN). Azure cannot reach Pimcore yet — this page is the public contract.</p>
+<h1>F&amp;O → Pimcore — API payload</h1>
+<p class="small">Updated <b>21 Sep 2026</b>. This page is the JSON Pimcore will accept. TEST: <code>http://10.100.16.4:82/api/v1</code> (RH LAN). Azure cannot reach Pimcore yet.</p>
 
-<div class="ok"><b>LIVE:</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/tree</code>. Open the matching tab. Extra JSON keys are ignored.</div>
-<div class="box"><code>X-API-Key</code> on <b>every</b> call — <code>/auth</code> is not a login. Do not put the key in Teams. Max <b>500</b> rows / <b>2 MB</b> → HTTP 413. Wrapper <code>{ "batchId", "items": [] }</code>.</div>
+<div class="ok"><b>LIVE (POST now):</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/tree</code>.</div>
+<div class="ask"><b>JSON frozen, PHP not built yet:</b> <code>/products</code> · <code>/attributes</code> · <code>/released</code>. Function can be coded against these tabs. POST will 404 until the tab is marked LIVE. We will not change the keys without updating this page.</div>
+<div class="box"><code>X-API-Key</code> on <b>every</b> call. Wrapper <code>{ "batchId", "items": [] }</code>. Max <b>500</b> rows / <b>2 MB</b>. Extra unknown keys are ignored on live writes (they do not fail the row).</div>
 
 <nav class="tabs" id="tabs" aria-label="API endpoints">
-  <button type="button" data-tab="start" class="on">Start here</button>
+  <button type="button" data-tab="vs" class="on">His HTML vs PIM</button>
+  <button type="button" data-tab="start">Start here</button>
   <button type="button" data-tab="auth"><span class="verb get">GET/POST</span>/auth</button>
   <button type="button" data-tab="ping"><span class="verb get">GET/POST</span>/ping</button>
   <button type="button" data-tab="companies"><span class="verb post">POST</span>/companies</button>
   <button type="button" data-tab="tree"><span class="verb post">POST</span>/tree</button>
+  <button type="button" data-tab="products"><span class="verb post">POST</span>/products</button>
+  <button type="button" data-tab="attributes"><span class="verb post">POST</span>/attributes</button>
+  <button type="button" data-tab="released"><span class="verb post">POST</span>/released</button>
   <button type="button" data-tab="reply">Reply shape</button>
-  <button type="button" data-tab="later">Not live yet</button>
+  <button type="button" data-tab="later">Do not build</button>
 </nav>
 
-<!-- START -->
-<div class="tab on panel" id="tab-start">
-  <h2>How to use this page</h2>
-  <p>Click a tab. Each live API has: purpose, required fields, request, response. Do not mix fields from another tab into the body.</p>
+<!-- VS -->
+<div class="tab on panel" id="tab-vs">
+  <h2>Direct answer</h2>
+  <p>The wrapper, match keys, and companies / released shapes are fine. The catalogue is <b>not</b> “send your HTML as-is.” Tree needs one extra field. Products need short codes on dimensions. Attributes need a different row shape. Several paths in your HTML are not Pimcore feeds.</p>
+  <p class="small">Source compared: your <code>RedHorse-Pimcore-API-Calls.html</code> vs TypeBasedCatalog (<code>PtScrew</code> / <code>PtWasher</code>, variants, lookups by <b>code</b>, measures mapped in PIM).</p>
+
+  <h3>Per call</h3>
   <table>
-    <tr><th>Tab</th><th>Call</th><th>Status</th></tr>
-    <tr><td>Auth</td><td><code>GET or POST /api/v1/auth</code></td><td><span class="live">LIVE</span></td></tr>
-    <tr><td>Ping</td><td><code>GET or POST /api/v1/ping</code></td><td><span class="live">LIVE</span> — stores body, does not create companies/tree</td></tr>
-    <tr><td>Companies</td><td><code>POST /api/v1/companies</code></td><td><span class="live">LIVE</span></td></tr>
-    <tr><td>Tree</td><td><code>POST /api/v1/tree</code></td><td><span class="live">LIVE</span></td></tr>
-    <tr><td>Not live yet</td><td>products, attributes, released, …</td><td><span class="plan">Do not POST</span></td></tr>
+    <tr><th>Your path</th><th>Verdict</th><th>Can Function start?</th></tr>
+    <tr><td><code>/auth</code></td><td class="keep"><span class="badge keep">KEEP</span> No body. Same header.</td><td>Yes. Not a login session — key on every later call.</td></tr>
+    <tr><td><code>/ping</code></td><td class="keep"><span class="badge keep">KEEP</span> Empty GET is fine. POST with any JSON also fine.</td><td>Yes. LIVE.</td></tr>
+    <tr><td><code>/companies</code></td><td class="keep"><span class="badge keep">KEEP</span> <code>companyCode</code> + <code>name</code> + <code>isDeleted</code>.</td><td>Yes. LIVE. <code>DE2</code> / <code>GXN</code> in a sample are skipped, not created.</td></tr>
+    <tr><td><code>/tree</code></td><td class="fix"><span class="badge fix">CHANGE</span> Same keys, plus <code>productType</code> on every level-1 row.</td><td>Yes, after that one field. LIVE today.</td></tr>
+    <tr><td><code>/products</code></td><td class="fix"><span class="badge fix">CHANGE</span> Identity keys OK. Dimension <b>values</b> must be F&amp;O short codes, not names.</td><td>Yes, against the Products tab. POST 404 until LIVE.</td></tr>
+    <tr><td><code>/released</code></td><td class="keep"><span class="badge keep">KEEP</span> <code>itemNumber</code> + <code>companyCode</code> + <code>released</code>.</td><td>Yes, against the Released tab. POST 404 until LIVE.</td></tr>
+    <tr><td><code>/attributes</code></td><td class="fix"><span class="badge fix">CHANGE</span> Use <code>name</code> + <code>value</code>, not <code>attributeCode</code>.</td><td>Yes, against the Attributes tab. POST 404 until LIVE.</td></tr>
+    <tr><td><code>/translations</code></td><td class="drop"><span class="badge drop">DROP</span></td><td>No. Not v1.</td></tr>
+    <tr><td><code>/attribute-setup</code> <code>/units</code> <code>/dimensions</code> <code>/barcodes</code> <code>/relations</code></td><td class="drop"><span class="badge drop">DROP</span> Not Pimcore ingest feeds.</td><td>No.</td></tr>
   </table>
-  <p class="small">Feed order when those later APIs exist: companies → tree (parents first) → products → attributes / released.</p>
+
+  <h3>Tree — field by field</h3>
+  <table>
+    <tr><th>Your field</th><th>Pimcore</th><th></th></tr>
+    <tr><td><code>categoryKey</code> (F&amp;O rec id as text)</td><td>Same. Stored as folder <code>code</code>.</td><td class="keep">KEEP</td></tr>
+    <tr><td><code>parentKey</code> / <code>null</code> at root</td><td>Same. Parents first.</td><td class="keep">KEEP</td></tr>
+    <tr><td><code>level</code> 1–5</td><td>Accepted. Optional <code>layer</code> (<code>type</code>…<code>productGroup</code>).</td><td class="keep">KEEP</td></tr>
+    <tr><td><code>name</code>, <code>isDeleted</code></td><td>Same.</td><td class="keep">KEEP</td></tr>
+    <tr><td><code>code</code> (e.g. <code>SCR</code>), <code>isActive</code>, <code>texts[]</code></td><td>Ignored in v1. Safe to send.</td><td class="keep">KEEP (ignored)</td></tr>
+    <tr><td><i>missing</i> <code>productType</code></td><td><b>Required on level 1:</b> <code>"06"</code> or <code>"09"</code>. Without it the root is skipped and children have no parent. Folder <code>code</code> <code>SCR</code> is not this field.</td><td class="fix">ADD</td></tr>
+    <tr><td><code>brand</code>, <code>productGroupNumber</code></td><td>Optional. Empty still creates.</td><td class="keep">optional</td></tr>
+  </table>
+
+  <h3>Products — field by field</h3>
+  <table>
+    <tr><th>Your field</th><th>Pimcore</th><th></th></tr>
+    <tr><td>Master <code>code</code> + <code>layer: "master"</code> + <code>parentKey</code> (level-5 <code>categoryKey</code>)</td><td>Same. Master hangs under the tree leaf. Class inherited from that folder (screw vs washer).</td><td class="keep">KEEP</td></tr>
+    <tr><td>Variant <code>itemNumber</code> + <code>masterItemNumber</code> + <code>layer: "variant"</code></td><td>Same. PIM <code>itemNumber</code> lives on the variant. Presence of <code>masterItemNumber</code> = variant.</td><td class="keep">KEEP</td></tr>
+    <tr><td><code>isDeleted</code></td><td>Unpublish, not hard delete.</td><td class="keep">KEEP</td></tr>
+    <tr><td>No-variant item = master + one variant with the same number</td><td>Same. Shops attach to a SKU.</td><td class="keep">KEEP</td></tr>
+    <tr><td>Masters before variants</td><td>Same.</td><td class="keep">KEEP</td></tr>
+    <tr><td>One level-5 folder per product</td><td>Same for v1.</td><td class="keep">KEEP</td></tr>
+    <tr><td><code>config</code> / <code>colour</code> / <code>size</code> / <code>style</code> as names (<code>"RAL 1003"</code>, <code>"STD"</code>)</td><td>PIM fields are lookups matched by <b>code</b> (the segment in the item number, e.g. <code>"59"</code>). A display name will not hit <code>PtColourOption</code>.</td><td class="fix">CHANGE values, keep key names</td></tr>
+    <tr><td>Optional <code>name</code> on the row</td><td>Allowed. No <code>/translations</code> in v1. If omitted, we can default to the number.</td><td class="keep">optional</td></tr>
+  </table>
+
+  <h3>Attributes — field by field</h3>
+  <table>
+    <tr><th>Your field</th><th>Pimcore</th><th></th></tr>
+    <tr><td><code>itemNumber</code></td><td>Which F&amp;O item (master <code>code</code> or variant number). PIM then writes onto the owning layer.</td><td class="keep">KEEP</td></tr>
+    <tr><td><code>attributeCode</code> (<code>THREAD_PITCH</code>, <code>HEAD_TYPE</code>)</td><td>Not a Pimcore key. Send F&amp;O’s attribute <b>name as stored</b> in <code>name</code> (e.g. <code>"Head type"</code>, <code>"Length"</code>).</td><td class="fix">RENAME to <code>name</code></td></tr>
+    <tr><td><code>value</code> as text, unconverted</td><td>Same idea — exact F&amp;O string (code or label, whatever F&amp;O stores). PIM maps.</td><td class="keep">KEEP</td></tr>
+    <tr><td>Values inside <code>/products</code> as a map</td><td>No. Separate <code>/attributes</code> feed.</td><td class="drop">DROP alternative</td></tr>
+    <tr><td><code>/attribute-setup</code> (types, groups, folderGroups)</td><td>PIM already has classes, CS keys, lookups. F&amp;O does not define schema.</td><td class="drop">DROP endpoint</td></tr>
+  </table>
+
+  <h3>Released — field by field</h3>
+  <table>
+    <tr><th>Your field</th><th>Pimcore</th><th></th></tr>
+    <tr><td><code>itemNumber</code> (variant)</td><td>Same. Brick hangs on the SKU.</td><td class="keep">KEEP</td></tr>
+    <tr><td><code>companyCode</code></td><td>Same. Shop companies only.</td><td class="keep">KEEP</td></tr>
+    <tr><td><code>released</code> true / false</td><td>Same. Silence does not remove a shop. No <code>isDeleted</code> on this feed.</td><td class="keep">KEEP</td></tr>
+  </table>
+
+  <h3>HTTP reply you documented</h3>
+  <table>
+    <tr><th>Yours</th><th>Pimcore</th><th></th></tr>
+    <tr><td><code>ok: true</code> with <code>failed: 1</code></td><td><code>ok</code> is true only if <code>failed === 0</code>.</td><td class="fix">CHANGE</td></tr>
+    <tr><td><code>errors[].message</code></td><td><code>errors[].error</code></td><td class="fix">CHANGE</td></tr>
+    <tr><td>Skipped not listed as failure</td><td>Same. Skip ≠ fail.</td><td class="keep">KEEP</td></tr>
+  </table>
+</div>
+
+<!-- START -->
+<div class="tab panel" id="tab-start">
+  <h2>How to use this page</h2>
+  <p>One tab = one POST body. Do not mix fields across tabs. Feed order: companies → tree (parents first) → products (masters first) → attributes / released.</p>
+  <table>
+    <tr><th>Tab</th><th>Call</th><th>JSON</th><th>POST today</th></tr>
+    <tr><td>Auth</td><td><code>GET or POST /api/v1/auth</code></td><td>No body</td><td><span class="live">LIVE</span></td></tr>
+    <tr><td>Ping</td><td><code>GET or POST /api/v1/ping</code></td><td>Any / empty</td><td><span class="live">LIVE</span></td></tr>
+    <tr><td>Companies</td><td><code>POST /api/v1/companies</code></td><td>Frozen = live</td><td><span class="live">LIVE</span></td></tr>
+    <tr><td>Tree</td><td><code>POST /api/v1/tree</code></td><td>Frozen = live</td><td><span class="live">LIVE</span></td></tr>
+    <tr><td>Products</td><td><code>POST /api/v1/products</code></td><td>Frozen here</td><td><span class="plan">404 until LIVE</span></td></tr>
+    <tr><td>Attributes</td><td><code>POST /api/v1/attributes</code></td><td>Frozen here</td><td><span class="plan">404 until LIVE</span></td></tr>
+    <tr><td>Released</td><td><code>POST /api/v1/released</code></td><td>Frozen here</td><td><span class="plan">404 until LIVE</span></td></tr>
+  </table>
 </div>
 
 <!-- AUTH -->
 <div class="tab panel" id="tab-auth">
   <h2><span class="badge live">LIVE</span> <code>GET/POST /api/v1/auth</code></h2>
-  <p>Key check only. No body. No objects written. Not a session — send <code>X-API-Key</code> again on companies and tree.</p>
-  <h3>Required</h3>
-  <table>
-    <tr><th>Field</th><th>Where</th><th>Rule</th></tr>
-    <tr><td><code>X-API-Key</code></td><td>Header</td><td>Every call. Also accepted: <code>Authorization</code> raw / Bearer / ApiKey.</td></tr>
-  </table>
-  <h3>Request</h3>
+  <p>Key check only. No body. Not a session — send <code>X-API-Key</code> again on every write.</p>
 <pre>GET or POST http://10.100.16.4:82/api/v1/auth
 X-API-Key: &lt;key&gt;</pre>
-  <h3>Response</h3>
 <pre>HTTP 200
 { "ok": true, "service": "pimcore", "auth": "api_key", "principal": "erp-integration" }
 
 HTTP 401
 { "ok": false, "error": "unauthorized", "auth": "api_key" }</pre>
-  <p class="small">401: do not retry the same key.</p>
 </div>
 
 <!-- PING -->
 <div class="tab panel" id="tab-ping">
   <h2><span class="badge live">LIVE</span> <code>GET/POST /api/v1/ping</code></h2>
-  <p>Dry-run. Stores the raw JSON under <code>/ErpIntake</code> so we can see your payload. <b>Does not</b> create companies or folders. HTTP 200 = received, not applied to the catalogue.</p>
-  <h3>Required</h3>
-  <table>
-    <tr><th>Field</th><th>Rule</th></tr>
-    <tr><td>Header <code>X-API-Key</code></td><td>Yes</td></tr>
-    <tr><td>Body</td><td>Any JSON, or empty. Over 64 KB is truncated, still 200.</td></tr>
-  </table>
-  <h3>Request</h3>
+  <p>Reachability. POST stores the raw JSON under <code>/ErpIntake</code>. Does not create companies or products.</p>
 <pre>POST http://10.100.16.4:82/api/v1/ping
 X-API-Key: &lt;key&gt;
 Content-Type: application/json
 
 { "batchId": "dry-run", "items": [ { "note": "any json is fine" } ] }</pre>
-  <h3>Response</h3>
-<pre>HTTP 200
-{ "ok": true, "service": "pimcore", "auth": "api_key",
-  "message": "Stored. Open Data Objects → /ErpIntake in admin.",
-  "objectId": 123, "path": "/ErpIntake/...", "summary": "..." }</pre>
-  <p class="small"><code>objectId</code> here is a log object, not a company.</p>
 </div>
 
 <!-- COMPANIES -->
 <div class="tab panel" id="tab-companies">
   <h2><span class="badge live">LIVE</span> <code>POST /api/v1/companies</code></h2>
-  <p>Upsert shop companies. Match <code>companyCode</code>. Create: <code>RH</code>, <code>RHU</code>, <code>ASW</code>, <code>SPI</code>. Skip (not a failure): <code>GXN</code>, <code>DH</code>, <code>DE</code>, <code>DE2</code>, unknown. No shop bricks. <code>languageId</code> ignored.</p>
-  <h3>Required / optional</h3>
+  <p>Your company payload structure is the one we use. Match <code>companyCode</code>. Create: RH, RHU, ASW, SPI. Skip (not a failure): GXN, DH, DE, DE2, unknown.</p>
   <table>
     <tr><th>Field</th><th>Required</th><th>Rule</th></tr>
-    <tr><td><code>companyCode</code></td><td>Yes</td><td>Match key. F&amp;O company id.</td></tr>
-    <tr><td><code>name</code></td><td>No</td><td>Omit = keep. <code>null</code> = clear. Missing on create uses a default name.</td></tr>
-    <tr><td><code>isDeleted</code></td><td>No</td><td><code>true</code> unpublishes (not a hard delete).</td></tr>
+    <tr><td><code>companyCode</code></td><td>Yes</td><td>F&amp;O company id.</td></tr>
+    <tr><td><code>name</code></td><td>No</td><td>Omit = keep. <code>null</code> = clear.</td></tr>
+    <tr><td><code>isDeleted</code></td><td>No</td><td><code>true</code> unpublishes.</td></tr>
   </table>
-  <h3>Request</h3>
 <pre>POST http://10.100.16.4:82/api/v1/companies
 X-API-Key: &lt;key&gt;
 Content-Type: application/json
@@ -143,44 +204,22 @@ Content-Type: application/json
     { "companyCode": "GXN", "name": "GeXin",     "isDeleted": false }
   ]
 }</pre>
-  <h3>Response</h3>
-<pre>HTTP 200
-{
-  "ok": true,
-  "service": "pimcore",
-  "auth": "api_key",
-  "batchId": "adf-run-123",
-  "processed": 1,
-  "failed": 0,
-  "results": [
-    { "key": "RH",  "action": "created", "objectId": 6410, "path": "/ErpSync/LegalEntities/RH" },
-    { "key": "GXN", "action": "skipped", "code": "PRODUCTION_ONLY", "retryable": false,
-      "error": "production-only, not created in PIM" }
-  ],
-  "errors": []
-}</pre>
-  <p class="small">Do not send <code>DE2</code> expecting unpublish — we never create it. Skip ≠ fail. See <b>Reply shape</b> tab.</p>
 </div>
 
 <!-- TREE -->
 <div class="tab panel" id="tab-tree">
   <h2><span class="badge live">LIVE</span> <code>POST /api/v1/tree</code></h2>
-  <p>Product Catalogue folders only (type → family → series → range → product group). Not products, not attributes, not shops. Parents before children.</p>
-  <div class="ask"><b>Must send on every level-1 row:</b> <code>productType</code> <code>"06"</code> or <code>"09"</code>. Without it the root is skipped (<code>UNKNOWN_TYPE</code>) and children have no parent. F&amp;O folder <code>code</code> like <code>SCR</code> is <b>not</b> this field.</div>
-  <h3>Required / optional</h3>
+  <p>Same structure as your HTML, with <b>one add</b> on level 1. Parents before children. Max 500 rows (not 200).</p>
+  <div class="ask">Add <code>productType</code> <code>"06"</code> or <code>"09"</code> on every level-1 row. Your note “coming later” is wrong — it is required now.</div>
   <table>
     <tr><th>Field</th><th>Required</th><th>Rule</th></tr>
-    <tr><td><code>categoryKey</code></td><td>Yes</td><td>F&amp;O record id as <b>text</b>. Match key. Not <code>"06"</code> / <code>"CREO"</code> / PG number.</td></tr>
-    <tr><td><code>parentKey</code></td><td>Child: yes. Root: <code>null</code></td><td>Parent’s <code>categoryKey</code>. Omit on update = do not move. <code>null</code> on update = catalog root.</td></tr>
-    <tr><td><code>layer</code> or <code>level</code></td><td>Create: yes</td><td>Prefer <code>layer</code>. <code>level</code> 1=type … 5=productGroup. Both sent and they disagree → <code>VALIDATION</code>.</td></tr>
-    <tr><td><code>productType</code></td><td>Type row (level 1) on create</td><td><code>06</code> = screw, <code>09</code> = washer. Children omit (inherit). Unknown → skip.</td></tr>
-    <tr><td><code>name</code></td><td>No</td><td>Create default = <code>categoryKey</code>.</td></tr>
-    <tr><td><code>brand</code></td><td>No</td><td>Family. Empty still creates the node.</td></tr>
-    <tr><td><code>productGroupNumber</code></td><td>No</td><td>Display only. Not the match key.</td></tr>
-    <tr><td><code>isDeleted</code></td><td>No</td><td><code>true</code> unpublishes.</td></tr>
-    <tr><td><code>code</code>, <code>isActive</code>, <code>texts[]</code></td><td>No</td><td><b>Ignored</b> in v1. Safe to send.</td></tr>
+    <tr><td><code>categoryKey</code></td><td>Yes</td><td>F&amp;O rec id as text. Not <code>"06"</code> / <code>"CREO"</code> / PG number.</td></tr>
+    <tr><td><code>parentKey</code></td><td>Child yes. Root <code>null</code></td><td>Parent’s <code>categoryKey</code>.</td></tr>
+    <tr><td><code>layer</code> or <code>level</code></td><td>Create: yes</td><td><code>level</code> 1–5 is enough. Prefer also <code>layer</code>.</td></tr>
+    <tr><td><code>productType</code></td><td>Level 1 on create</td><td><code>06</code> screw / <code>09</code> washer. Children omit.</td></tr>
+    <tr><td><code>name</code>, <code>brand</code>, <code>productGroupNumber</code>, <code>isDeleted</code></td><td>No</td><td>Empty brand/PG still creates.</td></tr>
+    <tr><td><code>code</code>, <code>isActive</code>, <code>texts[]</code></td><td>No</td><td>Ignored. You may keep sending them.</td></tr>
   </table>
-  <h3>Request</h3>
 <pre>POST http://10.100.16.4:82/api/v1/tree
 X-API-Key: &lt;key&gt;
 Content-Type: application/json
@@ -188,80 +227,115 @@ Content-Type: application/json
 {
   "batchId": "adf-tree-001",
   "items": [
-    { "categoryKey": "5637145001", "parentKey": null, "layer": "type", "level": 1,
-      "productType": "06", "name": "Screws", "isDeleted": false },
-    { "categoryKey": "5637145002", "parentKey": "5637145001", "layer": "family", "level": 2,
-      "name": "CREO", "brand": "CREO", "isDeleted": false },
-    { "categoryKey": "5637145003", "parentKey": "5637145002", "layer": "series", "level": 3,
-      "name": "Pan-head TX", "isDeleted": false },
-    { "categoryKey": "5637145004", "parentKey": "5637145003", "layer": "range", "level": 4,
-      "name": "Range 15546", "isDeleted": false },
-    { "categoryKey": "5637145005", "parentKey": "5637145004", "layer": "productGroup", "level": 5,
-      "name": "PG 063333", "productGroupNumber": "063333", "isDeleted": false }
+    { "categoryKey": "5637144580", "parentKey": null, "level": 1, "layer": "type",
+      "productType": "06", "code": "SCR", "name": "Screws", "isDeleted": false },
+    { "categoryKey": "5637145021", "parentKey": "5637144580", "level": 5, "layer": "productGroup",
+      "name": "PG | 6666", "isDeleted": false }
   ]
 }</pre>
-  <h3>Success</h3>
-<pre>HTTP 200
-{
-  "ok": true, "batchId": "adf-tree-001", "processed": 5, "failed": 0,
-  "results": [
-    { "key": "5637145001", "action": "created", "path": "/ErpSync/Catalog/5637145001" }
-  ],
-  "errors": []
-}</pre>
-  <h3>Skip (not a failure)</h3>
-<pre>{ "ok": true, "processed": 0, "failed": 0,
-  "results": [{ "key": "…", "action": "skipped", "code": "UNKNOWN_TYPE", "retryable": false,
-    "error": "productType is not 06 (screw) or 09 (washer); not created" }],
-  "errors": [] }</pre>
-  <h3>Row failure (rest of batch still applies)</h3>
-<pre>{ "ok": false, "processed": 1, "failed": 1,
-  "results": [
-    { "key": "5637145001", "action": "created" },
-    { "key": "5637145002", "action": "failed", "code": "NOT_FOUND", "retryable": true,
-      "error": "parentKey not found; send parents first" }
-  ],
-  "errors": [{ "key": "5637145002", "code": "NOT_FOUND", "retryable": true,
-    "error": "parentKey not found; send parents first" }] }</pre>
+</div>
+
+<!-- PRODUCTS -->
+<div class="tab panel" id="tab-products">
+  <h2><span class="badge plan">JSON FROZEN — not live</span> <code>POST /api/v1/products</code></h2>
+  <p>Your identity structure is what Pimcore will use. Change only the dimension <b>values</b>.</p>
   <table>
-    <tr><th>code</th><th>When</th><th>retryable</th></tr>
-    <tr><td><code>VALIDATION</code></td><td>Missing <code>categoryKey</code>; bad/missing layer on create; layer vs level clash; <code>master</code>/<code>variant</code> on this feed</td><td>false</td></tr>
-    <tr><td><code>NOT_FOUND</code></td><td>Parent not in PIM yet</td><td>true</td></tr>
-    <tr><td><code>UNKNOWN_TYPE</code></td><td>Type row not 06/09 — skipped, not in <code>errors</code></td><td>false</td></tr>
-    <tr><td><code>CONFLICT</code></td><td>Layer change after create; save error</td><td>layer change false; save true</td></tr>
+    <tr><th>Field</th><th>On</th><th>Required</th><th>Pimcore</th></tr>
+    <tr><td><code>code</code></td><td>master</td><td>Yes</td><td>Match key. F&amp;O product number. Stored as master <code>code</code>.</td></tr>
+    <tr><td><code>layer</code></td><td>master</td><td>Yes</td><td><code>"master"</code></td></tr>
+    <tr><td><code>parentKey</code></td><td>master</td><td>Yes on create</td><td>Level-5 folder <code>categoryKey</code> from <code>/tree</code>.</td></tr>
+    <tr><td><code>itemNumber</code></td><td>variant</td><td>Yes</td><td>Customer-order number. Match key for the SKU.</td></tr>
+    <tr><td><code>masterItemNumber</code></td><td>variant</td><td>Yes</td><td>Parent master’s <code>code</code>. This field is what makes the row a variant.</td></tr>
+    <tr><td><code>layer</code></td><td>variant</td><td>Yes</td><td><code>"variant"</code></td></tr>
+    <tr><td><code>config</code> <code>colour</code> <code>size</code> <code>style</code></td><td>variant</td><td>No</td><td>F&amp;O <b>short code</b> (lookup). Omit = keep. <code>null</code> = clear. Not a display name.</td></tr>
+    <tr><td><code>name</code></td><td>either</td><td>No</td><td>One default name. No locale map.</td></tr>
+    <tr><td><code>isDeleted</code></td><td>either</td><td>No</td><td><code>true</code> unpublishes.</td></tr>
   </table>
-  <p class="small">Do not send head type, measures, images, item numbers, shops, or Pimcore ids on this feed. Layer cannot change after create. Rename only: send <code>categoryKey</code> + <code>name</code>, omit <code>parentKey</code>.</p>
+  <div class="ask">Do not POST an item with Publish-to-PIM = No. No-variant F&amp;O item = master + one variant with the <b>same</b> number.</div>
+<pre>{
+  "batchId": "adf-prod-001",
+  "items": [
+    { "code": "35044", "layer": "master", "parentKey": "5637145021", "isDeleted": false },
+    { "itemNumber": "35044-21-59-8-1", "masterItemNumber": "35044", "layer": "variant",
+      "config": "21", "colour": "59", "size": "8", "style": "1", "isDeleted": false }
+  ]
+}</pre>
+  <p class="small">Your HTML sent <code>"colour": "RAL 1003"</code>. Pimcore needs the code from the item number (<code>"59"</code> in your own dimensions example). Names stay in F&amp;O; PIM lookups are keyed by code.</p>
+</div>
+
+<!-- ATTRIBUTES -->
+<div class="tab panel" id="tab-attributes">
+  <h2><span class="badge plan">JSON FROZEN — not live</span> <code>POST /api/v1/attributes</code></h2>
+  <p>Separate feed. F&amp;O sends <b>name + value as stored</b>. PIM maps onto the owning layer (series / range / product group / master / variant). Do not send <code>kl_*</code> keys. Do not send <code>/attribute-setup</code>.</p>
+  <table>
+    <tr><th>Field</th><th>Required</th><th>Pimcore</th></tr>
+    <tr><td><code>itemNumber</code></td><td>Yes</td><td>Master <code>code</code> or variant number — whichever item holds the value in F&amp;O.</td></tr>
+    <tr><td><code>name</code></td><td>Yes</td><td>F&amp;O attribute name as stored, e.g. <code>Head type</code>, <code>Length</code>. Not <code>THREAD_PITCH</code>.</td></tr>
+    <tr><td><code>value</code></td><td>Yes</td><td>Exact F&amp;O string. <code>null</code> clears. Omit the row = keep.</td></tr>
+  </table>
+<pre>{
+  "batchId": "adf-attr-001",
+  "items": [
+    { "itemNumber": "35044-21-59-8-1", "name": "Head type", "value": "Torx" },
+    { "itemNumber": "35044", "name": "Length", "value": "35.00 mm" }
+  ]
+}</pre>
+  <p class="small">Still needed from F&amp;O (not a payload-shape change): 2–3 real Head type and Length strings as stored, so we can finish the mapping table. Until then the Function can still emit this shape.</p>
+</div>
+
+<!-- RELEASED -->
+<div class="tab panel" id="tab-released">
+  <h2><span class="badge plan">JSON FROZEN — not live</span> <code>POST /api/v1/released</code></h2>
+  <p>Your released payload is the one we will use. Shop companies only. No <code>isDeleted</code>. <code>released: false</code> removes that shop from the SKU; the product stays.</p>
+<pre>{
+  "batchId": "adf-rel-001",
+  "items": [
+    { "itemNumber": "35044-21-59-8-1", "companyCode": "ASW", "released": true },
+    { "itemNumber": "35044-21-59-8-1", "companyCode": "RH",  "released": false }
+  ]
+}</pre>
 </div>
 
 <!-- REPLY -->
 <div class="tab panel" id="tab-reply">
-  <h2>Reply shape — same for companies and tree</h2>
-  <p>HTTP <b>200</b> means the request was applied. Inspect <code>results</code> and <code>errors</code>. HTTP 400 = whole request not applied (bad JSON). 413 = split the batch. 401 = bad key.</p>
+  <h2>Reply shape — companies, tree, and later write APIs</h2>
+  <p>HTTP <b>200</b> = request applied. Inspect <code>results</code> and <code>errors</code>. 400 = nothing applied. 413 = split. 401 = bad key.</p>
   <table>
     <tr><th>Field</th><th>Meaning</th></tr>
-    <tr><td><code>ok</code></td><td><code>true</code> only if <code>failed === 0</code>. Skips do <b>not</b> fail the batch.</td></tr>
+    <tr><td><code>ok</code></td><td><code>true</code> only if <code>failed === 0</code>. Skips do not fail the batch.</td></tr>
     <tr><td><code>processed</code></td><td><code>created</code> / <code>updated</code> / <code>unpublished</code></td></tr>
     <tr><td><code>failed</code></td><td>Unexpected only</td></tr>
     <tr><td><code>results[].action</code></td><td><code>created</code> | <code>updated</code> | <code>unpublished</code> | <code>skipped</code> | <code>failed</code></td></tr>
-    <tr><td><code>results[].key</code></td><td><code>companyCode</code> or <code>categoryKey</code></td></tr>
-    <tr><td><code>errors[].error</code></td><td>English text — parse <code>code</code> + <code>retryable</code>, not this string</td></tr>
+    <tr><td><code>errors[].error</code></td><td>Not <code>message</code>. Parse <code>code</code> + <code>retryable</code>.</td></tr>
   </table>
-  <p class="small">Omit a field = keep. <code>null</code> = clear. 5xx / timeout: send the same batch again (upsert). Do not use a field named <code>message</code> — it is <code>error</code>.</p>
+<pre>{
+  "ok": false, "processed": 1, "failed": 1,
+  "results": [
+    { "key": "35044", "action": "created" },
+    { "key": "35047", "action": "failed", "code": "NOT_FOUND", "retryable": true,
+      "error": "parentKey not found; send parents first" }
+  ],
+  "errors": [
+    { "key": "35047", "code": "NOT_FOUND", "retryable": true,
+      "error": "parentKey not found; send parents first" }
+  ]
+}</pre>
+  <p class="small">Omit a field = keep. <code>null</code> = clear. 5xx / timeout: send the same batch again (upsert).</p>
 </div>
 
 <!-- LATER -->
 <div class="tab panel" id="tab-later">
-  <h2><span class="badge plan">NOT LIVE</span> Do not POST these yet</h2>
-  <p>PIM has not built these. Do not point the Function at them. When they go live, they will get their own tab here.</p>
+  <h2><span class="badge drop">NOT v1</span> Do not build these POSTs</h2>
+  <p>They are not Pimcore ingest. There will be no tab marked LIVE for them unless Red Horse adds a new contract.</p>
   <table>
-    <tr><th>Path</th><th>Status</th></tr>
-    <tr><td><code>/api/v1/products</code></td><td>After tree. Identity only when we freeze it.</td></tr>
-    <tr><td><code>/api/v1/attributes</code></td><td>After products. F&amp;O <b>name + value</b> on the item; PIM maps. No <code>/attribute-setup</code>.</td></tr>
-    <tr><td><code>/api/v1/released</code></td><td>After products. Shop companies only; explicit <code>released: false</code>.</td></tr>
-    <tr><td><code>/api/v1/translations</code></td><td>Not in v1 unless Red Horse overrides.</td></tr>
-    <tr><td><code>/attribute-setup</code> <code>/units</code> <code>/dimensions</code> <code>/barcodes</code> <code>/relations</code></td><td>Not PIM v1 feeds.</td></tr>
+    <tr><th>Your path</th><th>Why not</th></tr>
+    <tr><td><code>/translations</code></td><td>PIM locales are <code>en</code> / <code>da</code> / <code>sv</code>. F&amp;O <code>en-CA</code> / <code>zh-Hant</code> cannot be stored as-is. Shop copy is PIM. Optional single <code>name</code> on <code>/products</code>.</td></tr>
+    <tr><td><code>/attribute-setup</code></td><td>Classes, groups, lookups already exist in PIM. F&amp;O does not create schema.</td></tr>
+    <tr><td><code>/units</code></td><td>PIM setup. Measure units are not a nightly feed.</td></tr>
+    <tr><td><code>/dimensions</code></td><td>Not a feed. Short codes go on the variant row in <code>/products</code>.</td></tr>
+    <tr><td><code>/barcodes</code> <code>/relations</code></td><td>Not in this catalogue contract.</td></tr>
+    <tr><td>Price / stock</td><td>Never sent to Pimcore.</td></tr>
   </table>
-  <div class="ask">Price and stock are never sent to Pimcore.</div>
 </div>
 
 </div>
@@ -277,8 +351,8 @@ Content-Type: application/json
   buttons.forEach(function (b) {
     b.addEventListener("click", function () { show(b.getAttribute("data-tab")); });
   });
-  var hash = (location.hash || "#start").replace("#", "");
-  if (!document.getElementById("tab-" + hash)) hash = "start";
+  var hash = (location.hash || "#vs").replace("#", "");
+  if (!document.getElementById("tab-" + hash)) hash = "vs";
   show(hash);
 })();
 </script>
