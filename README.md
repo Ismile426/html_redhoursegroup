@@ -9,6 +9,7 @@ Open `index.html` locally or deploy to Vercel for hosting.
 | URL | Page |
 |-----|------|
 | `/` | Product Creation Wizard |
+| `/fo-api.html` | F&amp;O → Pimcore **live API** contract (auth, ping, companies, tree) |
 | `/product-listing.html` | Product Listing & Hierarchy (search + Method B tree) |
 | `/catalog-explorer.html` | Catalog Explorer (no nav link — direct URL only) |
 

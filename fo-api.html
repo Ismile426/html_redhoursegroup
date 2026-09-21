@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>F&amp;O → Pimcore — live API</title>
+<style>
+  body { font-family: "Segoe UI", Arial, sans-serif; max-width: 920px; margin: 28px auto; padding: 0 18px 64px; color: #1f2328; line-height: 1.55; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 17px; margin-top: 32px; border-bottom: 2px solid #b22222; padding-bottom: 4px; }
+  h3 { font-size: 14px; color: #8b1a1a; }
+  code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 13px; }
+  pre { background: #f6f8fa; border: 1px solid #d0d7de; padding: 12px; font-size: 12.5px; overflow-x: auto; border-radius: 6px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #d0d7de; padding: 7px 9px; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; }
+  .live { color: #1a7f37; font-weight: 700; }
+  .plan { color: #9a6700; }
+  .ok { border-left: 4px solid #1a7f37; background: #f2fbf4; padding: 10px 14px; margin: 14px 0; }
+  .ask { border-left: 4px solid #9a6700; background: #fff8e8; padding: 10px 14px; margin: 14px 0; }
+  .box { border-left: 4px solid #b22222; background: #fff5f5; padding: 10px 14px; margin: 14px 0; }
+  .small { color: #57606a; font-size: 12.5px; }
+</style>
+</head>
+<body>
+
+<h1>F&amp;O → Pimcore — live API</h1>
+<p class="small">Updated <b>21 Sep 2026</b>. Public copy of the PIM live-API contract. TEST calls still go to <code>http://10.100.16.4:82/api/v1</code> (RH LAN). Swagger on TEST: <code>http://10.100.16.4:82/fo-api.html</code>.</p>
+
+<div class="ok">
+<b>LIVE</b> on TEST <code>http://10.100.16.4:82/api/v1</code> (RH LAN). Azure cannot reach it yet.<br>
+<code>POST/GET /auth</code> · <code>POST/GET /ping</code> · <code>POST /companies</code> · <code>POST /tree</code>
+</div>
+
+<div class="box">
+<b>For the Function — only these fields are required.</b> Extra JSON keys are ignored (do not fail the row).<br>
+Do <b>not</b> build <code>/products</code>, <code>/attributes</code>, <code>/attribute-setup</code>, <code>/released</code>, <code>/translations</code>, <code>/units</code>, <code>/dimensions</code>, <code>/barcodes</code>, <code>/relations</code> until this file marks them LIVE.<br>
+<code>X-API-Key</code> on <b>every</b> call — <code>/auth</code> is a key check, not a login session.
+</div>
+
+<div class="ask">
+<b>Not live — do not POST these:</b> <code>/products</code>, <code>/attributes</code>, <code>/released</code>, <code>/translations</code>, and any extra path not in the table below.
+</div>
+
+<table>
+<tr><th>Endpoint</th><th>Writes</th><th>Status</th></tr>
+<tr><td><code>/api/v1/auth</code></td><td>Nothing</td><td><span class="live">LIVE</span></td></tr>
+<tr><td><code>/api/v1/ping</code></td><td>Raw body under <code>/ErpIntake</code> (not companies, not tree)</td><td><span class="live">LIVE</span></td></tr>
+<tr><td><code>/api/v1/companies</code></td><td><code>PtLegalEntity</code> under <code>/ErpSync/LegalEntities</code></td><td><span class="live">LIVE</span> — allow-list provisional until C1–C4</td></tr>
+<tr><td><code>/api/v1/tree</code></td><td><code>PtScrew</code> / <code>PtWasher</code> under <code>/ErpSync/Catalog</code></td><td><span class="live">LIVE</span> local + TEST <code>:82</code> — C7 class map is a PIM guess</td></tr>
+<tr><td><code>/api/v1/products</code></td><td>—</td><td><span class="plan">After tree + C8</span></td></tr>
+</table>
+
+<div class="box">
+<b>Auth on every call.</b> Header <code>X-API-Key</code> (also <code>Authorization</code> raw / Bearer / ApiKey). HTTP <b>401</b> = missing/wrong key — do not retry the same value. Do not put the key in Teams or email. Key Vault name: <code>Pimcore-ApiKey-Test</code>.<br>
+Write APIs: wrapper <code>{ "batchId", "items": [] }</code> preferred; bare array also accepted. Max <b>500</b> items / <b>2 MB</b> → HTTP <b>413</b>. HTTP <b>200</b> on write = applied (inspect <code>results</code> / <code>errors</code>). Ping 200 = stored only.
+</div>
+
+<h2>Shared write response</h2>
+<table>
+<tr><th>Field</th><th>Meaning</th></tr>
+<tr><td><code>ok</code></td><td><code>true</code> only if <code>failed === 0</code>. Expected <code>skipped</code> does <b>not</b> fail the batch and is <b>not</b> in <code>errors</code>.</td></tr>
+<tr><td><code>processed</code></td><td>Rows that were <code>created</code> / <code>updated</code> / <code>unpublished</code>.</td></tr>
+<tr><td><code>failed</code></td><td>Unexpected only. Retry rows in <code>errors</code> where <code>retryable: true</code>.</td></tr>
+<tr><td><code>results[].action</code></td><td><code>created</code> | <code>updated</code> | <code>unpublished</code> | <code>skipped</code> | <code>failed</code></td></tr>
+<tr><td><code>results[].key</code></td><td>Business key (<code>companyCode</code> or <code>categoryKey</code>).</td></tr>
+<tr><td><code>errors[].code</code></td><td><code>VALIDATION</code> | <code>NOT_FOUND</code> | <code>CONFLICT</code> | <code>PRODUCTION_ONLY</code> | <code>UNKNOWN_COMPANY</code> | <code>UNKNOWN_TYPE</code></td></tr>
+</table>
+<p class="small">Omit a field = keep. <code>null</code> = clear. <code>isDeleted: true</code> unpublishes (not a hard delete). 5xx / timeout: send the same batch again (upsert).</p>
+
+<h2>1. <code>POST /api/v1/companies</code></h2>
+<p>Match: <code>companyCode</code> → <code>PtLegalEntity.code</code>. Create: RH, RHU, ASW, SPI. Skip (not a failure): GXN, DH, DE, DE2, unknown. No shop bricks. <code>languageId</code> ignored.</p>
+<pre>POST /api/v1/companies
+{
+  "batchId": "adf-run-123",
+  "items": [
+    { "companyCode": "RH",  "name": "Red Horse", "isDeleted": false },
+    { "companyCode": "GXN", "name": "GeXin",     "isDeleted": false }
+  ]
+}</pre>
+<pre>HTTP 200
+{
+  "ok": true,
+  "service": "pimcore",
+  "auth": "api_key",
+  "batchId": "adf-run-123",
+  "processed": 1,
+  "failed": 0,
+  "results": [
+    { "key": "RH",  "action": "created", "objectId": 6410, "path": "/ErpSync/LegalEntities/RH" },
+    { "key": "GXN", "action": "skipped", "code": "PRODUCTION_ONLY", "retryable": false,
+      "error": "production-only, not created in PIM" }
+  ],
+  "errors": []
+}</pre>
+
+<h2>2. <code>POST /api/v1/tree</code> — LIVE local + TEST :82</h2>
+<p>F&amp;O Product Catalogue folders. <b>Not</b> masters, variants, attributes, or shops. Same class down the branch (<code>PtScrew</code> or <code>PtWasher</code>). Objects file under <code>/ErpSync/Catalog</code> — workshop <code>/TypeBasedCatalog</code> is not touched.</p>
+
+<h3>Guess we built with (C7) — tell Kalle</h3>
+<ul>
+  <li>Type row <code>productType</code> <code>06</code> / <code>screw</code> / <code>screws</code> → <code>PtScrew</code>.</li>
+  <li><code>09</code> / <code>washer</code> / <code>washers</code> → <code>PtWasher</code>.</li>
+  <li>Anything else → <code>skipped</code> / <code>UNKNOWN_TYPE</code> (not a batch failure).</li>
+  <li>Children inherit class from the parent. We do <b>not</b> map class from the English folder name alone (TEST names are not final).</li>
+  <li>C10: empty <code>brand</code> / <code>productGroupNumber</code> still creates the node.</li>
+</ul>
+
+<h3>Request</h3>
+<p>Send <b>parents before children</b>. <code>categoryKey</code> = F&amp;O <b>record id as text</b> (same id products will use as <code>parentKey</code>). Do <b>not</b> send <code>"06"</code>, <code>"CREO"</code>, or <code>"063333"</code> as <code>categoryKey</code>.</p>
+<pre>POST /api/v1/tree
+X-API-Key: &lt;key&gt;
+Content-Type: application/json
+
+{
+  "batchId": "adf-tree-001",
+  "items": [
+    {
+      "categoryKey": "5637145001",
+      "parentKey": null,
+      "layer": "type",
+      "level": 1,
+      "productType": "06",
+      "name": "Screws",
+      "isDeleted": false
+    },
+    {
+      "categoryKey": "5637145002",
+      "parentKey": "5637145001",
+      "layer": "family",
+      "level": 2,
+      "name": "CREO",
+      "brand": "CREO",
+      "isDeleted": false
+    },
+    {
+      "categoryKey": "5637145003",
+      "parentKey": "5637145002",
+      "layer": "series",
+      "level": 3,
+      "name": "Pan-head TX",
+      "isDeleted": false
+    },
+    {
+      "categoryKey": "5637145004",
+      "parentKey": "5637145003",
+      "layer": "range",
+      "level": 4,
+      "name": "Range 15546",
+      "isDeleted": false
+    },
+    {
+      "categoryKey": "5637145005",
+      "parentKey": "5637145004",
+      "layer": "productGroup",
+      "level": 5,
+      "name": "PG 063333",
+      "productGroupNumber": "063333",
+      "isDeleted": false
+    }
+  ]
+}</pre>
+
+<table>
+<tr><th>Field</th><th>Required</th><th>Rule</th></tr>
+<tr><td><code>categoryKey</code></td><td>Yes</td><td>Match key. PIM <code>code</code>. String rec id.</td></tr>
+<tr><td><code>parentKey</code></td><td>Create of a child: yes. Root: <code>null</code> or omit.</td><td>Parent’s <code>categoryKey</code>. Omit on update = do not move. <code>null</code> on update = move to catalog root.</td></tr>
+<tr><td><code>layer</code> or <code>level</code></td><td>Create: yes. Update: omit = keep.</td><td>Prefer <code>layer</code>. <code>level</code> 1=type … 5=productGroup. Both sent and they disagree → <code>VALIDATION</code>. <code>master</code>/<code>variant</code> → <code>VALIDATION</code> (use <code>/products</code>).</td></tr>
+<tr><td><code>productType</code></td><td>Type row on create</td><td><code>06</code> or <code>09</code> <b>now</b> (not a later change). Children omit; class is inherited. Missing / unknown → skip <code>UNKNOWN_TYPE</code>.</td></tr>
+<tr><td><code>name</code></td><td>No</td><td>Create default = <code>categoryKey</code>. <code>null</code> clears.</td></tr>
+<tr><td><code>brand</code></td><td>No</td><td>Family. Lookup by code. Missing lookup → leave empty, still create.</td></tr>
+<tr><td><code>productGroupNumber</code></td><td>No</td><td>Display / PG field. <b>Not</b> the match key.</td></tr>
+<tr><td><code>isDeleted</code></td><td>No</td><td><code>true</code> unpublishes.</td></tr>
+<tr><td><code>code</code>, <code>isActive</code>, <code>texts[]</code></td><td>No</td><td><b>Ignored</b> in v1. You may send them; PIM does not store folder translations or F&amp;O active here.</td></tr>
+</table>
+<p class="small">Do not send head type, measures, images, item numbers, or shops on this feed. Layer is frozen after create (<code>CONFLICT</code> if you change it). No synthetic folders if F&amp;O skips a level.</p>
+
+<h3>Success</h3>
+<pre>HTTP 200
+{
+  "ok": true,
+  "service": "pimcore",
+  "auth": "api_key",
+  "batchId": "adf-tree-001",
+  "processed": 5,
+  "failed": 0,
+  "results": [
+    { "key": "5637145001", "action": "created", "objectId": 7001, "path": "/ErpSync/Catalog/5637145001" },
+    { "key": "5637145002", "action": "created", "objectId": 7002, "path": "/ErpSync/Catalog/5637145001/5637145002" }
+  ],
+  "errors": []
+}</pre>
+
+<h3>Skip (not a failure)</h3>
+<pre>{
+  "ok": true,
+  "processed": 0,
+  "failed": 0,
+  "results": [
+    { "key": "5637145999", "action": "skipped", "code": "UNKNOWN_TYPE", "retryable": false,
+      "error": "productType is not 06 (screw) or 09 (washer); not created" }
+  ],
+  "errors": []
+}</pre>
+
+<h3>Row failure (rest of batch still applies)</h3>
+<pre>HTTP 200
+{
+  "ok": false,
+  "processed": 1,
+  "failed": 1,
+  "results": [
+    { "key": "5637145001", "action": "created", "objectId": 7001, "path": "/ErpSync/Catalog/5637145001" },
+    { "key": "5637145002", "action": "failed", "code": "NOT_FOUND", "retryable": true,
+      "error": "parentKey not found; send parents first" }
+  ],
+  "errors": [
+    { "key": "5637145002", "code": "NOT_FOUND", "retryable": true, "error": "parentKey not found; send parents first" }
+  ]
+}</pre>
+
+<table>
+<tr><th>code</th><th>When</th><th>retryable</th></tr>
+<tr><td><code>VALIDATION</code></td><td>Missing <code>categoryKey</code>; bad/missing layer on create; layer vs level clash; <code>master</code>/<code>variant</code> on this feed</td><td>false</td></tr>
+<tr><td><code>NOT_FOUND</code></td><td>Parent not in PIM yet</td><td>true — resend after parent</td></tr>
+<tr><td><code>UNKNOWN_TYPE</code></td><td>Type row not 06/09 — skipped, not in <code>errors</code></td><td>false</td></tr>
+<tr><td><code>CONFLICT</code></td><td>Layer change after create; save error</td><td>layer change: false. save: true</td></tr>
+<tr><td>HTTP 400</td><td>Invalid JSON / no <code>items</code> array — nothing applied</td><td>false</td></tr>
+<tr><td>HTTP 413</td><td>&gt;500 rows or &gt;2 MB</td><td>false — split</td></tr>
+<tr><td>HTTP 401</td><td>Bad key</td><td>false — fix the key</td></tr>
+</table>
+
+<p class="small">Delta example (rename only, do not move): <code>{ "batchId": "adf-tree-002", "items": [{ "categoryKey": "5637145005", "name": "Product group 063333" }] }</code></p>
+
+<h2>What you should not send on /tree</h2>
+<ul>
+  <li>Pimcore object ids, class name, <code>kl_*</code> measure keys.</li>
+  <li>Head type / material / images / shops / released / item numbers.</li>
+  <li>A Magento-style Category object — PIM has none.</li>
+</ul>
+
+</body>
+</html>
