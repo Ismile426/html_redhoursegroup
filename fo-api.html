@@ -67,6 +67,9 @@
   <button type="button" data-tab="products"><span class="verb post">POST</span>/products</button>
   <button type="button" data-tab="attributes"><span class="verb post">POST</span>/attributes</button>
   <button type="button" data-tab="released"><span class="verb post">POST</span>/released</button>
+  <button type="button" data-tab="masterdata"><span class="verb post">POST</span>/dimensions + lookups</button>
+  <button type="button" data-tab="translations">Translations</button>
+  <button type="button" data-tab="groups">Attribute groups</button>
   <button type="button" data-tab="reply">Reply shape</button>
   <button type="button" data-tab="later">Do not build</button>
 </nav>
@@ -87,9 +90,13 @@
     <tr><td><code>/products</code></td><td class="fix"><span class="badge fix">CHANGE</span> Identity keys OK. Dimension <b>values</b> must be F&amp;O short codes, not names.</td><td>Yes, against the Products tab. POST 404 until LIVE.</td></tr>
     <tr><td><code>/released</code></td><td class="keep"><span class="badge keep">KEEP</span> <code>itemNumber</code> + <code>companyCode</code> + <code>released</code>.</td><td>Yes, against the Released tab. POST 404 until LIVE.</td></tr>
     <tr><td><code>/attributes</code></td><td class="fix"><span class="badge fix">CHANGE</span> Use <code>name</code> + <code>value</code>, not <code>attributeCode</code>.</td><td>Yes, against the Attributes tab. POST 404 until LIVE.</td></tr>
-    <tr><td><code>/translations</code></td><td class="drop"><span class="badge drop">DROP</span></td><td>No. Not v1.</td></tr>
-    <tr><td><code>/attribute-setup</code> <code>/units</code> <code>/dimensions</code> <code>/barcodes</code> <code>/relations</code></td><td class="drop"><span class="badge drop">DROP</span> Not Pimcore ingest feeds.</td><td>No.</td></tr>
+    <tr><td><code>/dimensions</code></td><td class="keep"><span class="badge keep">NEEDED</span> Was wrongly dropped. It is the code→name list for variant axes. See <b>Master data</b> tab.</td><td>Yes — this is real reference data. Not built yet.</td></tr>
+    <tr><td><code>/translations</code></td><td class="fix"><span class="badge fix">PARTLY</span> PIM owns <code>en</code>/<code>da</code>/<code>sv</code>. F&amp;O has no da/sv. See <b>Translations</b> tab.</td><td>Not as you drew it. One English <code>name</code> can ride on <code>/products</code>.</td></tr>
+    <tr><td><code>/attribute-setup</code></td><td class="drop"><span class="badge drop">DROP</span> Schema/groups = one-time PIM setup, not a nightly feed. See <b>Attribute groups</b> tab.</td><td>No — F&amp;O does not define PIM schema.</td></tr>
+    <tr><td><code>/units</code></td><td class="drop"><span class="badge drop">DROP</span> PCS/BOX order conversions are commerce, not catalogue.</td><td>No.</td></tr>
+    <tr><td><code>/barcodes</code> <code>/relations</code></td><td class="drop"><span class="badge drop">HOLD</span> No field on the class yet. Needs a Red Horse decision to model first.</td><td>Not until RH asks for the field.</td></tr>
   </table>
+  <p class="small">Correction: I earlier lumped <code>/dimensions</code> with the drops. It belongs with the <b>needed master data</b> — you are right that variants need it.</p>
 
   <h3>Tree — field by field</h3>
   <table>
@@ -296,6 +303,74 @@ Content-Type: application/json
 }</pre>
 </div>
 
+<!-- MASTER DATA -->
+<div class="tab panel" id="tab-masterdata">
+  <h2><span class="badge plan">NEEDED — not built</span> Master data: dimensions + lookups</h2>
+  <p>You are right. To create a variant <code>35044-21-59-8-1</code> and show <b>RAL 1003</b> (not the code <code>59</code>), PIM must already have a lookup object <code>PtColourOption</code> with <code>code 59</code> / <code>name "RAL 1003"</code>. Today those only exist because the demo seeds them. Production needs a source.</p>
+  <p>So there is a real feed here — the same idea as your <code>/dimensions</code>, extended to every coded lookup, not just the four variant axes.</p>
+
+  <h3>Two groups of lookups</h3>
+  <table>
+    <tr><th>Lookup</th><th>Pimcore class</th><th>Used on</th></tr>
+    <tr><td><code>config</code> / <code>colour</code> / <code>size</code> / <code>style</code></td><td><code>PtConfigOption</code> <code>PtColourOption</code> <code>PtSizeOption</code> <code>PtStyleOption</code></td><td>Variant axes (your <code>/dimensions</code>)</td></tr>
+    <tr><td>brand, head type, drive, thread, point, material, coating, application, washer kind, features, target material</td><td><code>PtBrand</code> <code>PtHeadType</code> <code>PtDriveType</code> …</td><td>Named attribute values on family / series / range</td></tr>
+  </table>
+
+  <h3>One shape for both (proposal)</h3>
+<pre>POST /api/v1/lookups   (or your /dimensions for the four axes)
+{
+  "batchId": "adf-look-001",
+  "items": [
+    { "lookup": "colour", "code": "59", "name": "RAL 1003", "isDeleted": false },
+    { "lookup": "size",   "code": "8",  "name": "100",      "isDeleted": false },
+    { "lookup": "headType", "code": "MH", "name": "Mushroom head", "isDeleted": false }
+  ]
+}</pre>
+  <table>
+    <tr><th>Field</th><th>Rule</th></tr>
+    <tr><td><code>lookup</code></td><td>Which list: <code>config</code> / <code>colour</code> / <code>size</code> / <code>style</code> / <code>brand</code> / <code>headType</code> / … (fixed set — matches PIM classes).</td></tr>
+    <tr><td><code>code</code></td><td>Match key. The short code that appears in the item number / attribute value.</td></tr>
+    <tr><td><code>name</code></td><td>Readable label shown in shops and filters.</td></tr>
+    <tr><td><code>isDeleted</code></td><td>Unpublish the option.</td></tr>
+  </table>
+  <div class="ask"><b>Open — one decision from Red Horse (F2):</b> for each lookup, is <b>F&amp;O</b> the source of the code→name list, or does <b>PIM</b> own it as a dictionary? If PIM owns it, no feed for that lookup and <code>/products</code> just sends the code. If F&amp;O owns it, we take this feed. We need 2–3 real examples per lookup to lock it.</div>
+  <p class="small">Feed order if this is live: this master data → products (so the codes resolve) → attributes / released. Missing lookup on a variant = we still create the variant but leave that axis empty (same rule as brand on <code>/tree</code>).</p>
+</div>
+
+<!-- TRANSLATIONS -->
+<div class="tab panel" id="tab-translations">
+  <h2><span class="badge fix">PARTLY — not your shape</span> Translations</h2>
+  <p>Translation <b>is</b> needed — the DK and SE storefronts show Danish and Swedish. The question is <b>who is the source</b>, and today the F&amp;O feed you drew does not fit.</p>
+  <table>
+    <tr><th>Thing</th><th>Where it lives in PIM</th><th>Source</th></tr>
+    <tr><td>Product <code>name</code></td><td><b>Single</b> text field on <code>PtScrew</code>/<code>PtWasher</code> — not per-locale.</td><td>Optional one English from F&amp;O on <code>/products</code>.</td></tr>
+    <tr><td>Shop title + description (<code>en</code>/<code>da</code>/<code>sv</code>)</td><td>Localized WYSIWYG on the <b>storefront brick</b>.</td><td><b>PIM</b> (marketing), not F&amp;O.</td></tr>
+  </table>
+  <h3>Why your <code>/translations</code> feed does not land</h3>
+  <ul>
+    <li>F&amp;O languages are <code>en-CA</code> / <code>en-HK</code> / <code>en-US</code> / <code>zh-Hant</code>. PIM sells in <code>en</code> / <code>da</code> / <code>sv</code>. F&amp;O has <b>no Danish or Swedish</b> to send.</li>
+    <li>Your feed sends four English variants + Chinese into a field set that has one of them and needs two it can’t supply.</li>
+    <li>The one thing F&amp;O could usefully give — a canonical English product name — is a single field, so it rides on <code>/products</code>, no separate feed.</li>
+  </ul>
+  <div class="ask"><b>If Red Horse wants F&amp;O to drive per-language product names</b> (not just shop marketing), then: (1) F&amp;O must actually hold da/sv, and (2) PIM adds a localized <code>name</code> field to the class. Both are changes to agree first — not something to build on today’s model. Flag it and we cost it.</div>
+</div>
+
+<!-- ATTRIBUTE GROUPS -->
+<div class="tab panel" id="tab-groups">
+  <h2><span class="badge drop">DROP the feed — groups still matter</span> Attribute groups</h2>
+  <p>Your confusion is fair, so here is the split. Attribute <b>groups</b> absolutely exist and matter. But there are two different things and only one of them is an F&amp;O feed.</p>
+  <table>
+    <tr><th></th><th>Attribute <b>setup</b> (your <code>/attribute-setup</code>)</th><th>Attribute <b>values</b> (<code>/attributes</code>)</th></tr>
+    <tr><td>What</td><td>Definitions, data types, pick-lists, groups, and which folder/layer uses which group</td><td>One item’s actual value: Head type = Torx</td></tr>
+    <tr><td>Who owns it</td><td><b>PIM</b> — set once in the class</td><td><b>F&amp;O</b> — sent per item</td></tr>
+    <tr><td>How often</td><td>Once (changes on a schema change)</td><td>Every product run</td></tr>
+  </table>
+  <h3>Why F&amp;O does not send the setup</h3>
+  <p>In this model, which group sits on which layer is <b>fixed in the class</b>: Product-Group measures on the Product Group tab, Master measures on the Master tab, Range geometry on the Range tab. The class says literally “groups for this layer only, children inherit, cannot add/remove groups.” It is not chosen per folder at runtime.</p>
+  <p>Your <code>folderGroups[]</code> (“folder X uses groups A, B”) assumes F&amp;O assigns groups to folders. If F&amp;O sent that nightly, it would try to redefine PIM’s schema and duplicate our locked groups.</p>
+  <div class="ask"><b>Real open question (Kalle, C11):</b> do different product groups need <b>different</b> attribute sets beyond the fixed per-layer model? If yes, that is a PIM modelling change we make once — still not an F&amp;O feed. F&amp;O keeps sending values only.</div>
+</div>
+
 <!-- REPLY -->
 <div class="tab panel" id="tab-reply">
   <h2>Reply shape — companies, tree, and later write APIs</h2>
@@ -325,37 +400,22 @@ Content-Type: application/json
 
 <!-- LATER -->
 <div class="tab panel" id="tab-later">
-  <h2><span class="badge drop">NOT v1</span> Do not build these POSTs</h2>
-  <p>Not dropped because we “don’t want extra APIs.” Each payload below has <b>no field on <code>PtScrew</code> / <code>PtWasher</code></b> that can store it. Building the Function would POST JSON we cannot apply.</p>
+  <h2>What is not an F&amp;O feed — and why</h2>
+  <p>Split into <b>DROP</b> (F&amp;O is the wrong source), <b>HOLD</b> (no field yet — RH must decide), and one <b>gap we do owe you</b> (assets).</p>
 
-  <h3><code>/translations</code></h3>
-  <p>You send <code>itemNumber</code> + <code>texts[]</code> with F&amp;O <code>languageId</code> (<code>en-CA</code>, <code>en-HK</code>, <code>zh-Hant</code>) and per-language <code>name</code> / <code>description</code>.</p>
-  <p>Pimcore product <code>name</code> is one plain text field — not a locale map. Shop <code>description</code> is a localized WYSIWYG on the <b>storefront brick</b> (<code>en</code> / <code>da</code> / <code>sv</code>), filled by PIM, not F&amp;O. There is nowhere to store <code>en-CA</code> vs <code>zh-Hant</code>.</p>
-  <p><b>Instead:</b> optional single <code>name</code> on <code>/products</code>. Shop copy stays in PIM.</p>
+  <h3><span class="badge drop">DROP</span> <code>/units</code> (PCS / BOX, factor 100)</h3>
+  <p>Order/packing quantities. Pimcore is not the order system; price and stock already stay out. Catalogue <b>measure</b> units (<code>mm</code> / <code>in</code>) already sit on the CS key. Send Length as F&amp;O stores it (<code>"35.00 mm"</code>) on <code>/attributes</code>; we parse it.</p>
 
-  <h3><code>/attribute-setup</code></h3>
-  <p>You send attribute <i>definitions</i>: codes, data types, pick-list options, groups, and which folder uses which group. Your own HTML marks this as a proposal.</p>
-  <p>That is class/schema. PIM already has it in PHP: <code>PtScrew</code>/<code>PtWasher</code> fields, locked Classification Store groups per layer, lookup classes (head type, colour, …). F&amp;O creating <code>THREAD_PITCH</code> groups at runtime would fight that model and duplicate vocab.</p>
-  <p><b>Instead:</b> <code>/attributes</code> sends <b>values</b> (<code>name</code> + <code>value</code>). PIM maps. Spreadsheet is homework, not an API.</p>
+  <h3><span class="badge drop">HOLD</span> <code>/barcodes</code></h3>
+  <p>There is <b>no barcode / EAN / GTIN field</b> on <code>PtScrew</code> / <code>PtWasher</code>. Not a “no” — a “model it first.” If Red Horse wants EAN in PIM, we add the field, then take the feed. Your own HTML lists this area as open.</p>
 
-  <h3><code>/units</code></h3>
-  <p>You send <code>PCS</code> / <code>BOX</code> and <code>factor: 100</code> (order quantity conversions).</p>
-  <p>That is ERP packing / how many pieces are in a box. Pimcore is not the order system. Price and stock were already agreed never to enter PIM. Catalogue measures use PIM units already on the CS key (<code>mm</code> / <code>in</code> on <code>kl_lengthMm</code>, etc.) — not a nightly BOX→PCS table.</p>
-  <p><b>Instead:</b> if Length is <code>"35.00 mm"</code> in F&amp;O, send that string on <code>/attributes</code>. We parse onto the existing measure key.</p>
+  <h3><span class="badge drop">HOLD</span> <code>/relations</code> (accessory / alternative / sparePart)</h3>
+  <p>Those types are not fields today. The one product-to-product link we have is <code>washerProduct</code> on a screw SKU (“with washer”). Cross-sell/related is a real shop feature — but it is a modelling decision with Red Horse, then a feed. Not v1.</p>
 
-  <h3><code>/dimensions</code></h3>
-  <p>You send master lists: colour <code>59</code> = <code>RAL 1003</code>, and so on, because <code>/products</code> currently sends the <b>name</b>.</p>
-  <p>PIM already has lookup objects (<code>PtConfigOption</code>, <code>PtColourOption</code>, <code>PtSizeOption</code>, <code>PtStyleOption</code>). The variant fields are many-to-one on <b>code</b>. This extra feed exists only as a workaround for sending display names on the product row.</p>
-  <p><b>Instead:</b> put the short code on the variant in <code>/products</code> (<code>"colour": "59"</code>). No second endpoint.</p>
+  <h3><span class="badge plan">GAP</span> Assets — images &amp; compliance documents</h3>
+  <p>This one is on us, not you. The classes already have <code>technicalImages</code>, <code>labelImages</code> (image galleries) and <code>complianceDocuments</code> (certificates / CE / ETA). Your HTML flags images and certifications as open too. So we <b>will</b> need a media feed or asset references — where does F&amp;O hold the files (URL? blob? DAM?). Bring that and we design it.</p>
 
-  <h3><code>/barcodes</code></h3>
-  <p>You send EAN13 / UPC per item. There is <b>no barcode / EAN / GTIN field</b> on <code>PtScrew</code> or <code>PtWasher</code>. Red Horse has not asked to store scanner codes in this catalogue. Your own “not covered yet” list is images and certifications — not barcodes.</p>
-  <p><b>Instead:</b> nothing in v1. If RH later wants EAN in PIM, we add a field first, then a feed.</p>
-
-  <h3><code>/relations</code></h3>
-  <p>You send Magento-style <code>accessory</code> / <code>alternative</code> / <code>sparePart</code> links. Those types are not fields on our classes.</p>
-  <p>The only product-to-product link in this model is <code>washerProduct</code> on a screw SKU (style “with washer”). That is catalogue modelling, not an accessories feed, and it is not in v1 F&amp;O ingest.</p>
-  <p><b>Instead:</b> nothing in v1. Do not POST related items we cannot attach.</p>
+  <p class="small">Moved out of this tab after re-check: <code>/dimensions</code> → Master data (needed). <code>/attribute-setup</code> → Attribute groups (setup is PIM, values are F&amp;O). <code>/translations</code> → its own tab (PIM owns locales; F&amp;O has no da/sv).</p>
 </div>
 
 </div>
