@@ -401,22 +401,16 @@ Content-Type: application/json
 <!-- LATER -->
 <div class="tab panel" id="tab-later">
   <h2>What is not an F&amp;O feed — and why</h2>
-  <p>Split into <b>DROP</b> (F&amp;O is the wrong source), <b>HOLD</b> (no field yet — RH must decide), and one <b>gap we do owe you</b> (assets).</p>
+  <p>These were in your HTML. Do not build them. PIM work (shop copy, pictures) is not listed here — it is not a Function job.</p>
 
   <h3><span class="badge drop">DROP</span> <code>/units</code> (PCS / BOX, factor 100)</h3>
   <p>Order/packing quantities. Pimcore is not the order system; price and stock already stay out. Catalogue <b>measure</b> units (<code>mm</code> / <code>in</code>) already sit on the CS key. Send Length as F&amp;O stores it (<code>"35.00 mm"</code>) on <code>/attributes</code>; we parse it.</p>
 
   <h3><span class="badge drop">HOLD</span> <code>/barcodes</code></h3>
-  <p>There is <b>no barcode / EAN / GTIN field</b> on <code>PtScrew</code> / <code>PtWasher</code>. Not a “no” — a “model it first.” If Red Horse wants EAN in PIM, we add the field, then take the feed. Your own HTML lists this area as open.</p>
+  <p>There is <b>no barcode / EAN / GTIN field</b> on <code>PtScrew</code> / <code>PtWasher</code>. Not a “no” — a “model it first.” If Red Horse wants EAN in PIM, we add the field, then take the feed.</p>
 
   <h3><span class="badge drop">HOLD</span> <code>/relations</code> (accessory / alternative / sparePart)</h3>
-  <p>Those types are not fields today. The one product-to-product link we have is <code>washerProduct</code> on a screw SKU (“with washer”). Cross-sell/related is a real shop feature — but it is a modelling decision with Red Horse, then a feed. Not v1.</p>
-
-  <h3>Images &amp; documents — not an F&amp;O feed</h3>
-  <p>Shop hero and shop description are already agreed as <b>PIM-only</b>. Technical pictures, pack labels, and certificates also live as PIM fields for PIM users to upload. Do not build a media POST.</p>
-  <p class="small">Your HTML listed “where images live in F&amp;O” as an open question to Red Horse. Until RH says F&amp;O is the source of drawings/certs, there is no Function work. If they later say F&amp;O holds files, that is a new contract — not v1.</p>
-
-  <p class="small">Moved out of this tab after re-check: <code>/dimensions</code> → Master data (needed). <code>/attribute-setup</code> → Attribute groups (setup is PIM, values are F&amp;O). <code>/translations</code> → its own tab (PIM owns locales; F&amp;O has no da/sv).</p>
+  <p>Those types are not fields today. The one product-to-product link we have is <code>washerProduct</code> on a screw SKU (“with washer”). Cross-sell/related is a modelling decision with Red Horse, then a feed. Not v1.</p>
 </div>
 
 </div>
