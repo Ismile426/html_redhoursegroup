@@ -89,7 +89,7 @@
     <tr><td><code>/attributes</code></td><td class="fix"><span class="badge fix">CHANGE ROW</span></td><td>Send the F&amp;O attribute <code>name</code> + <code>value</code>, not an invented <code>attributeCode</code>.</td></tr>
     <tr><td><code>/released</code></td><td class="keep"><span class="badge keep">KEEP</span></td><td>Nothing. Explicit <code>false</code> is what switches a shop off.</td></tr>
     <tr><td><code>/translations</code></td><td class="fix"><span class="badge fix">KEEP, REDUCED</span></td><td>Needed — in your design the product <b>name</b> only arrives here. We consume one language until Pimcore has localized product fields.</td></tr>
-    <tr><td><code>/attribute-setup</code></td><td class="drop"><span class="badge drop">NOT A FEED</span></td><td>We need its <b>content</b> as a one-time list to build the mapping. Not a POST that changes Pimcore schema.</td></tr>
+    <tr><td><code>/attribute-setup</code></td><td class="drop"><span class="badge drop">NOT A FEED</span></td><td>Not a POST that changes Pimcore schema. Its <b>content</b> is what we need — fill the <a href="./FO_Attribute_Map.html">mapping sheet</a> instead.</td></tr>
     <tr><td><code>/units</code></td><td class="drop"><span class="badge drop">HOLD</span></td><td>No field for pack size (PCS/BOX) in Pimcore today. Measure units (mm / in) already sit on the measure key.</td></tr>
     <tr><td><code>/barcodes</code> <code>/relations</code></td><td class="drop"><span class="badge drop">HOLD</span></td><td>No field on the class yet. Red Horse decides if these belong in PIM; then we model, then we feed.</td></tr>
   </table>
@@ -315,8 +315,16 @@ Content-Type: application/json
     { "itemNumber": "35044", "name": "Material",  "value": "Carbon steel" }
   ]
 }</pre>
-  <div class="ask"><b>Still needed from F&amp;O — a one-time list, not an API.</b> This is the content of your <code>/attribute-setup</code>, exported once: every attribute name, its data type, its unit, and for pick-lists the allowed values with their code and label. With that we finish the mapping table. Two or three real rows for Head type and Length are enough to start.</div>
-  <p class="small">Do not send Pimcore measure keys. Do not send numeric attribute ids. If an attribute value is a coded word, tell us the code and the label, the same way as <code>/dimensions</code>.</p>
+  <div class="ask"><b>We have done our half — now we need yours.</b> <a href="./FO_Attribute_Map.html">Open the attribute mapping sheet</a> (<a href="./FO_Attribute_Map.csv">CSV to fill</a>). It lists all <b>31</b> places a value can land in Pimcore, with the type, the unit, and the allowed values for each. Two columns are empty: <b>F&amp;O attribute name</b> and <b>F&amp;O example value</b>. Fill only the rows F&amp;O actually holds; a blank row means F&amp;O does not have it. That sheet is the last thing blocking this endpoint.</div>
+  <h3>Three things the sheet will settle</h3>
+  <table>
+    <tr><th>Question</th><th>Why it matters</th></tr>
+    <tr><td>Which F&amp;O name maps to which row</td><td>The endpoint keys off <code>name</code>. We cannot guess: a wrong guess writes a wrong spec onto a real product.</td></tr>
+    <tr><td>Number and unit, separately</td><td>15 of the 31 targets store a number plus a unit. Send <code>35</code> and <code>mm</code> as two values, not <code>"35.00 mm"</code> as one string.</td></tr>
+    <tr><td>Metric or imperial</td><td>Length, diameter and pitch exist <b>twice</b> in Pimcore, once per system. Tell us how to tell which system an item uses.</td></tr>
+  </table>
+  <p class="small">Where a value is a coded word, give us the code and the label, the same way as <code>/dimensions</code>. Do not send Pimcore measure keys and do not send numeric attribute ids.</p>
+  <p class="small">One thing to know about placement: a value like Head type is stored on the <b>series</b> folder, not on the item. You keep sending it against the item number — Pimcore writes it to the right ancestor. The sheet's layer heading tells you where each one lands.</p>
 </div>
 
 <!-- RELEASED -->
@@ -425,7 +433,7 @@ Content-Type: application/json
     <li>Add <code>brand</code> to level-2 and <code>productGroupNumber</code> to level-5 folders.</li>
     <li>Add <code>name</code> to product rows.</li>
     <li><code>/dimensions</code> and <code>/products</code> are live — point your Function at them and send a real batch. Both are safe to re-run.</li>
-    <li>Export the attribute list once, with units and pick-list values.</li>
+    <li>Fill the <a href="./FO_Attribute_Map.html">attribute mapping sheet</a> — the F&amp;O name and one real example per row you hold. This is what unblocks <code>/attributes</code>.</li>
     <li>Tell us whether F&amp;O can name the washer for a style-W screw.</li>
   </ol>
   <h3>Short list for Red Horse</h3>

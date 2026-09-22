@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F&amp;O → Pimcore — attribute mapping sheet</title>
+<style>
+  body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; color: #1f2328; line-height: 1.55; background: #f6f8fa; }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 20px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 6px; }
+  h2 { font-size: 16px; margin: 26px 0 8px; color: #8b1a1a; }
+  code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0 18px; font-size: 12.5px; background: #fff; }
+  th, td { border: 1px solid #d0d7de; padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; }
+  .small { color: #57606a; font-size: 11.5px; }
+  .fill { background: #fff8e8; min-width: 130px; }
+  .box { border-left: 4px solid #b22222; background: #fff5f5; padding: 10px 14px; margin: 12px 0; }
+  .ok { border-left: 4px solid #1a7f37; background: #f2fbf4; padding: 10px 14px; margin: 12px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>F&amp;O → Pimcore — attribute mapping sheet</h1>
+<p class="small">Generated from the live Pimcore classes on 22 Sep 2026. Do not hand-edit — re-run <code>app:export-attribute-map</code>.</p>
+
+<div class="ok"><b>Everything below already exists in Pimcore.</b> These are all the places an attribute value can land. No PIM work is needed to add them.</div>
+<div class="box"><b>The two yellow columns are what blocks <code>POST /attributes</code>.</b> We cannot write a value until we know which F&amp;O attribute name maps to which row, and what a real value looks like. Fill the rows F&amp;O actually holds and leave the rest blank — blank means "F&amp;O does not have this".</div>
+<p><b>Three things to watch:</b></p>
+<ol>
+  <li><b>Units.</b> Rows typed <code>quantityValue</code> need the number and the unit as separate values. Do not send <code>"35.00 mm"</code> as one string.</li>
+  <li><b>Metric vs imperial.</b> Length and diameter exist twice, once per system. Tell us how to know which system an item uses.</li>
+  <li><b>Code or label.</b> Rows typed <code>relation</code> or <code>select</code> match on a code. If F&amp;O sends a display word instead, say so in the example column.</li>
+</ol>
+
+<h2>series — 7 target(s)</h2>
+<table>
+<tr><th>Pimcore target</th><th>Label</th><th>Type</th><th>What Pimcore accepts</th><th>Allowed / existing values</th><th>F&amp;O attribute name</th><th>F&amp;O example value</th></tr>
+<tr><td><code>headType</code></td><td>Head Type</td><td>relation (one)</td><td>PtHeadType object, matched on its `code`</td><td class="small">MH (Mushroom head)</td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>driveType</code></td><td>Drive Type</td><td>relation (one)</td><td>PtDriveType object, matched on its `code`</td><td class="small">TORX (TORX)</td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>threadType</code></td><td>Thread Type</td><td>relation (one)</td><td>PtThreadType object, matched on its `code`</td><td class="small">WOOD (Wood)</td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>pointType</code></td><td>Point Type</td><td>relation (one)</td><td>PtPointType object, matched on its `code`</td><td class="small">S-Point (S-Point)</td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>features</code></td><td>Special features</td><td>relation (many)</td><td>PtFeature object, matched on its `code`</td><td class="small">Wings (Wings)</td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>targetMaterial</code></td><td>Target Materials</td><td>relation (many)</td><td>PtTargetMaterial object, matched on its `code`</td><td class="small">Wood-on-Steel (Wood on Steel)</td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>washerKind</code></td><td>Washer kind</td><td>relation (one)</td><td>PtWasherKind object, matched on its `code`</td><td class="small">Bonded-EPDM (Bonded EPDM)</td><td class="fill"></td><td class="fill"></td></tr>
+</table>
+<h2>range — 6 target(s)</h2>
+<table>
+<tr><th>Pimcore target</th><th>Label</th><th>Type</th><th>What Pimcore accepts</th><th>Allowed / existing values</th><th>F&amp;O attribute name</th><th>F&amp;O example value</th></tr>
+<tr><td><code>material</code></td><td>Material</td><td>relation (one)</td><td>PtMaterial object, matched on its `code`</td><td class="small">CS (Carbon steel)</td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>coating</code></td><td>Coating</td><td>relation (one)</td><td>PtCoating object, matched on its `code`</td><td class="small">Zytec-GX (Zytec GX)</td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>application</code></td><td>Application</td><td>relation (one)</td><td>PtApplication object, matched on its `code`</td><td class="small">Decking (Decking)</td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>rangeAttributes › kl-09-core › kl_innerDia</code></td><td>Inner diameter</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>rangeAttributes › kl-09-core › kl_outerDia</code></td><td>Outer diameter</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>rangeAttributes › kl-09-core › kl_thickness</code></td><td>Thickness</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+</table>
+<h2>productGroup — 12 target(s)</h2>
+<table>
+<tr><th>Pimcore target</th><th>Label</th><th>Type</th><th>What Pimcore accepts</th><th>Allowed / existing values</th><th>F&amp;O attribute name</th><th>F&amp;O example value</th></tr>
+<tr><td><code>productGroupAttributes › screw_drawing_basic_group › kl_dMinor</code></td><td>Dminor(d)</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>productGroupAttributes › screw_drawing_basic_group › kl_dShank</code></td><td>Dshank (Ds)</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>productGroupAttributes › screw_drawing_basic_group › kl_headDk</code></td><td>Head Diameter (Dk)</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>productGroupAttributes › screw_drawing_basic_group › kl_headK</code></td><td>Head Height (K)</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>productGroupAttributes › screw_drawing_basic_group › kl_driveSize</code></td><td>Drive Size</td><td>select</td><td>one of the allowed values in the next column</td><td class="small">TX10, TX15, TX20, TX25, TX27, TX30, TX35, TX40, HX¼, HX8, HX10, HX13, PH1, PH2, PH3, PZ1, PZ2, PZ3, SQ1, SQ2, SQ3</td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>productGroupAttributes › screw_drawing_metric_group › kl_dMajorMm</code></td><td>Dmajor (D) mm</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>productGroupAttributes › screw_drawing_metric_group › kl_pitchMm</code></td><td>Pitch (p) mm</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>productGroupAttributes › screw_drawing_imperial_group › kl_dMajorImp</code></td><td>Dmajor (D)</td><td>input</td><td>free text</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>productGroupAttributes › screw_drawing_imperial_group › kl_pitchTpi</code></td><td>Pitch (p) TPI</td><td>input</td><td>free text</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>productGroupAttributes › screw_drawing_drillpoint_group › kl_drillDd</code></td><td>Drill Point Diameter (Dd)</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>productGroupAttributes › screw_drawing_drillpoint_group › kl_drillDl</code></td><td>Drill Point Length (Dl)</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>productGroupAttributes › screw_drawing_drillcap_group › kl_drillCap</code></td><td>Drill Cap from</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+</table>
+<h2>master — 6 target(s)</h2>
+<table>
+<tr><th>Pimcore target</th><th>Label</th><th>Type</th><th>What Pimcore accepts</th><th>Allowed / existing values</th><th>F&amp;O attribute name</th><th>F&amp;O example value</th></tr>
+<tr><td><code>masterAttributes › screw_productmaster_group › kl_lef</code></td><td>Effective Length (Lef)</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>masterAttributes › screw_productmaster_group › kl_saltspray</code></td><td>Saltspray hours</td><td>select</td><td>one of the allowed values in the next column</td><td class="small">200, 500, 700, 1000, 1500</td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>masterAttributes › screw_productmaster_metric_group › kl_lengthMm</code></td><td>Length (L) mm</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>masterAttributes › screw_productmaster_metric_group › kl_l1Mm</code></td><td>Partial Length (L1) mm</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>masterAttributes › screw_productmaster_imperial_group › kl_lengthImp</code></td><td>Length (L)</td><td>input</td><td>free text</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>masterAttributes › screw_productmaster_imperial_group › kl_l1Imp</code></td><td>Partial Length (L1)</td><td>input</td><td>free text</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+</table>
+
+<p class="small">A row's layer is where the value is stored. F&amp;O sends values against an item number, so PIM writes a <code>series</code> or <code>range</code> row onto the item's ancestor folder, not onto the item.</p>
+</div>
+</body>
+</html>
