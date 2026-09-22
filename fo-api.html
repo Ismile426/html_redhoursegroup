@@ -53,8 +53,8 @@
 <h1>F&amp;O → Pimcore — API payload</h1>
 <p class="small">Updated <b>22 Sep 2026</b>. What the Function should send, per call. TEST: <code>http://10.100.16.4:82/api/v1</code> (RH LAN only — Azure cannot reach Pimcore yet).</p>
 
-<div class="ok"><b>LIVE now:</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/tree</code></div>
-<div class="ask"><b>Shape agreed, PHP not built:</b> <code>/products</code> · <code>/dimensions</code> · <code>/attributes</code> · <code>/released</code> · <code>/translations</code>. Code against these tabs; POST returns 404 until the tab says LIVE.</div>
+<div class="ok"><b>LIVE now:</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/tree</code> · <code>/dimensions</code> · <code>/products</code></div>
+<div class="ask"><b>Shape agreed, PHP not built:</b> <code>/attributes</code> · <code>/released</code> · <code>/translations</code>. These three wait on answers, not on code — see <b>Gaps to close</b>. Code against these tabs; POST returns 404 until the tab says LIVE.</div>
 <div class="box"><code>X-API-Key</code> on <b>every</b> call. Wrapper <code>{ "batchId", "items": [] }</code>. Max <b>500</b> rows / <b>2 MB</b>. Unknown extra keys are ignored, they do not fail a row.</div>
 
 <nav class="tabs" id="tabs" aria-label="API endpoints">
@@ -84,8 +84,8 @@
     <tr><td><code>/ping</code></td><td class="keep"><span class="badge keep">KEEP</span></td><td>Nothing. Empty GET is fine; a POST body is stored so we can read it.</td></tr>
     <tr><td><code>/companies</code></td><td class="keep"><span class="badge keep">KEEP</span></td><td>Nothing. Which codes become shops is still open on the Red Horse sheet.</td></tr>
     <tr><td><code>/tree</code></td><td class="fix"><span class="badge fix">ADD FIELDS</span></td><td><code>productType</code> on level 1 (<b>now</b>, not later), <code>brand</code> on level 2, <code>productGroupNumber</code> on level 5.</td></tr>
-    <tr><td><code>/products</code></td><td class="fix"><span class="badge fix">ADD FIELDS</span></td><td><code>name</code> is missing entirely. Also the washer link for style-W screws.</td></tr>
-    <tr><td><code>/dimensions</code></td><td class="keep"><span class="badge keep">BUILD IT</span></td><td>Keep your shape. Send <b>both</b> <code>code</code> and <code>name</code> per value. This is how variants get readable colours and sizes.</td></tr>
+    <tr><td><code>/products</code></td><td class="fix"><span class="badge live">LIVE</span> <span class="badge fix">ADD FIELDS</span></td><td>Live for identity and the four dimension pointers. Add <code>name</code> — it is missing entirely. Washer link for style-W screws still open, sending it is accepted and ignored.</td></tr>
+    <tr><td><code>/dimensions</code></td><td class="keep"><span class="badge live">LIVE</span></td><td>Your shape, unchanged. Send <b>both</b> <code>code</code> and <code>name</code> per value. This is how variants get readable colours and sizes.</td></tr>
     <tr><td><code>/attributes</code></td><td class="fix"><span class="badge fix">CHANGE ROW</span></td><td>Send the F&amp;O attribute <code>name</code> + <code>value</code>, not an invented <code>attributeCode</code>.</td></tr>
     <tr><td><code>/released</code></td><td class="keep"><span class="badge keep">KEEP</span></td><td>Nothing. Explicit <code>false</code> is what switches a shop off.</td></tr>
     <tr><td><code>/translations</code></td><td class="fix"><span class="badge fix">KEEP, REDUCED</span></td><td>Needed — in your design the product <b>name</b> only arrives here. We consume one language until Pimcore has localized product fields.</td></tr>
@@ -102,11 +102,11 @@
   <p>One tab = one POST body. Do not mix fields between tabs.</p>
   <h3>Feed order</h3>
   <ol>
-    <li><code>/companies</code></li>
-    <li><code>/dimensions</code> — so variant colour and size resolve to a name</li>
-    <li><code>/tree</code> — parents before children</li>
-    <li><code>/products</code> — masters before variants</li>
-    <li><code>/attributes</code> · <code>/released</code> · <code>/translations</code></li>
+    <li><code>/companies</code> — live</li>
+    <li><code>/dimensions</code> — live. So variant colour and size resolve to a name</li>
+    <li><code>/tree</code> — live. Parents before children</li>
+    <li><code>/products</code> — live. Masters before variants</li>
+    <li><code>/attributes</code> · <code>/released</code> · <code>/translations</code> — not built yet</li>
   </ol>
   <h3>Rules for every write</h3>
   <table>
@@ -200,8 +200,8 @@ Content-Type: application/json
 
 <!-- PRODUCTS -->
 <div class="tab panel" id="tab-products">
-  <h2><span class="badge plan">SHAPE — not live</span> <code>POST /api/v1/products</code></h2>
-  <p>Your master and variant identity is correct. Two things are missing.</p>
+  <h2><span class="badge live">LIVE</span> <code>POST /api/v1/products</code></h2>
+  <p><code>http://10.100.16.4:82/api/v1/products</code> — your master and variant identity is correct and now writes real objects. Two things are still missing on your side.</p>
   <div class="ask"><b>Your <code>/products</code> has no <code>name</code>.</b> In your design a product name only arrives on <code>/translations</code>, so every object would be created unnamed. Please put a default <code>name</code> on the product row as well.</div>
   <table>
     <tr><th>Field</th><th>On</th><th>Required</th><th>Rule</th></tr>
@@ -213,7 +213,7 @@ Content-Type: application/json
     <tr><td><code>layer</code></td><td>variant</td><td>Yes</td><td><code>"variant"</code></td></tr>
     <tr><td><code>name</code></td><td>both</td><td><b>Please add</b></td><td>Default product name. One value, not a language map.</td></tr>
     <tr><td><code>config</code> <code>colour</code> <code>size</code> <code>style</code></td><td>variant</td><td>No</td><td>Send the <b>same identifier</b> you used as <code>code</code> on <code>/dimensions</code>. Omit = keep. <code>null</code> = clear.</td></tr>
-    <tr><td><code>washerItemNumber</code></td><td>variant</td><td><b>Please confirm</b></td><td>For a screw sold with a washer (style W), Pimcore links the SKU to a washer product. Can F&amp;O tell us which washer, or should we derive it?</td></tr>
+    <tr><td><code>washerItemNumber</code></td><td>variant</td><td><b>Please confirm</b></td><td>For a screw sold with a washer (style W), Pimcore links the SKU to a washer product. Can F&amp;O tell us which washer, or should we derive it? Until that is answered the field is accepted and listed back under <code>ignored</code> — it is not written.</td></tr>
     <tr><td><code>isDeleted</code></td><td>both</td><td>No</td><td>Unpublish.</td></tr>
   </table>
 <pre>{
@@ -229,13 +229,37 @@ Content-Type: application/json
   ]
 }</pre>
   <p class="small">Masters before variants. Only items flagged Publish to PIM, and only those sitting under a level-5 folder. An item with no variants: send the master plus one variant carrying the same number, so shops have a SKU to attach to.</p>
-  <p class="small">Pimcore derives the master's allowed configuration / colour / size / style from the variants it receives. You do not need to send that list.</p>
+  <h3>What the live API answers</h3>
+<pre>{
+  "ok": true, "batchId": "adf-prod-001",
+  "processed": 3, "failed": 0, "mastersRederived": 1,
+  "results": [
+    { "key": "35044", "layer": "master", "action": "created",
+      "objectId": 8596, "path": "/ErpSync/Catalog/.../5637145021/35044" },
+    { "key": "35044-STD-59-8-1", "layer": "variant", "action": "created",
+      "objectId": 8597, "path": ".../35044/35044-STD-59-8-1" },
+    { "key": "35044-STD-99-8-1", "layer": "variant", "action": "created",
+      "objectId": 8599,
+      "ignored": [ "colour \"99\" unknown — send it on /dimensions first" ] }
+  ],
+  "errors": []
+}</pre>
+  <table>
+    <tr><th>You send</th><th>What happens</th></tr>
+    <tr><td><code>parentKey</code> that is not a level-5 folder</td><td>Row fails, <code>VALIDATION</code>, not retryable. Masters only hang off a product group.</td></tr>
+    <tr><td><code>masterItemNumber</code> we have not seen</td><td>Row fails, <code>NOT_FOUND</code>, <b>retryable</b>. Send the master and repeat the row.</td></tr>
+    <tr><td>A dimension value not yet on <code>/dimensions</code></td><td>Variant is still created. That one dimension is left empty and named back to you under <code>ignored</code>. We do not invent a label.</td></tr>
+    <tr><td><code>config</code> / <code>colour</code> / <code>style</code> on a washer</td><td>Washers only carry <code>size</code>. The others come back under <code>ignored</code> rather than being silently dropped.</td></tr>
+    <tr><td>The same batch twice</td><td>Same objects, updated in place. Safe to retry.</td></tr>
+  </table>
+  <p class="small">Pimcore derives the master's allowed configuration / colour / size / style from the variants it receives — <code>mastersRederived</code> tells you how many masters that touched. You do not need to send that list.</p>
+  <p class="small">Written today: identity, the four dimension pointers, and publish state. Attribute values, shop release, and the washer link are separate feeds and are not written by this call.</p>
 </div>
 
 <!-- DIMENSIONS -->
 <div class="tab panel" id="tab-dimensions">
-  <h2><span class="badge plan">SHAPE — not live</span> <code>POST /api/v1/dimensions</code></h2>
-  <p>Keep your endpoint and your name for it. These are F&amp;O <b>product dimensions</b> — configuration, colour, size, style. Pimcore stores each value as its own object, and a variant points at one of them.</p>
+  <h2><span class="badge live">LIVE</span> <code>POST /api/v1/dimensions</code></h2>
+  <p><code>http://10.100.16.4:82/api/v1/dimensions</code> — your endpoint and your name for it, unchanged. These are F&amp;O <b>product dimensions</b>: configuration, colour, size, style. Pimcore stores each value as its own object, and a variant points at one of them.</p>
   <p>This feed is what makes a shop show <b>RAL 1003</b> instead of <code>59</code>. Without it we would create a value with a code and no readable label.</p>
   <table>
     <tr><th>Field</th><th>Required</th><th>Rule</th></tr>
@@ -257,6 +281,18 @@ Content-Type: application/json
   ]
 }</pre>
   <div class="ask"><b>Red Horse, 22 Sep:</b> the variant code is the F&amp;O <b>Name</b> (example <code>59</code>) — that is what builds the item number. The F&amp;O <b>Unique ID</b> is the readable value (example <code>RAL 1003</code>). So <code>code</code> here = Name, <code>name</code> here = Unique ID, and the variant row sends that same Name. Where a dimension has no short Name, send the Unique ID in both fields.</div>
+  <h3>What the live API answers</h3>
+<pre>{
+  "ok": true, "batchId": "adf-dim-001", "processed": 5, "failed": 0,
+  "results": [
+    { "key": "colour:59", "action": "created",
+      "objectId": 8583, "path": "/ErpSync/DimOptions/PtColourOption/59" },
+    { "key": "colour:21", "action": "created", "objectId": 8584 },
+    { "key": "size:8",    "action": "created", "objectId": 8586 }
+  ],
+  "errors": []
+}</pre>
+  <p class="small">Results are one row per value, keyed <code>dimension:code</code>. Re-sending the same code and name answers <code>unchanged</code>; a new name answers <code>updated</code>. A code is never duplicated — a value exists once for the whole system, so <code>code</code> must be stable.</p>
   <p class="small">Send this before <code>/products</code>. If a variant arrives with a value we have never seen, we still create the variant and leave that dimension empty rather than inventing a label.</p>
 </div>
 
@@ -374,11 +410,11 @@ Content-Type: application/json
   <table>
     <tr><th>Level</th><th>Pimcore expects</th><th>Source today</th></tr>
     <tr><td>Type</td><td>Screw or washer</td><td class="fix"><code>productType</code> on <code>/tree</code> level 1 — <b>you must add it</b></td></tr>
-    <tr><td>Family</td><td>Brand</td><td class="fix"><code>brand</code> on <code>/tree</code> level 2 — <b>no source yet</b></td></tr>
+    <tr><td>Family</td><td>Brand</td><td class="fix"><code>brand</code> on <code>/tree</code> level 2 — the API accepts it, <b>you must add it</b></td></tr>
     <tr><td>Series</td><td>Head type, drive, thread, point, features, target material</td><td class="fix">Only per item on <code>/attributes</code>. Needs the attribute list to know which of these F&amp;O holds</td></tr>
     <tr><td>Range</td><td>Material, coating, application</td><td class="fix">Same as series</td></tr>
-    <tr><td>Product Group</td><td>PG number, geometry (diameter, pitch, head, drill)</td><td class="fix"><code>productGroupNumber</code> — <b>no field yet</b>. Geometry via <code>/attributes</code></td></tr>
-    <tr><td>Master</td><td>Name, length, partial length, salt spray, allowed dimensions</td><td class="fix"><code>name</code> — <b>missing from <code>/products</code></b>. Measures via <code>/attributes</code>. Allowed dimensions derived from variants</td></tr>
+    <tr><td>Product Group</td><td>PG number, geometry (diameter, pitch, head, drill)</td><td class="fix"><code>productGroupNumber</code> — the API accepts it, <b>you must add it</b>. Geometry via <code>/attributes</code></td></tr>
+    <tr><td>Master</td><td>Name, length, partial length, salt spray, allowed dimensions</td><td class="fix"><code>name</code> — <b>missing from <code>/products</code></b>. Measures via <code>/attributes</code>. Allowed dimensions already derived from the variants you send</td></tr>
     <tr><td>Variant</td><td>Item number, config, colour, size, style, washer link</td><td class="keep">Covered by <code>/products</code> + <code>/dimensions</code>. Washer link still open</td></tr>
     <tr><td>Shops</td><td>Which companies sell the SKU</td><td class="keep">Covered by <code>/companies</code> + <code>/released</code></td></tr>
     <tr><td>Pictures, certificates, shop copy</td><td>Images, documents, marketing text</td><td class="keep">Pimcore. Not a Function job</td></tr>
@@ -388,7 +424,7 @@ Content-Type: application/json
     <li>Add <code>productType</code> to level-1 folders now.</li>
     <li>Add <code>brand</code> to level-2 and <code>productGroupNumber</code> to level-5 folders.</li>
     <li>Add <code>name</code> to product rows.</li>
-    <li>Build <code>/dimensions</code> with <code>code</code> and <code>name</code> per value.</li>
+    <li><code>/dimensions</code> and <code>/products</code> are live — point your Function at them and send a real batch. Both are safe to re-run.</li>
     <li>Export the attribute list once, with units and pick-list values.</li>
     <li>Tell us whether F&amp;O can name the washer for a style-W screw.</li>
   </ol>
