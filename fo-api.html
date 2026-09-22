@@ -169,7 +169,7 @@ Content-Type: application/json
 <div class="tab panel" id="tab-tree">
   <h2><span class="badge live">LIVE</span> <code>POST /api/v1/tree</code></h2>
   <p>Five folder levels. Your keys work. Three fields decide what Pimcore can fill on each level.</p>
-  <div class="ask"><b>Required now:</b> <code>productType</code> <code>"06"</code> (screw) or <code>"09"</code> (washer) on every level-1 row. Your HTML marks this “coming later” — the live API needs it today, because it picks the Pimcore class for the whole branch. Folder <code>code</code> such as <code>SCR</code> is not this field. Without it the root is skipped and its children have no parent.</div>
+  <div class="ask"><b>Required by the live API today:</b> <code>productType</code> <code>"06"</code> or <code>"09"</code> on every level-1 row. It only picks the Pimcore class (screw vs washer). It is not the folder’s sort prefix and it is not <code>categoryKey</code>. Red Horse wants the visible <code>06</code> prefix removed so sort order can change — that is fine on <code>name</code>. Do not change <code>categoryKey</code> after create: the API matches on it, so a new id creates a second folder and leaves children and products pointing at the old one.</div>
   <table>
     <tr><th>Field</th><th>Level</th><th>Required</th><th>Rule</th></tr>
     <tr><td><code>categoryKey</code></td><td>all</td><td>Yes</td><td>F&amp;O record id as text. Match key.</td></tr>
@@ -256,7 +256,7 @@ Content-Type: application/json
       "values": [ { "code": "STD", "name": "Standard" } ] }
   ]
 }</pre>
-  <div class="ask"><b>This also settles the open Red Horse question.</b> The sheet asks whether Pimcore should store the short number (<code>59</code>) or the name (<code>RAL 1003</code>). If you always send <b>both</b> here, and use the same <code>code</code> on the variant row, it no longer matters which one reads better — we store the code and display the name. Configuration that has no short number can send the name in both fields.</div>
+  <div class="ask"><b>Red Horse, 22 Sep:</b> the variant code is the F&amp;O <b>Name</b> (example <code>59</code>) — that is what builds the item number. The F&amp;O <b>Unique ID</b> is the readable value (example <code>RAL 1003</code>). So <code>code</code> here = Name, <code>name</code> here = Unique ID, and the variant row sends that same Name. Where a dimension has no short Name, send the Unique ID in both fields.</div>
   <p class="small">Send this before <code>/products</code>. If a variant arrives with a value we have never seen, we still create the variant and leave that dimension empty rather than inventing a label.</p>
 </div>
 
