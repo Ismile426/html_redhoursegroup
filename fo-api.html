@@ -51,14 +51,14 @@
 <div class="wrap">
 
 <h1>F&amp;O → Pimcore — API payload</h1>
-<p class="small">Updated <b>21 Sep 2026</b>. This page is the JSON Pimcore will accept. TEST: <code>http://10.100.16.4:82/api/v1</code> (RH LAN). Azure cannot reach Pimcore yet.</p>
+<p class="small">Updated <b>22 Sep 2026</b>. This page is the JSON for the F&amp;O Function. TEST: <code>http://10.100.16.4:82/api/v1</code> (RH LAN). Azure cannot reach Pimcore yet.</p>
 
 <div class="ok"><b>LIVE (POST now):</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/tree</code>.</div>
-<div class="ask"><b>JSON frozen, PHP not built yet:</b> <code>/products</code> · <code>/attributes</code> · <code>/released</code>. Function can be coded against these tabs. POST will 404 until the tab is marked LIVE. We will not change the keys without updating this page.</div>
+<div class="ask"><b>Shape to code, PHP not built:</b> <code>/products</code> · <code>/attributes</code> · <code>/released</code>. POST returns 404 until that tab is marked LIVE. Variant colour/size/style (short number vs name) is <b>not</b> locked. Do not build <code>/lookups</code>, <code>/dimensions</code>, or <code>/translations</code>.</div>
 <div class="box"><code>X-API-Key</code> on <b>every</b> call. Wrapper <code>{ "batchId", "items": [] }</code>. Max <b>500</b> rows / <b>2 MB</b>. Extra unknown keys are ignored on live writes (they do not fail the row).</div>
 
 <nav class="tabs" id="tabs" aria-label="API endpoints">
-  <button type="button" data-tab="vs" class="on">His HTML vs PIM</button>
+  <button type="button" data-tab="vs" class="on">Your HTML vs this page</button>
   <button type="button" data-tab="start">Start here</button>
   <button type="button" data-tab="auth"><span class="verb get">GET/POST</span>/auth</button>
   <button type="button" data-tab="ping"><span class="verb get">GET/POST</span>/ping</button>
@@ -67,37 +67,34 @@
   <button type="button" data-tab="products"><span class="verb post">POST</span>/products</button>
   <button type="button" data-tab="attributes"><span class="verb post">POST</span>/attributes</button>
   <button type="button" data-tab="released"><span class="verb post">POST</span>/released</button>
-  <button type="button" data-tab="masterdata"><span class="verb post">POST</span>/dimensions + lookups</button>
+  <button type="button" data-tab="masterdata">Lookups</button>
   <button type="button" data-tab="translations">Translations</button>
-  <button type="button" data-tab="groups">Attribute groups</button>
+  <button type="button" data-tab="groups">/attribute-setup</button>
   <button type="button" data-tab="reply">Reply shape</button>
   <button type="button" data-tab="later">Do not build</button>
 </nav>
 
 <!-- VS -->
 <div class="tab on panel" id="tab-vs">
-  <h2>Direct answer</h2>
-  <p>The wrapper, match keys, and companies / released shapes are fine. The catalogue is <b>not</b> “send your HTML as-is.” Tree needs one extra field. Products need short codes on dimensions. Attributes need a different row shape. Several paths in your HTML are not Pimcore feeds.</p>
-  <p class="small">Source compared: your <code>RedHorse-Pimcore-API-Calls.html</code> vs TypeBasedCatalog (<code>PtScrew</code> / <code>PtWasher</code>, variants, lookups by <b>code</b>, measures mapped in PIM).</p>
+  <h2>What matches, what changes</h2>
+  <p>Wrapper, match keys, companies, and released match. Tree needs <code>productType</code> on level 1. Attributes use <code>name</code> + <code>value</code>. Do not build the extra paths at the bottom of this table.</p>
 
   <h3>Per call</h3>
   <table>
     <tr><th>Your path</th><th>Verdict</th><th>Can Function start?</th></tr>
     <tr><td><code>/auth</code></td><td class="keep"><span class="badge keep">KEEP</span> No body. Same header.</td><td>Yes. Not a login session — key on every later call.</td></tr>
     <tr><td><code>/ping</code></td><td class="keep"><span class="badge keep">KEEP</span> Empty GET is fine. POST with any JSON also fine.</td><td>Yes. LIVE.</td></tr>
-    <tr><td><code>/companies</code></td><td class="keep"><span class="badge keep">KEEP</span> <code>companyCode</code> + <code>name</code> + <code>isDeleted</code>.</td><td>Yes. LIVE. <code>DE2</code> / <code>GXN</code> in a sample are skipped, not created.</td></tr>
-    <tr><td><code>/tree</code></td><td class="fix"><span class="badge fix">CHANGE</span> Same keys, plus <code>productType</code> on every level-1 row.</td><td>Yes, after that one field. LIVE today.</td></tr>
-    <tr><td><code>/products</code></td><td class="fix"><span class="badge fix">CHANGE</span> Identity keys OK. Dimension <b>values</b> must be F&amp;O short codes, not names.</td><td>Yes, against the Products tab. POST 404 until LIVE.</td></tr>
+    <tr><td><code>/companies</code></td><td class="keep"><span class="badge keep">KEEP</span> <code>companyCode</code> + <code>name</code> + <code>isDeleted</code>.</td><td>Yes. LIVE. Which codes are created is still provisional (RH, RHU, ASW, SPI create; GXN, DH, DE, DE2 skip).</td></tr>
+    <tr><td><code>/tree</code></td><td class="fix"><span class="badge fix">CHANGE</span> Same keys, plus <code>productType</code> <code>06</code> or <code>09</code> on every level-1 row.</td><td>Yes. LIVE. That is what the API enforces today.</td></tr>
+    <tr><td><code>/products</code></td><td class="fix"><span class="badge fix">CHANGE</span> Identity keys OK. Do not send display names on <code>colour</code> / <code>size</code> / <code>style</code> / <code>config</code> until Red Horse confirms short number vs name.</td><td>Yes for identity. POST 404 until LIVE. Axis values are not locked.</td></tr>
     <tr><td><code>/released</code></td><td class="keep"><span class="badge keep">KEEP</span> <code>itemNumber</code> + <code>companyCode</code> + <code>released</code>.</td><td>Yes, against the Released tab. POST 404 until LIVE.</td></tr>
-    <tr><td><code>/attributes</code></td><td class="fix"><span class="badge fix">CHANGE</span> Use <code>name</code> + <code>value</code>, not <code>attributeCode</code>.</td><td>Yes, against the Attributes tab. POST 404 until LIVE.</td></tr>
-    <tr><td><code>/dimensions</code></td><td class="keep"><span class="badge keep">NEEDED</span> Was wrongly dropped. It is the code→name list for variant axes. See <b>Master data</b> tab.</td><td>Yes — this is real reference data. Not built yet.</td></tr>
-    <tr><td><code>/translations</code></td><td class="fix"><span class="badge fix">PARTLY</span> PIM owns <code>en</code>/<code>da</code>/<code>sv</code>. F&amp;O has no da/sv. See <b>Translations</b> tab.</td><td>Not as you drew it. One English <code>name</code> can ride on <code>/products</code>.</td></tr>
-    <tr><td><code>/attribute-setup</code></td><td class="drop"><span class="badge drop">DROP</span> Schema/groups = one-time PIM setup, not a nightly feed. See <b>Attribute groups</b> tab.</td><td>No — F&amp;O does not define PIM schema.</td></tr>
+    <tr><td><code>/attributes</code></td><td class="fix"><span class="badge fix">CHANGE</span> Use <code>name</code> + <code>value</code>, not <code>attributeCode</code>. Row shape only. The name→field map is not finished.</td><td>Yes for the row shape. POST 404 until LIVE.</td></tr>
+    <tr><td><code>/dimensions</code></td><td class="drop"><span class="badge drop">DO NOT BUILD</span> Not a second feed. See <b>Lookups</b>.</td><td>No.</td></tr>
+    <tr><td><code>/translations</code></td><td class="drop"><span class="badge drop">DO NOT BUILD</span> Shop languages are PIM. One <code>name</code> may go on <code>/products</code>.</td><td>No.</td></tr>
+    <tr><td><code>/attribute-setup</code></td><td class="drop"><span class="badge drop">DO NOT BUILD</span> Groups are fixed on the PIM class. See <b>/attribute-setup</b>.</td><td>No.</td></tr>
     <tr><td><code>/units</code></td><td class="drop"><span class="badge drop">DROP</span> PCS/BOX order conversions are commerce, not catalogue.</td><td>No.</td></tr>
     <tr><td><code>/barcodes</code> <code>/relations</code></td><td class="drop"><span class="badge drop">HOLD</span> No field on the class yet. Needs a Red Horse decision to model first.</td><td>Not until RH asks for the field.</td></tr>
   </table>
-  <p class="small">Correction: I earlier lumped <code>/dimensions</code> with the drops. It belongs with the <b>needed master data</b> — you are right that variants need it.</p>
-
   <h3>Tree — field by field</h3>
   <table>
     <tr><th>Your field</th><th>Pimcore</th><th></th></tr>
@@ -119,7 +116,7 @@
     <tr><td>No-variant item = master + one variant with the same number</td><td>Same. Shops attach to a SKU.</td><td class="keep">KEEP</td></tr>
     <tr><td>Masters before variants</td><td>Same.</td><td class="keep">KEEP</td></tr>
     <tr><td>One level-5 folder per product</td><td>Same for v1.</td><td class="keep">KEEP</td></tr>
-    <tr><td><code>config</code> / <code>colour</code> / <code>size</code> / <code>style</code> as names (<code>"RAL 1003"</code>, <code>"STD"</code>)</td><td>PIM fields are lookups matched by <b>code</b> (the segment in the item number, e.g. <code>"59"</code>). A display name will not hit <code>PtColourOption</code>.</td><td class="fix">CHANGE values, keep key names</td></tr>
+    <tr><td><code>config</code> / <code>colour</code> / <code>size</code> / <code>style</code></td><td>Same key names. PIM stores a lookup <code>code</code>. Whether that code is F&amp;O’s short number or its name is <b>not locked</b> (configuration often has a name only).</td><td class="fix">Keys kept. Values not locked.</td></tr>
     <tr><td>Optional <code>name</code> on the row</td><td>Allowed. No <code>/translations</code> in v1. If omitted, we can default to the number.</td><td class="keep">optional</td></tr>
   </table>
 
@@ -153,7 +150,7 @@
 <!-- START -->
 <div class="tab panel" id="tab-start">
   <h2>How to use this page</h2>
-  <p>One tab = one POST body. Do not mix fields across tabs. Feed order: companies → tree (parents first) → products (masters first) → attributes / released.</p>
+  <p>One tab = one POST body. Feed order: companies → tree (parents first) → products (masters first) → attributes / released. Lookups, translations, and attribute-setup are explanations, not calls to build.</p>
   <table>
     <tr><th>Tab</th><th>Call</th><th>JSON</th><th>POST today</th></tr>
     <tr><td>Auth</td><td><code>GET or POST /api/v1/auth</code></td><td>No body</td><td><span class="live">LIVE</span></td></tr>
@@ -193,7 +190,7 @@ Content-Type: application/json
 <!-- COMPANIES -->
 <div class="tab panel" id="tab-companies">
   <h2><span class="badge live">LIVE</span> <code>POST /api/v1/companies</code></h2>
-  <p>Your company payload structure is the one we use. Match <code>companyCode</code>. Create: RH, RHU, ASW, SPI. Skip (not a failure): GXN, DH, DE, DE2, unknown.</p>
+  <p>Payload keys are final. Match <code>companyCode</code>. Current allow-list (provisional until Red Horse confirms shops): create RH, RHU, ASW, SPI. Skip, not a failure: GXN, DH, DE, DE2, unknown.</p>
   <table>
     <tr><th>Field</th><th>Required</th><th>Rule</th></tr>
     <tr><td><code>companyCode</code></td><td>Yes</td><td>F&amp;O company id.</td></tr>
@@ -216,8 +213,8 @@ Content-Type: application/json
 <!-- TREE -->
 <div class="tab panel" id="tab-tree">
   <h2><span class="badge live">LIVE</span> <code>POST /api/v1/tree</code></h2>
-  <p>Same structure as your HTML, with <b>one add</b> on level 1. Parents before children. Max 500 rows (not 200).</p>
-  <div class="ask">Add <code>productType</code> <code>"06"</code> or <code>"09"</code> on every level-1 row. Your note “coming later” is wrong — it is required now.</div>
+  <p>Same folder keys, plus <code>productType</code> on level 1. Parents before children. <code>parentKey</code> is the real parent in F&amp;O. PIM does not insert a missing level. Max 500 rows.</p>
+  <div class="ask">Live API: every level-1 row needs <code>productType</code> <code>"06"</code> (screw) or <code>"09"</code> (washer). Folder <code>code</code> such as <code>SCR</code> is not that field. Without <code>productType</code> the root is skipped.</div>
   <table>
     <tr><th>Field</th><th>Required</th><th>Rule</th></tr>
     <tr><td><code>categoryKey</code></td><td>Yes</td><td>F&amp;O rec id as text. Not <code>"06"</code> / <code>"CREO"</code> / PG number.</td></tr>
@@ -235,7 +232,7 @@ Content-Type: application/json
   "batchId": "adf-tree-001",
   "items": [
     { "categoryKey": "5637144580", "parentKey": null, "level": 1, "layer": "type",
-      "productType": "06", "code": "SCR", "name": "Screws", "isDeleted": false },
+      "productType": "06", "name": "Screws", "isDeleted": false },
     { "categoryKey": "5637145021", "parentKey": "5637144580", "level": 5, "layer": "productGroup",
       "name": "PG | 6666", "isDeleted": false }
   ]
@@ -244,8 +241,8 @@ Content-Type: application/json
 
 <!-- PRODUCTS -->
 <div class="tab panel" id="tab-products">
-  <h2><span class="badge plan">JSON FROZEN — not live</span> <code>POST /api/v1/products</code></h2>
-  <p>Your identity structure is what Pimcore will use. Change only the dimension <b>values</b>.</p>
+  <h2><span class="badge plan">SHAPE — not live</span> <code>POST /api/v1/products</code></h2>
+  <p>Identity keys are the ones to code. <code>config</code> / <code>colour</code> / <code>size</code> / <code>style</code> stay on the variant. Which F&amp;O string is the lookup code is not locked.</p>
   <table>
     <tr><th>Field</th><th>On</th><th>Required</th><th>Pimcore</th></tr>
     <tr><td><code>code</code></td><td>master</td><td>Yes</td><td>Match key. F&amp;O product number. Stored as master <code>code</code>.</td></tr>
@@ -254,7 +251,7 @@ Content-Type: application/json
     <tr><td><code>itemNumber</code></td><td>variant</td><td>Yes</td><td>Customer-order number. Match key for the SKU.</td></tr>
     <tr><td><code>masterItemNumber</code></td><td>variant</td><td>Yes</td><td>Parent master’s <code>code</code>. This field is what makes the row a variant.</td></tr>
     <tr><td><code>layer</code></td><td>variant</td><td>Yes</td><td><code>"variant"</code></td></tr>
-    <tr><td><code>config</code> <code>colour</code> <code>size</code> <code>style</code></td><td>variant</td><td>No</td><td>F&amp;O <b>short code</b> (lookup). Omit = keep. <code>null</code> = clear. Not a display name.</td></tr>
+    <tr><td><code>config</code> <code>colour</code> <code>size</code> <code>style</code></td><td>variant</td><td>No</td><td>Lookup code on the variant. Omit = keep. <code>null</code> = clear. Do not assume the short number inside the item number until Red Horse confirms. Configuration may be a name only.</td></tr>
     <tr><td><code>name</code></td><td>either</td><td>No</td><td>One default name. No locale map.</td></tr>
     <tr><td><code>isDeleted</code></td><td>either</td><td>No</td><td><code>true</code> unpublishes.</td></tr>
   </table>
@@ -264,16 +261,16 @@ Content-Type: application/json
   "items": [
     { "code": "35044", "layer": "master", "parentKey": "5637145021", "isDeleted": false },
     { "itemNumber": "35044-21-59-8-1", "masterItemNumber": "35044", "layer": "variant",
-      "config": "21", "colour": "59", "size": "8", "style": "1", "isDeleted": false }
+      "config": "STD", "colour": "59", "size": "8", "style": "1", "isDeleted": false }
   ]
 }</pre>
-  <p class="small">Your HTML sent <code>"colour": "RAL 1003"</code>. Pimcore needs the code from the item number (<code>"59"</code> in your own dimensions example). Names stay in F&amp;O; PIM lookups are keyed by code.</p>
+  <p class="small">Example axis values are placeholders. PIM matches <code>PtColourOption.code</code> (and the same for config, size, style). Send the value Red Horse confirms is that code. A label such as <code>RAL 1003</code> only works if that string is the lookup code.</p>
 </div>
 
 <!-- ATTRIBUTES -->
 <div class="tab panel" id="tab-attributes">
-  <h2><span class="badge plan">JSON FROZEN — not live</span> <code>POST /api/v1/attributes</code></h2>
-  <p>Separate feed. F&amp;O sends <b>name + value as stored</b>. PIM maps onto the owning layer (series / range / product group / master / variant). Do not send <code>kl_*</code> keys. Do not send <code>/attribute-setup</code>.</p>
+  <h2><span class="badge plan">SHAPE — not live</span> <code>POST /api/v1/attributes</code></h2>
+  <p>Separate feed. Send the F&amp;O attribute <b>name and the value as stored</b>. PIM maps that pair onto the class (named lookup or measure). Do not send <code>kl_*</code> keys. Do not send <code>/attribute-setup</code>. The mapping table is not finished, so values in the example are illustrations.</p>
   <table>
     <tr><th>Field</th><th>Required</th><th>Pimcore</th></tr>
     <tr><td><code>itemNumber</code></td><td>Yes</td><td>Master <code>code</code> or variant number — whichever item holds the value in F&amp;O.</td></tr>
@@ -305,54 +302,15 @@ Content-Type: application/json
 
 <!-- MASTER DATA -->
 <div class="tab panel" id="tab-masterdata">
-  <h2><span class="badge plan">NEEDED — not built</span> Master data: dimensions + lookups</h2>
-  <p>You are right. To create a variant <code>35044-21-59-8-1</code> and show <b>RAL 1003</b> (not the code <code>59</code>), PIM must already have a lookup object <code>PtColourOption</code> with <code>code 59</code> / <code>name "RAL 1003"</code>. Today those only exist because the demo seeds them. Production needs a source.</p>
-  <p>So there is a real feed here — the same idea as your <code>/dimensions</code>, extended to every coded lookup, not just the four variant axes.</p>
-
-  <h3>Two groups of lookups</h3>
-  <table>
-    <tr><th>Lookup</th><th>Pimcore class</th><th>Used on</th></tr>
-    <tr><td><code>config</code> / <code>colour</code> / <code>size</code> / <code>style</code></td><td><code>PtConfigOption</code> <code>PtColourOption</code> <code>PtSizeOption</code> <code>PtStyleOption</code></td><td>Variant axes (your <code>/dimensions</code>)</td></tr>
-    <tr><td>brand, head type, drive, thread, point, material, coating, application, washer kind, features, target material</td><td><code>PtBrand</code> <code>PtHeadType</code> <code>PtDriveType</code> …</td><td>Named attribute values on family / series / range</td></tr>
-  </table>
-
-  <h3>One shape for both (proposal)</h3>
-<pre>POST /api/v1/lookups   (or your /dimensions for the four axes)
-{
-  "batchId": "adf-look-001",
-  "items": [
-    { "lookup": "colour", "code": "59", "name": "RAL 1003", "isDeleted": false },
-    { "lookup": "size",   "code": "8",  "name": "100",      "isDeleted": false },
-    { "lookup": "headType", "code": "MH", "name": "Mushroom head", "isDeleted": false }
-  ]
-}</pre>
-  <table>
-    <tr><th>Field</th><th>Rule</th></tr>
-    <tr><td><code>lookup</code></td><td>Which list: <code>config</code> / <code>colour</code> / <code>size</code> / <code>style</code> / <code>brand</code> / <code>headType</code> / … (fixed set — matches PIM classes).</td></tr>
-    <tr><td><code>code</code></td><td>Match key. The short code that appears in the item number / attribute value.</td></tr>
-    <tr><td><code>name</code></td><td>Readable label shown in shops and filters.</td></tr>
-    <tr><td><code>isDeleted</code></td><td>Unpublish the option.</td></tr>
-  </table>
-  <div class="ask"><b>Open — one decision from Red Horse (F2):</b> for each lookup, is <b>F&amp;O</b> the source of the code→name list, or does <b>PIM</b> own it as a dictionary? If PIM owns it, no feed for that lookup and <code>/products</code> just sends the code. If F&amp;O owns it, we take this feed. We need 2–3 real examples per lookup to lock it.</div>
-  <p class="small">Feed order if this is live: this master data → products (so the codes resolve) → attributes / released. Missing lookup on a variant = we still create the variant but leave that axis empty (same rule as brand on <code>/tree</code>).</p>
+  <h2><span class="badge drop">DO NOT BUILD</span> Lookups — not an F&amp;O feed yet</h2>
+  <p>PIM already has lookup objects (<code>PtColourOption</code>, <code>PtSizeOption</code>, head type, brand, and the rest). A variant points at one by <code>code</code>. The readable name sits on that object.</p>
+  <p>Filling those objects is PIM master data until Red Horse says F&amp;O is the source of the code and the name. Do not build <code>/dimensions</code> or <code>/lookups</code>. Send the axis value on the variant row in <code>/products</code>, and named values on <code>/attributes</code>.</p>
 </div>
 
 <!-- TRANSLATIONS -->
 <div class="tab panel" id="tab-translations">
-  <h2><span class="badge fix">PARTLY — not your shape</span> Translations</h2>
-  <p>Translation <b>is</b> needed — the DK and SE storefronts show Danish and Swedish. The question is <b>who is the source</b>, and today the F&amp;O feed you drew does not fit.</p>
-  <table>
-    <tr><th>Thing</th><th>Where it lives in PIM</th><th>Source</th></tr>
-    <tr><td>Product <code>name</code></td><td><b>Single</b> text field on <code>PtScrew</code>/<code>PtWasher</code> — not per-locale.</td><td>Optional one English from F&amp;O on <code>/products</code>.</td></tr>
-    <tr><td>Shop title + description (<code>en</code>/<code>da</code>/<code>sv</code>)</td><td>Localized WYSIWYG on the <b>storefront brick</b>.</td><td><b>PIM</b> (marketing), not F&amp;O.</td></tr>
-  </table>
-  <h3>Why your <code>/translations</code> feed does not land</h3>
-  <ul>
-    <li>F&amp;O languages are <code>en-CA</code> / <code>en-HK</code> / <code>en-US</code> / <code>zh-Hant</code>. PIM sells in <code>en</code> / <code>da</code> / <code>sv</code>. F&amp;O has <b>no Danish or Swedish</b> to send.</li>
-    <li>Your feed sends four English variants + Chinese into a field set that has one of them and needs two it can’t supply.</li>
-    <li>The one thing F&amp;O could usefully give — a canonical English product name — is a single field, so it rides on <code>/products</code>, no separate feed.</li>
-  </ul>
-  <div class="ask"><b>If Red Horse wants F&amp;O to drive per-language product names</b> (not just shop marketing), then: (1) F&amp;O must actually hold da/sv, and (2) PIM adds a localized <code>name</code> field to the class. Both are changes to agree first — not something to build on today’s model. Flag it and we cost it.</div>
+  <h2><span class="badge drop">DO NOT BUILD</span> <code>/translations</code></h2>
+  <p>Do not POST language packs. Product <code>name</code> is one field; put it on <code>/products</code> if F&amp;O has a single name. Shop text in <code>en</code> / <code>da</code> / <code>sv</code> is written in PIM. F&amp;O locales such as <code>en-CA</code> and <code>zh-Hant</code> are not PIM languages.</p>
 </div>
 
 <!-- ATTRIBUTE GROUPS -->
