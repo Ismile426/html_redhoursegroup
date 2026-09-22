@@ -112,9 +112,9 @@
   <table>
     <tr><th>Rule</th><th>Behaviour</th></tr>
     <tr><td>Match key</td><td>Business key, never a Pimcore id. Re-sending the same row updates in place, so retries are safe.</td></tr>
-    <tr><td>Omit a field</td><td>Keep the current value.</td></tr>
-    <tr><td><code>null</code></td><td>Clear the value.</td></tr>
-    <tr><td><code>isDeleted: true</code></td><td>Unpublish. Never a hard delete.</td></tr>
+    <tr><td>Omit a field</td><td>Keep the current value. This is the only way to say "no change".</td></tr>
+    <tr><td><code>null</code>, <code>""</code>, or spaces only</td><td>Clear the value. An empty string is not "no change".</td></tr>
+    <tr><td><code>isDeleted: true</code></td><td>Unpublish that object. Never a hard delete. It only applies to an object this feed creates — see <code>/translations</code>.</td></tr>
     <tr><td>Missing parent</td><td>That row fails and is retryable. The rest of the batch still applies. We do not invent parents.</td></tr>
     <tr><td>First run vs delta</td><td>Full set per feed in the order above, then changed rows only.</td></tr>
   </table>
@@ -365,10 +365,10 @@ Content-Type: application/json
   <table>
     <tr><th>Field</th><th>Required</th><th>Rule</th></tr>
     <tr><td><code>itemNumber</code></td><td>Yes</td><td>Master <code>code</code> or variant number.</td></tr>
-    <tr><td><code>texts[].languageId</code></td><td>Yes</td><td>F&amp;O language code, unchanged.</td></tr>
-    <tr><td><code>texts[].name</code></td><td>Yes</td><td>Product name in that language.</td></tr>
-    <tr><td><code>texts[].description</code></td><td>No</td><td>May be empty.</td></tr>
-    <tr><td><code>isDeleted</code></td><td>No</td><td>Unpublish.</td></tr>
+    <tr><td><code>texts[].languageId</code></td><td>Yes</td><td>Send the F&amp;O code unchanged (<code>en-CA</code>, <code>en-HK</code>, <code>en-US</code>, <code>zh-Hant</code>, …). Do not convert it. Pimcore's own languages are only <code>en</code>, <code>da</code>, <code>sv</code>, and none of those F&amp;O codes is one of them.</td></tr>
+    <tr><td><code>texts[].name</code></td><td>Yes</td><td>Product name in that language. Pimcore stores one name today, not one per language.</td></tr>
+    <tr><td><code>texts[].description</code></td><td>No</td><td>There is no product-description field yet, so this value is kept with the payload and not written to an object. Shop description is Pimcore marketing copy and is never touched by this feed.</td></tr>
+    <tr><td><code>isDeleted</code></td><td>No</td><td>Has nothing to unpublish. A translation is not its own object. To clear a text, send <code>null</code>. To unpublish the product, send <code>isDeleted: true</code> on <code>/products</code>.</td></tr>
   </table>
 <pre>{
   "batchId": "adf-txt-001",
@@ -376,7 +376,7 @@ Content-Type: application/json
     { "itemNumber": "35044-21-59-8-1",
       "texts": [
         { "languageId": "en-CA", "name": "Hex screw 100mm", "description": "Stainless, RAL 1003" },
-        { "languageId": "en-US", "name": "Hex screw 100mm", "description": "" }
+        { "languageId": "en-US", "name": "Hex screw 100mm" }
       ],
       "isDeleted": false }
   ]
