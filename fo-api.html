@@ -367,8 +367,7 @@ Content-Type: application/json
   </table>
   <h3>Why F&amp;O does not send the setup</h3>
   <p>In this model, which group sits on which layer is <b>fixed in the class</b>: Product-Group measures on the Product Group tab, Master measures on the Master tab, Range geometry on the Range tab. The class says literally “groups for this layer only, children inherit, cannot add/remove groups.” It is not chosen per folder at runtime.</p>
-  <p>Your <code>folderGroups[]</code> (“folder X uses groups A, B”) assumes F&amp;O assigns groups to folders. If F&amp;O sent that nightly, it would try to redefine PIM’s schema and duplicate our locked groups.</p>
-  <div class="ask"><b>Real open question (Kalle, C11):</b> do different product groups need <b>different</b> attribute sets beyond the fixed per-layer model? If yes, that is a PIM modelling change we make once — still not an F&amp;O feed. F&amp;O keeps sending values only.</div>
+  <p>Your <code>folderGroups[]</code> (“folder X uses groups A, B”) assumes F&amp;O assigns groups to folders. If F&amp;O sent that nightly, it would try to redefine PIM’s schema and duplicate our locked groups. F&amp;O keeps sending values only.</p>
 </div>
 
 <!-- REPLY -->
