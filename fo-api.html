@@ -51,10 +51,10 @@
 <div class="wrap">
 
 <h1>F&amp;O → Pimcore — API payload</h1>
-<p class="small">Updated <b>22 Sep 2026</b>. What the Function should send, per call. TEST: <code>http://10.100.16.4:82/api/v1</code> (RH LAN only — Azure cannot reach Pimcore yet).</p>
+<p class="small">Updated <b>23 Sep 2026</b>. What the Function should send, per call. TEST: <code>http://10.100.16.4:82/api/v1</code> (RH LAN only — Azure cannot reach Pimcore yet).</p>
 
 <div class="ok"><b>LIVE now:</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/tree</code> · <code>/dimensions</code> · <code>/products</code></div>
-<div class="ask"><b>Shape agreed, PHP not built:</b> <code>/attributes</code> · <code>/released</code> · <code>/translations</code>. These three wait on answers, not on code — see <b>Gaps to close</b>. Code against these tabs; POST returns 404 until the tab says LIVE.</div>
+<div class="ask"><b>Shape agreed, PHP not built:</b> <code>/attribute-definitions</code> · <code>/product-attributes</code> · <code>/released</code> · <code>/translations</code>. Code against these tabs; POST returns 404 until the tab says LIVE. The remaining client answer on attributes is the corrosion category — not a mapping sheet.</div>
 <div class="box"><code>X-API-Key</code> on <b>every</b> call. Wrapper <code>{ "batchId", "items": [] }</code>. Max <b>500</b> rows / <b>2 MB</b>. Unknown extra keys are ignored, they do not fail a row.</div>
 
 <nav class="tabs" id="tabs" aria-label="API endpoints">
@@ -66,7 +66,8 @@
   <button type="button" data-tab="tree"><span class="verb post">POST</span>/tree</button>
   <button type="button" data-tab="products"><span class="verb post">POST</span>/products</button>
   <button type="button" data-tab="dimensions"><span class="verb post">POST</span>/dimensions</button>
-  <button type="button" data-tab="attributes"><span class="verb post">POST</span>/attributes</button>
+  <button type="button" data-tab="attribute-definitions"><span class="verb post">POST</span>/attribute-definitions</button>
+  <button type="button" data-tab="product-attributes"><span class="verb post">POST</span>/product-attributes</button>
   <button type="button" data-tab="released"><span class="verb post">POST</span>/released</button>
   <button type="button" data-tab="translations"><span class="verb post">POST</span>/translations</button>
   <button type="button" data-tab="reply">Reply shape</button>
@@ -86,14 +87,15 @@
     <tr><td><code>/tree</code></td><td class="fix"><span class="badge fix">ADD FIELDS</span></td><td><code>productType</code> on level 1 (<b>now</b>, not later), <code>brand</code> on level 2, <code>productGroupNumber</code> on level 5.</td></tr>
     <tr><td><code>/products</code></td><td class="fix"><span class="badge live">LIVE</span> <span class="badge fix">ADD FIELDS</span></td><td>Live for identity and the four dimension pointers. Add <code>name</code> — it is missing entirely. Washer link for style-W screws still open, sending it is accepted and ignored.</td></tr>
     <tr><td><code>/dimensions</code></td><td class="keep"><span class="badge live">LIVE</span></td><td>Your shape, unchanged. Send <b>both</b> <code>code</code> and <code>name</code> per value. This is how variants get readable colours and sizes.</td></tr>
-    <tr><td><code>/attributes</code></td><td class="fix"><span class="badge fix">CHANGE ROW</span></td><td>Send the F&amp;O attribute <code>name</code> + <code>value</code>, not an invented <code>attributeCode</code>.</td></tr>
+    <tr><td><code>/attribute-definitions</code></td><td class="fix"><span class="badge plan">SHAPE</span></td><td>One setup call, only when setup changes, never per product. POST returns 404. Use <code>RH_Head</code>, not <code>HEAD TYPE</code>.</td></tr>
+    <tr><td><code>/product-attributes</code></td><td class="fix"><span class="badge plan">SHAPE</span></td><td>Renamed from <code>/attributes</code>. Values on an item that already exists from <code>/products</code>. POST returns 404.</td></tr>
     <tr><td><code>/released</code></td><td class="keep"><span class="badge keep">KEEP</span></td><td>Nothing. Explicit <code>false</code> is what switches a shop off.</td></tr>
     <tr><td><code>/translations</code></td><td class="fix"><span class="badge fix">KEEP, REDUCED</span></td><td>Needed — in your design the product <b>name</b> only arrives here. We consume one language until Pimcore has localized product fields.</td></tr>
-    <tr><td><code>/attribute-setup</code></td><td class="drop"><span class="badge drop">NOT A FEED</span></td><td>Not a POST that changes Pimcore schema. Its <b>content</b> is what we need — fill the <a href="./FO_Attribute_Map.html">mapping sheet</a> instead.</td></tr>
+    <tr><td><code>/attribute-setup</code></td><td class="drop"><span class="badge drop">NOT A FEED</span></td><td>Use <code>/attribute-definitions</code> instead. Same job: definitions, groups, and which folder uses which group.</td></tr>
     <tr><td><code>/units</code></td><td class="drop"><span class="badge drop">HOLD</span></td><td>No field for pack size (PCS/BOX) in Pimcore today. Measure units (mm / in) already sit on the measure key.</td></tr>
     <tr><td><code>/barcodes</code> <code>/relations</code></td><td class="drop"><span class="badge drop">HOLD</span></td><td>No field on the class yet. Red Horse decides if these belong in PIM; then we model, then we feed.</td></tr>
   </table>
-  <p class="small">No new endpoint is needed beyond your list plus <code>/dimensions</code>. The rest of the gap is <b>extra fields on <code>/tree</code> and <code>/products</code></b> — see <b>Gaps to close</b>.</p>
+  <p class="small">The attribute work is two calls, not four and not a mapping sheet. <code>/released</code> and <code>/translations</code> stay as they are. Extra fields on <code>/tree</code> and <code>/products</code> are still needed — see <b>Gaps to close</b>.</p>
 </div>
 
 <!-- START -->
@@ -106,7 +108,8 @@
     <li><code>/dimensions</code> — live. So variant colour and size resolve to a name</li>
     <li><code>/tree</code> — live. Parents before children</li>
     <li><code>/products</code> — live. Masters before variants</li>
-    <li><code>/attributes</code> · <code>/released</code> · <code>/translations</code> — not built yet</li>
+    <li><code>/attribute-definitions</code> — not built. Setup only, when it changes</li>
+    <li><code>/product-attributes</code> · <code>/released</code> · <code>/translations</code> — not built yet</li>
   </ol>
   <h3>Rules for every write</h3>
   <table>
@@ -300,35 +303,77 @@ Content-Type: application/json
   <p class="small">Send this before <code>/products</code>. If a variant arrives with a value we have never seen, we still create the variant and leave that dimension empty rather than inventing a label.</p>
 </div>
 
-<!-- ATTRIBUTES -->
-<div class="tab panel" id="tab-attributes">
-  <h2><span class="badge plan">SHAPE — not live</span> <code>POST /api/v1/attributes</code></h2>
-  <p>Everything that is not identity, not a dimension, and not a shop: head type, drive, thread, material, coating, length, diameters, pitch, salt spray, and so on.</p>
-  <p>Send the F&amp;O attribute <b>name</b> and the <b>value exactly as F&amp;O stores it</b>. Pimcore decides where it lands — some values belong on the series or range folder, some on the master, some on the SKU.</p>
+<!-- ATTRIBUTE DEFINITIONS -->
+<div class="tab panel" id="tab-attribute-definitions">
+  <h2><span class="badge plan">SHAPE — not live</span> <code>POST /api/v1/attribute-definitions</code></h2>
+  <p>This is setup: what an attribute is, which group it belongs to, and which <code>/tree</code> folder (<code>categoryKey</code>) uses which group. Send it only when setup changes, never per product. POST returns <b>404</b> until this tab says LIVE.</p>
+  <div class="ask"><b>Use <code>RH_Head</code>, not <code>HEAD TYPE</code>.</b> Same pattern for the other RH_ attributes we already saw: <code>RH_Drive</code>, <code>RH_Point</code>, <code>RH_Coating</code>, <code>RH_Thread</code>, <code>RH_SpecialFeatures</code>. <code>DIAMETER</code>, <code>LENGTH MM</code>, <code>MATERIAL TYPE</code>, and <code>DRILL CAP MM</code> stay under those names.</div>
   <table>
     <tr><th>Field</th><th>Required</th><th>Rule</th></tr>
-    <tr><td><code>itemNumber</code></td><td>Yes</td><td>The master <code>code</code> or the variant number that holds the value in F&amp;O.</td></tr>
-    <tr><td><code>name</code></td><td>Yes</td><td>F&amp;O attribute name as stored, for example <code>Head type</code>, <code>Length</code>. Not an invented code such as <code>HEAD_TYPE</code>.</td></tr>
-    <tr><td><code>value</code></td><td>Yes</td><td>Exact F&amp;O string, no conversion. <code>null</code> clears it.</td></tr>
+    <tr><td><code>attributes[].code</code></td><td>Yes</td><td>Stable F&amp;O attribute code. This is what <code>/product-attributes</code> will send as <code>attributeCode</code>.</td></tr>
+    <tr><td><code>attributes[].dataType</code></td><td>Yes</td><td><code>text</code> · <code>decimal</code> · <code>integer</code> · <code>boolean</code> · <code>list</code>.</td></tr>
+    <tr><td><code>attributes[].unit</code></td><td>No</td><td>Send on a decimal. Omit on a word.</td></tr>
+    <tr><td><code>attributes[].texts[]</code></td><td>No</td><td>Label per <code>languageId</code>. Stored as sent (<code>en-CA</code>, <code>en-US</code>, <code>en-HK</code>, and later ones). Not folded into <code>en</code>. These are attribute labels, not the product name.</td></tr>
+    <tr><td><code>attributes[].options[]</code></td><td>On a list</td><td>Whatever option codes you put here are valid. Empty option texts: the code is the label. Examples below are not a list we invented.</td></tr>
+    <tr><td><code>groups[]</code></td><td>Yes</td><td>A named set of attribute codes. A later category is another group on this same call — no new endpoint.</td></tr>
+    <tr><td><code>folderGroups[]</code></td><td>Yes</td><td>Which <code>/tree</code> folder uses which groups. The value is stored on the folder you name. We do not silently move it to another layer.</td></tr>
+  </table>
+<pre>{
+  "batchId": "adf-run-8821",
+  "items": [{
+    "attributes": [
+      { "code": "DIAMETER", "dataType": "decimal", "unit": "mm",
+        "texts": [ { "languageId": "en-CA", "name": "Diameter" } ] },
+      { "code": "RH_Head", "dataType": "list",
+        "texts": [ { "languageId": "en-CA", "name": "Head type" } ],
+        "options": [ { "code": "HX17", "texts": [] }, { "code": "HX13", "texts": [] } ] }
+    ],
+    "groups": [
+      { "code": "DIMENSIONS", "attributes": ["DIAMETER"],
+        "texts": [ { "languageId": "en-CA", "name": "Dimensions" } ] },
+      { "code": "SHAPE", "attributes": ["RH_Head"],
+        "texts": [ { "languageId": "en-CA", "name": "Shape" } ] }
+    ],
+    "folderGroups": [
+      { "categoryKey": "5637145021", "groups": ["DIMENSIONS", "SHAPE"] }
+    ]
+  }]
+}</pre>
+  <h3>How Pimcore will use this</h3>
+  <ul>
+    <li>Placement is <code>folderGroups</code>, not a hardcoded layer table. A later category is another folder and another group on the same call.</li>
+    <li>A brand-new product class still has to exist first. This payload cannot invent a class. Unknown product types stay skipped (<code>06</code> screw, <code>09</code> washer).</li>
+    <li>The group code <code>DIMENSIONS</code> is not the existing <code>POST /dimensions</code> call. <code>/dimensions</code> remains only config, colour, size, style.</li>
+    <li>Danish and Swedish shop copy stays PIM-owned.</li>
+    <li>Corrosion category: do not assign a level. Waiting on the client.</li>
+  </ul>
+</div>
+
+<!-- PRODUCT ATTRIBUTES -->
+<div class="tab panel" id="tab-product-attributes">
+  <h2><span class="badge plan">SHAPE — not live</span> <code>POST /api/v1/product-attributes</code></h2>
+  <p>Renamed from <code>/attributes</code>. This is the value on an item that already exists from <code>/products</code>. POST returns <b>404</b> until this tab says LIVE.</p>
+  <div class="ask"><b>Use <code>RH_Head</code>, not <code>HEAD TYPE</code>.</b> Same pattern for <code>RH_Drive</code>, <code>RH_Point</code>, <code>RH_Coating</code>, <code>RH_Thread</code>, <code>RH_SpecialFeatures</code>. <code>DIAMETER</code>, <code>LENGTH MM</code>, <code>MATERIAL TYPE</code>, and <code>DRILL CAP MM</code> stay under those names.</div>
+  <table>
+    <tr><th>Field</th><th>Required</th><th>Rule</th></tr>
+    <tr><td><code>itemNumber</code></td><td>Yes</td><td>The master <code>code</code> or the variant number that already exists from <code>/products</code>.</td></tr>
+    <tr><td><code>attributes[].attributeCode</code></td><td>Yes</td><td>Must match <code>attributes[].code</code> from <code>/attribute-definitions</code>.</td></tr>
+    <tr><td><code>attributes[].value</code></td><td>Yes</td><td>A list value is stored only when it is one of the option codes from the definition. A <code>DIAMETER</code> value containing <code>/</code> is skipped (range); a single number can be stored.</td></tr>
+    <tr><td><code>attributes[].valueTo</code></td><td>No</td><td>Optional upper bound when the definition is a from-to decimal (drill cap).</td></tr>
+    <tr><td><code>attributes[].unit</code></td><td>No</td><td>Send on a decimal. Omit on a word.</td></tr>
+    <tr><td><code>attributes[].isDeleted</code></td><td>No</td><td><code>true</code> clears that attribute only. It does not unpublish the product.</td></tr>
   </table>
 <pre>{
   "batchId": "adf-attr-001",
-  "items": [
-    { "itemNumber": "35044", "name": "Head type", "value": "Mushroom head" },
-    { "itemNumber": "35044", "name": "Length",    "value": "35.00 mm" },
-    { "itemNumber": "35044", "name": "Material",  "value": "Carbon steel" }
-  ]
+  "items": [{
+    "itemNumber": "35006-21-59-8-1",
+    "attributes": [
+      { "attributeCode": "DIAMETER", "value": "6.5", "unit": "mm", "isDeleted": false },
+      { "attributeCode": "RH_Head", "value": "HX17", "unit": null, "isDeleted": false }
+    ]
+  }]
 }</pre>
-  <div class="ask"><b>We have done our half — now we need yours.</b> <a href="./FO_Attribute_Map.html">Open the attribute mapping sheet</a> (<a href="./FO_Attribute_Map.csv">CSV to fill</a>). It lists all <b>32</b> places a value can land in Pimcore, with the type, the unit, and the allowed values for each. Two columns are empty: <b>F&amp;O attribute name</b> and <b>F&amp;O example value</b>. Fill only the rows F&amp;O actually holds; a blank row means F&amp;O does not have it. That sheet is the last thing blocking this endpoint.</div>
-  <h3>Three things the sheet will settle</h3>
-  <table>
-    <tr><th>Question</th><th>Why it matters</th></tr>
-    <tr><td>Which F&amp;O name maps to which row</td><td>The endpoint keys off <code>name</code>. We cannot guess: a wrong guess writes a wrong spec onto a real product.</td></tr>
-    <tr><td>Number and unit, separately</td><td>16 of the 32 targets store a number plus a unit. Send <code>35</code> and <code>mm</code> as two values, not <code>"35.00 mm"</code> as one string.</td></tr>
-    <tr><td>Metric or imperial</td><td>Length, diameter and pitch exist <b>twice</b> in Pimcore, once per system. Tell us how to tell which system an item uses.</td></tr>
-  </table>
-  <p class="small">Where a value is a coded word, give us the code and the label, the same way as <code>/dimensions</code>. Do not send Pimcore measure keys and do not send numeric attribute ids.</p>
-  <p class="small">One thing to know about placement: a value like Head type is stored on the <b>series</b> folder, not on the item. You keep sending it against the item number — Pimcore writes it to the right ancestor. The sheet's layer heading tells you where each one lands.</p>
+  <p class="small">An attribute missing from the list is left unchanged. Option codes come from the definition he sent — we do not treat HX17 / HX13 as a fixed list we invented.</p>
 </div>
 
 <!-- RELEASED -->
@@ -418,15 +463,15 @@ Content-Type: application/json
 <!-- GAPS -->
 <div class="tab panel" id="tab-gaps">
   <h2>Gaps to close</h2>
-  <p>Pimcore fills seven levels. This is what has a source today and what does not. No new endpoint is needed — the gaps are fields on <code>/tree</code> and <code>/products</code>, plus the attribute list.</p>
+  <p>Pimcore fills seven levels. This is what has a source today and what does not. Attributes are two calls: setup on <code>/attribute-definitions</code>, values on <code>/product-attributes</code>. Neither is built.</p>
   <table>
     <tr><th>Level</th><th>Pimcore expects</th><th>Source today</th></tr>
     <tr><td>Type</td><td>Screw or washer</td><td class="fix"><code>productType</code> on <code>/tree</code> level 1 — <b>you must add it</b></td></tr>
     <tr><td>Family</td><td>Brand</td><td class="fix"><code>brand</code> on <code>/tree</code> level 2 — the API accepts it, <b>you must add it</b></td></tr>
-    <tr><td>Series</td><td>Head type, drive, thread, point, features, target material</td><td class="fix">Only per item on <code>/attributes</code>. Needs the attribute list to know which of these F&amp;O holds</td></tr>
-    <tr><td>Range</td><td>Material, coating, application</td><td class="fix">Same as series</td></tr>
-    <tr><td>Product Group</td><td>PG number, geometry (diameter, pitch, head, drill)</td><td class="fix"><code>productGroupNumber</code> — the API accepts it, <b>you must add it</b>. Geometry via <code>/attributes</code></td></tr>
-    <tr><td>Master</td><td>Name, length, partial length, salt spray, allowed dimensions</td><td class="fix"><code>name</code> — <b>please add it</b>. Measures via <code>/attributes</code>. Allowed dimensions: send <code>allowedColour</code> (and the other three) on the master row</td></tr>
+    <tr><td>Series</td><td>Named facts that belong on that folder</td><td class="fix">Defined once on <code>/attribute-definitions</code>, placed with <code>folderGroups</code>, valued on <code>/product-attributes</code>. Use <code>RH_Head</code>, not <code>HEAD TYPE</code></td></tr>
+    <tr><td>Range</td><td>Named facts that belong on that folder</td><td class="fix">Same two calls. Another folder, another group — not a new endpoint</td></tr>
+    <tr><td>Product Group</td><td>PG number, geometry (diameter, pitch, head, drill)</td><td class="fix"><code>productGroupNumber</code> — the API accepts it, <b>you must add it</b>. Geometry via the two attribute calls</td></tr>
+    <tr><td>Master</td><td>Name, length, allowed dimensions</td><td class="fix"><code>name</code> — <b>please add it</b>. Measures via <code>/product-attributes</code>. Allowed dimensions: send <code>allowedColour</code> (and the other three) on the master row</td></tr>
     <tr><td>Variant</td><td>Item number, config, colour, size, style, washer link</td><td class="keep">Covered by <code>/products</code> + <code>/dimensions</code>. Washer link still open</td></tr>
     <tr><td>Shops</td><td>Which companies sell the SKU</td><td class="keep">Covered by <code>/companies</code> + <code>/released</code></td></tr>
     <tr><td>Pictures, certificates, shop copy</td><td>Images, documents, marketing text</td><td class="keep">Pimcore. Not a Function job</td></tr>
@@ -437,7 +482,7 @@ Content-Type: application/json
     <li>Add <code>brand</code> to level-2 and <code>productGroupNumber</code> to level-5 folders.</li>
     <li>Add <code>name</code> to product rows.</li>
     <li><code>/dimensions</code> and <code>/products</code> are live — point your Function at them and send a real batch. Both are safe to re-run.</li>
-    <li>Fill the <a href="./FO_Attribute_Map.html">attribute mapping sheet</a> — the F&amp;O name and one real example per row you hold. This is what unblocks <code>/attributes</code>.</li>
+    <li>Code against <code>/attribute-definitions</code> then <code>/product-attributes</code>. POST returns 404 until they say LIVE. Use <code>RH_Head</code>, not <code>HEAD TYPE</code>.</li>
     <li>Tell us whether F&amp;O can name the washer for a style-W screw.</li>
   </ol>
   <h3>Short list for Red Horse</h3>
@@ -445,6 +490,7 @@ Content-Type: application/json
     <li>Which companies are selling shops.</li>
     <li>Which F&amp;O language is the primary product text, and confirm Danish and Swedish are written in Pimcore.</li>
     <li>Whether barcodes, pack size, and related products belong in Pimcore at all.</li>
+    <li>Corrosion category — do not assign a level until the client says so.</li>
   </ol>
 </div>
 
@@ -452,8 +498,8 @@ Content-Type: application/json
 <div class="tab panel" id="tab-later">
   <h2>Not v1</h2>
 
-  <h3><code>/attribute-setup</code> — content yes, endpoint no</h3>
-  <p>Two different things are mixed in this call. Attribute <b>definitions</b> — names, data types, units, pick-list values — are exactly what we need, and we need them <b>once</b>, as a list. Attribute <b>groups and which folder uses which group</b> is Pimcore structure: it is fixed on the class per level, children inherit it, and it cannot be added or removed at runtime. A nightly POST cannot change that, so please do not build it.</p>
+  <h3><code>/attribute-setup</code> — use <code>/attribute-definitions</code></h3>
+  <p>The setup call is now <code>POST /attribute-definitions</code>: definitions, groups, and <code>folderGroups</code> in one body, sent only when setup changes. A later category is another folder and another group on that same call. The payload cannot invent a product class that does not already exist.</p>
 
   <h3><code>/units</code> — hold</h3>
   <p>Measure units such as mm and inch already sit on the Pimcore measure field, so a conversion table is not needed for the catalogue. Pack size — a box of one hundred — is a real shop fact, but there is no field for it in Pimcore today. If Red Horse wants it, we add the field first.</p>
@@ -482,6 +528,7 @@ Content-Type: application/json
     b.addEventListener("click", function () { show(b.getAttribute("data-tab")); });
   });
   var hash = (location.hash || "#vs").replace("#", "");
+  if (hash === "attributes") hash = "attribute-definitions";
   if (!document.getElementById("tab-" + hash)) hash = "vs";
   show(hash);
 })();
