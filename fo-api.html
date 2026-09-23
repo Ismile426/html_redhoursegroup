@@ -54,7 +54,7 @@
 <p class="small">Updated <b>23 Sep 2026</b>. What the Function should send, per call. TEST: <code>http://10.100.16.4:82/api/v1</code> (RH LAN only — Azure cannot reach Pimcore yet).</p>
 
 <div class="ok"><b>LIVE now:</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/tree</code> · <code>/dimensions</code> · <code>/products</code></div>
-<div class="ask"><b>Shape agreed, PHP not built:</b> <code>/attribute-definitions</code> · <code>/product-attributes</code> · <code>/released</code> · <code>/translations</code>. Code against these tabs; POST returns 404 until the tab says LIVE. The remaining client answer on attributes is the corrosion category — not a mapping sheet.</div>
+<div class="ask"><b>Shape agreed, PHP not built:</b> <code>/attribute-definitions</code> · <code>/product-attributes</code> · <code>/released</code> · <code>/translations</code>. Code against these tabs; POST returns 404 until the tab says LIVE. Corrosion category is on the Range, with material and coating. The catalogue icon for those two is uploaded in Pimcore; F&amp;O sends the code, not the picture.</div>
 <div class="box"><code>X-API-Key</code> on <b>every</b> call. Wrapper <code>{ "batchId", "items": [] }</code>. Max <b>500</b> rows / <b>2 MB</b>. Unknown extra keys are ignored, they do not fail a row.</div>
 
 <nav class="tabs" id="tabs" aria-label="API endpoints">
@@ -345,7 +345,7 @@ Content-Type: application/json
     <li>A brand-new product class still has to exist first. This payload cannot invent a class. Unknown product types stay skipped (<code>06</code> screw, <code>09</code> washer).</li>
     <li>The group code <code>DIMENSIONS</code> is not the existing <code>POST /dimensions</code> call. <code>/dimensions</code> remains only config, colour, size, style.</li>
     <li>Danish and Swedish shop copy stays PIM-owned.</li>
-    <li>Corrosion category: do not assign a level. Waiting on the client.</li>
+    <li>Corrosion category sits on the Range, with material and coating. That is what defines the category. Send it on the range folder. The catalogue icon on the material value and on the corrosion value is a Pimcore upload, not part of this call.</li>
   </ul>
 </div>
 
@@ -490,7 +490,7 @@ Content-Type: application/json
     <li>Which companies are selling shops.</li>
     <li>Which F&amp;O language is the primary product text, and confirm Danish and Swedish are written in Pimcore.</li>
     <li>Whether barcodes, pack size, and related products belong in Pimcore at all.</li>
-    <li>Corrosion category — do not assign a level until the client says so.</li>
+    <li>Corrosion category is answered: Range, with material and coating. Catalogue icons for material and corrosion are Pimcore uploads.</li>
   </ol>
 </div>
 
