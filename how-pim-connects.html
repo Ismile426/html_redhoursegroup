@@ -5,22 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>How F&amp;O connects to Pimcore</title>
 <style>
-  :root { --ink:#1c1917; --muted:#57534e; --line:#e7e5e4; --paper:#fafaf9; --card:#fff; --red:#9f1239; --ok:#166534; --wait:#92400e; --blue:#1e3a8a; }
+  :root { --ink:#1c1917; --muted:#57534e; --line:#e7e5e4; --paper:#fafaf9; --card:#fff; --red:#9f1239; --ok:#166534; --blue:#1e3a8a; }
   * { box-sizing: border-box; }
   body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; color: var(--ink); background: var(--paper); line-height: 1.55; }
   a { color: var(--blue); }
-  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.92em; background: #f5f5f4; padding: 1px 5px; border-radius: 3px; }
   .wrap { max-width: 980px; margin: 0 auto; padding: 28px 18px 72px; }
   header h1 { font-size: 28px; line-height: 1.2; margin: 0 0 8px; }
   header p { margin: 0; color: var(--muted); }
-  nav.jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 8px; }
-  nav.jump a { background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; text-decoration: none; font-size: 14px; }
-  h2 { font-size: 22px; margin: 36px 0 8px; }
-  h3 { font-size: 17px; margin: 22px 0 6px; }
+  h2 { font-size: 22px; margin: 32px 0 8px; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin: 12px 0; }
   .plain { border-left: 4px solid var(--ok); }
-  .tech { border-left: 4px solid var(--blue); }
-  .warn { border-left: 4px solid var(--wait); background: #fffbeb; }
   .no { border-left: 4px solid var(--red); background: #fff1f2; }
   .label { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
   .flow, .layers { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
@@ -28,14 +22,6 @@
   .step b, .layer b { display: block; }
   .step span, .layer span { display: block; color: var(--muted); font-size: 13px; }
   .step.on { border-color: #86efac; background: #f0fdf4; }
-  .step.wait { border-color: #fcd34d; background: #fffbeb; }
-  table { width: 100%; border-collapse: collapse; background: #fff; font-size: 14px; margin: 10px 0; }
-  th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
-  th { background: #f5f5f4; }
-  .tree { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; background: #1c1917; color: #fafaf9; border-radius: 10px; padding: 14px 16px; overflow-x: auto; line-height: 1.45; }
-  .tree .hit { color: #86efac; }
-  ol.steps { padding-left: 18px; }
-  ol.steps li { margin: 0 0 14px; }
   .small { color: var(--muted); font-size: 13px; }
 </style>
 </head>
@@ -44,62 +30,48 @@
 
 <header>
   <h1>How F&amp;O connects to Pimcore</h1>
-  <p>23 Sep 2026. What is live today, in plain language and then as a build reference. The exact JSON for each call is on the <a href="fo-api.html">payload page</a>. This page does not replace that contract.</p>
+  <p>For Red Horse. 23 Sep 2026. What the connection does, without the technical payload. The build reference for developers is a <a href="how-pim-builds.html">separate page</a>. The exact JSON is on the <a href="fo-api.html">payload page</a>.</p>
 </header>
 
-<nav class="jump">
-  <a href="#client">For Red Horse</a>
-  <a href="#developer">For the developer</a>
-  <a href="#static">Fixed in Pimcore / sent by F&amp;O</a>
-  <a href="#rules">Rules on every call</a>
-  <a href="#notyet">Not connected yet</a>
-</nav>
-
-<h2 id="client">For Red Horse</h2>
-<p>Pimcore does not look inside F&amp;O. A small program on the F&amp;O side (the Azure Function) pushes a batch of JSON into Pimcore. Pimcore stores it as catalogue folders and products. People in Pimcore then add the pictures, the Danish and Swedish shop text, and the catalogue icons.</p>
+<h2>The connection</h2>
+<p>Pimcore does not look inside F&amp;O. A small program on the F&amp;O side pushes a batch of data into Pimcore. Pimcore stores it as catalogue folders and products. People in Pimcore then add the pictures, the Danish and Swedish shop text, and the catalogue icons.</p>
 
 <div class="card plain">
   <div class="label">In one sentence</div>
   <p>F&amp;O says what the product is. Pimcore holds it in a fixed shape and adds the selling text and the pictures.</p>
 </div>
+<p class="small">The test address is on the Red Horse network only. Azure cannot reach it yet. Every push needs a key. There is no login session.</p>
 
-<div class="card tech">
-  <div class="label">The address</div>
-  <p>TEST is <code>http://10.100.16.4:82/api/v1</code>. That address is on the Red Horse network only. Azure cannot reach it yet. Every call sends a header <code>X-API-Key</code>. There is no login session.</p>
-</div>
-
-<h3>The order that is live</h3>
-<p>Each box is one call. The next box needs the one before it. A repeat of the same call updates what is already there. It does not make a second copy.</p>
+<h2>The order that is live</h2>
+<p>Each box is one push. The next box needs the one before it. Sending the same thing again updates what is already there. It does not make a second copy.</p>
 <div class="flow">
   <div class="step on"><b>1. Companies</b><span>Which F&amp;O companies exist</span></div>
-  <div class="step on"><b>2. Dimensions</b><span>The colour, size, config, style lists</span></div>
+  <div class="step on"><b>2. Colours and sizes</b><span>The lists a variant can use</span></div>
   <div class="step on"><b>3. Folders</b><span>Type, family, series, range, drawing</span></div>
-  <div class="step on"><b>4. Attribute setup</b><span>What a fact is, and which folder uses it</span></div>
-  <div class="step on"><b>5. Products</b><span>The master and the SKU you can order</span></div>
-  <div class="step on"><b>6. Attribute values</b><span>The head, the material, the length</span></div>
+  <div class="step on"><b>4. What a fact is</b><span>Head, diameter, length — the definition</span></div>
+  <div class="step on"><b>5. Products</b><span>The product and the item you can order</span></div>
+  <div class="step on"><b>6. The facts</b><span>The head, the material, the length</span></div>
 </div>
-<p class="small">Shop on/off and product texts in several languages are not in this row. They are listed under <a href="#notyet">Not connected yet</a>.</p>
 
-<h3>What a screw looks like after those calls</h3>
+<h2>What a screw looks like</h2>
 <p>One screw is seven levels. The top five are folders. The last two are the product and the thing a customer orders.</p>
 <div class="layers">
-  <div class="layer"><b>Type</b><span>Screws, or washers. Call: folders.</span></div>
-  <div class="layer"><b>Family</b><span>The brand, such as CREO. Call: folders.</span></div>
-  <div class="layer"><b>Series</b><span>Head type lives here. Call: attribute values.</span></div>
-  <div class="layer"><b>Range</b><span>Material, coating, corrosion. This is the category. Call: attribute values.</span></div>
-  <div class="layer"><b>Product group</b><span>The drawing. Diameter and drill cap. Call: attribute values.</span></div>
-  <div class="layer"><b>Master</b><span>One product, many lengths. Length lives here. Call: products, then attribute values.</span></div>
-  <div class="layer"><b>Variant</b><span>The orderable item: colour, size, and so on. Call: products.</span></div>
+  <div class="layer"><b>Type</b><span>Screws, or washers.</span></div>
+  <div class="layer"><b>Family</b><span>The brand, such as CREO.</span></div>
+  <div class="layer"><b>Series</b><span>Head type lives here.</span></div>
+  <div class="layer"><b>Range</b><span>Material, coating, and corrosion. This is the category.</span></div>
+  <div class="layer"><b>Drawing</b><span>Diameter and drill cap.</span></div>
+  <div class="layer"><b>Product</b><span>One product, many lengths. Length lives here.</span></div>
+  <div class="layer"><b>Item you order</b><span>Colour, size, and the other choices.</span></div>
 </div>
 
 <div class="card plain">
   <div class="label">What a person sees</div>
-  <p>After the folder call, the tree exists but the products are empty. After the product call, the master and the variant exist, still without head type or length. After the attribute-value call, the series shows the head, the range shows material and corrosion category, the drawing shows the diameter, and the master shows the length. The variant does not get its own head type. It shows the series head.</p>
+  <p>After the folders, the tree exists but the products are empty. After the product push, the product and the orderable item exist, still without a head type or a length. After the facts, the series shows the head, the range shows material and corrosion category, the drawing shows the diameter, and the product shows the length. The orderable item does not get its own head type. It shows the head from the series.</p>
 </div>
 
-<h3>What F&amp;O does not send</h3>
+<h2>What F&amp;O does not send</h2>
 <div class="card">
-  <p>These stay typed in Pimcore:</p>
   <ul>
     <li>The catalogue icon on a material (the A2 badge) and on a corrosion category (the C4 badge). F&amp;O sends the code. A person uploads the picture.</li>
     <li>Danish and Swedish shop title and shop description.</li>
@@ -107,136 +79,16 @@
   </ul>
 </div>
 
-<h2 id="developer">For the developer</h2>
-<p>Same connection, from an empty Pimcore. Do this in order. The JSON for each step is the matching tab on the <a href="fo-api.html">payload page</a>.</p>
-
-<ol class="steps">
-  <li>
-    <b>Build the classes before any F&amp;O call.</b>
-    <div class="card plain"><div class="label">Plain</div>Pimcore must already know what a screw is, what a washer is, and which shelves exist. The Function does not create those shelves.</div>
-    <div class="card tech"><div class="label">Technical</div>
-      <code>app:load-kalle-type-demo</code> creates <code>PtScrew</code> and <code>PtWasher</code>, the lookup classes (head type, material, corrosion category, colour, size, and the rest), the measure store, and the shop bricks. It does not load Red Horse products. Do not run it with <code>--force</code> on TEST. That flag deletes the workshop tree.<br>
-      F&amp;O objects are written only under <code>/ErpSync</code>. The workshop tree <code>/TypeBasedCatalog</code> is never written by these calls.
-    </div>
-  </li>
-  <li>
-    <b>Check the key.</b> <a href="fo-api.html#auth">/auth</a> and <a href="fo-api.html#ping">/ping</a>.
-    <div class="card plain"><div class="label">Plain</div>Auth only says the key is accepted. Ping stores the raw JSON so a person can read what was sent. Ping does not create a company or a product.</div>
-    <div class="card tech"><div class="label">Technical</div><code>GET</code> or <code>POST /api/v1/auth</code>. <code>POST /api/v1/ping</code> writes <code>FoIntakeLog</code> under <code>/ErpIntake</code>. A missing key is HTTP 401 on every route.</div>
-  </li>
-  <li>
-    <b>Companies.</b> <a href="fo-api.html#companies">/companies</a>
-    <div class="card plain"><div class="label">Plain</div>Creates the company record. It does not turn the company into a shop.</div>
-    <div class="card tech"><div class="label">Technical</div>
-      Match key <code>companyCode</code>. Object <code>PtLegalEntity</code> under <code>/ErpSync/LegalEntities</code>. Created today: <code>RH</code>, <code>RHU</code>, <code>ASW</code>, <code>SPI</code>. Skipped, and that skip is not a failure: <code>GXN</code>, <code>DH</code>, <code>DE</code>, <code>DE2</code>, and any unknown code. Repeat with the same code updates the name. <code>isDeleted: true</code> unpublishes it.
-    </div>
-  </li>
-  <li>
-    <b>Dimension lists.</b> <a href="fo-api.html#dimensions">/dimensions</a>
-    <div class="card plain"><div class="label">Plain</div>The lists a variant will point at: configuration, colour, size, style. Send the short code and the readable name. Example: code <code>59</code>, name <code>RAL 1003</code>.</div>
-    <div class="card tech"><div class="label">Technical</div>
-      Match key <code>dimension</code> + <code>code</code>. Objects under <code>/ErpSync/DimOptions/&lt;Class&gt;</code>. A code is unique for that class in the whole system. A code already used by the workshop is reused and answered <code>skipped</code> / <code>WORKSHOP_OWNED</code>. The workshop name is not renamed. Send this before products. This call is not attribute groups. A group named <code>DIMENSIONS</code> on the attribute setup is a different thing.
-    </div>
-  </li>
-  <li>
-    <b>Five folders.</b> <a href="fo-api.html#tree">/tree</a>
-    <div class="card plain"><div class="label">Plain</div>Builds the path the product will hang from. Parents before children. Level 1 must say screw (<code>06</code>) or washer (<code>09</code>). Anything else is skipped.</div>
-    <div class="card tech"><div class="label">Technical</div>
-      Match key <code>categoryKey</code> (the F&amp;O record id, as text). Path <code>/ErpSync/Catalog/…</code>. Level 1 <code>productType</code> <code>06</code> creates <code>PtScrew</code>; <code>09</code> creates <code>PtWasher</code>; otherwise <code>skipped</code> / <code>UNKNOWN_TYPE</code>. Children inherit the class. Empty brand and empty product-group number still create the folder. The level cannot be changed after create. A new <code>categoryKey</code> creates a second folder and leaves children on the old one.<br>
-      <code>texts[]</code> on a folder (<code>languageId</code>, <code>friendlyName</code>, <code>description</code>) is accepted and not stored. Those are folder labels. They are not the product name.
-    </div>
-  </li>
-  <li>
-    <b>Attribute setup, only when setup changes.</b> <a href="fo-api.html#attribute-definitions">/attribute-definitions</a>
-    <div class="card plain"><div class="label">Plain</div>Says what a fact is (a number, a word, a list), which group it belongs to, and which folder uses that group. It does not put a value on a product. Send <code>RH_Head</code>, not <code>HEAD TYPE</code>.</div>
-    <div class="card tech"><div class="label">Technical</div>
-      One document under <code>/ErpSync/AttributeBook</code>. Codes, types (<code>text</code>, <code>decimal</code>, <code>integer</code>, <code>boolean</code>, <code>list</code>), units, texts, and options are stored as sent. <code>en-CA</code> is not folded into <code>en</code>. A list value is legal only if it is one of the option codes on this call. A folder <code>categoryKey</code> that does not exist yet fails that folder row (<code>NOT_FOUND</code>, retryable). The attribute rows in the same batch are still stored. A repeat with the same body answers <code>unchanged</code>.
-    </div>
-  </li>
-  <li>
-    <b>Products.</b> <a href="fo-api.html#products">/products</a>
-    <div class="card plain"><div class="label">Plain</div>The master is the product. The variant is the SKU. The master must name the level-5 folder. The variant must name its master. Put the default name on this row.</div>
-    <div class="card tech"><div class="label">Technical</div>
-      Master match key <code>code</code>. Variant match key <code>itemNumber</code>, with <code>masterItemNumber</code>. Both under <code>/ErpSync/Catalog</code>, class taken from the level-5 folder. The master also sends <code>allowedConfig</code>, <code>allowedColour</code>, <code>allowedSize</code>, <code>allowedStyle</code>. Omit keeps the list. <code>null</code> or <code>[]</code> clears it. A variant colour outside a non-empty list is not linked and is listed in <code>ignored</code>. Washers only have size. <code>washerItemNumber</code> is accepted and ignored. This call does not write attribute values and does not write shops.
-    </div>
-  </li>
-  <li>
-    <b>Attribute values.</b> <a href="fo-api.html#product-attributes">/product-attributes</a>
-    <div class="card plain"><div class="label">Plain</div>Puts the facts on the product that already exists. The folder from setup decides the branch. The value lands on the level that owns that fact. It is not moved up onto a folder that was not named.</div>
-    <div class="card tech"><div class="label">Technical</div>
-      Match key <code>itemNumber</code> (master code or variant number). Unknown item: <code>NOT_FOUND</code>, retryable. Unknown attribute code, an option that is not on the definition, and a <code>DIAMETER</code> value that contains <code>/</code> go in <code>ignored</code> and do not fail the row. <code>isDeleted: true</code> or a null value clears that attribute only. It does not unpublish the product. A missing attribute in the list is left as it is. Sending the same values again answers <code>unchanged</code>.<br>
-      Where a known code is written, when the named folder’s branch contains that level:
-    </div>
-    <table>
-      <tr><th>Code sent</th><th>What Pimcore fills</th><th>On</th></tr>
-      <tr><td><code>RH_Head</code></td><td>Head type</td><td>Series folder</td></tr>
-      <tr><td><code>RH_Point</code>, <code>RH_Thread</code></td><td>Point type, thread type</td><td>Series folder</td></tr>
-      <tr><td><code>RH_SpecialFeatures</code></td><td>One feature, not split on commas</td><td>Series folder</td></tr>
-      <tr><td><code>MATERIAL TYPE</code>, <code>RH_Coating</code>, <code>CORROSION CATEGORY</code></td><td>Material, coating, corrosion category</td><td>Range folder</td></tr>
-      <tr><td><code>DIAMETER</code>, <code>DRILL CAP MM</code></td><td>Diameter, drill cap from, and <code>valueTo</code> as drill cap to</td><td>Product group</td></tr>
-      <tr><td><code>RH_Drive</code></td><td>Drive size (<code>TX10</code>, <code>HX8</code>, …). Not drive type.</td><td>Product group</td></tr>
-      <tr><td><code>LENGTH MM</code>, partial length, effective length</td><td>Length, partial length, effective length</td><td>The master of this item</td></tr>
-      <tr><td><code>DRIVE TYPE</code></td><td>Drive type (Torx, Phillips, Pozi). Not <code>RH_Drive</code>.</td><td>Series folder</td></tr>
-      <tr><td>Any other defined code</td><td>Stored on the folder that was named. No new field is invented.</td><td>That folder</td></tr>
-    </table>
-  </li>
-</ol>
-
-<h3>One screw, followed through</h3>
-<p>The numbers below are the shape, not a promise that these exact ids exist in TEST. After the six calls, Pimcore holds this:</p>
-<div class="tree">
-/ErpSync/Catalog
-  5637144580   type     Screws                         <span class="hit">← /tree, productType 06</span>
-    5637144712 family   CREO                           <span class="hit">← /tree, brand</span>
-      …        series   head type HX17                 <span class="hit">← /product-attributes RH_Head</span>
-        …      range    material A2, corrosion C4      <span class="hit">← /product-attributes</span>
-          5637145021 product group   diameter 6.5 mm   <span class="hit">← /product-attributes DIAMETER</span>
-                           drill cap 2.5 to 4
-            35044    master   length 23 mm            <span class="hit">← /products, then LENGTH MM</span>
-              35044-… variant  colour 59, size 8      <span class="hit">← /products + /dimensions</span>
-                           head type is still the series value
-</div>
-<p class="small">The A2 and C4 pictures are not in this tree. They are uploaded on the material and on the corrosion category.</p>
-
-<h2 id="static">Fixed in Pimcore, or sent by F&amp;O</h2>
-<div class="card plain">
-  <div class="label">Plain</div>
-  <p>The shelves are fixed. F&amp;O fills the shelves. F&amp;O cannot add a third kind of product by sending a new name. A fact Pimcore does not already have a shelf for is kept on the folder, and that is all.</p>
-</div>
-<table>
-  <tr><th></th><th>Fixed before any call</th><th>Sent on each batch</th></tr>
-  <tr><td>Product kinds</td><td><code>PtScrew</code> for <code>06</code>, <code>PtWasher</code> for <code>09</code>. Anything else is skipped.</td><td>The <code>productType</code> on the level-1 folder.</td></tr>
-  <tr><td>Levels</td><td>Type, family, series, range, product group, master, variant.</td><td>Which folder id sits at which level.</td></tr>
-  <tr><td>Variant axes</td><td>Screws: config, colour, size, style. Washers: size only.</td><td>The codes, the names, and the master’s allowed list.</td></tr>
-  <tr><td>Known facts</td><td>Head type, material, coating, corrosion, diameter, drill cap, length, drive size. The map is in Pimcore, not in the payload.</td><td>The code, the value, and which folder’s branch uses that group.</td></tr>
-  <tr><td>A fact with no shelf</td><td>No new class and no new field is created.</td><td>Stored on the folder named in <code>folderGroups</code>.</td></tr>
-  <tr><td>Shop text and icons</td><td>Danish, Swedish, pictures, and the C4 / A2 icons.</td><td>Not sent. The corrosion and material codes are sent. The pictures are not.</td></tr>
-</table>
-
-<h2 id="rules">Rules on every call</h2>
-<table>
-  <tr><th>Rule</th><th>What it means</th></tr>
-  <tr><td>Match key</td><td>Company code, folder id, dimension code, master code, or item number. Never a Pimcore id. The same key updates the same object.</td></tr>
-  <tr><td>Leave a field out</td><td>Keep what is already stored.</td></tr>
-  <tr><td><code>null</code>, <code>""</code>, or spaces</td><td>Clear that value.</td></tr>
-  <tr><td><code>isDeleted: true</code></td><td>Unpublish. Do not delete the row. On attribute values it clears that one attribute and does not unpublish the product.</td></tr>
-  <tr><td>Missing parent or unknown item</td><td>That row fails and can be retried. The rest of the batch still applies.</td></tr>
-  <tr><td>A skip</td><td>Not a failure. <code>ok</code> is true when <code>failed</code> is 0.</td></tr>
-  <tr><td>Size</td><td>At most 500 rows, or 2 MB. Split a larger batch.</td></tr>
-  <tr><td>Extra keys</td><td>Ignored. They do not fail the row.</td></tr>
-</table>
-
-<h2 id="notyet">Not connected yet</h2>
+<h2>Not connected yet</h2>
 <div class="card no">
-  <div class="label">Do not treat these as live</div>
   <ul>
-    <li><a href="fo-api.html#released"><code>/released</code></a> — which shop sells the SKU. POST returns 404. Shop bricks stay as they are. Do not treat “stopped for sales” as shop off.</li>
-    <li><a href="fo-api.html#translations"><code>/translations</code></a> — product name and description per F&amp;O language (<code>en-CA</code>, <code>en-HK</code>, …). POST returns 404. This is not the folder <code>texts[]</code> on <code>/tree</code>. Folder texts are labels of the folder. Product texts are this call. Neither is stored. Danish and Swedish shop copy is still written in Pimcore. The single product name is the <code>name</code> on <code>/products</code>.</li>
-    <li><code>washerItemNumber</code> on <code>/products</code> — accepted and ignored until F&amp;O confirms it is the washer’s own item number.</li>
+    <li>Which shop sells the item. The shop stays as it is until that push exists.</li>
+    <li>Folder names and product names in several F&amp;O languages. Those are not stored. Danish and Swedish shop text is still written in Pimcore. The product has one name.</li>
+    <li>Which washer is sold with a style-W screw. That number is accepted and not used until F&amp;O confirms it is the washer’s own item number.</li>
   </ul>
 </div>
 
-<p class="small">Payload samples, field tables, and the reply shape: <a href="fo-api.html">fo-api.html</a>.</p>
+<p class="small">Developer diagrams, from an empty Pimcore: <a href="how-pim-builds.html">how it is built</a>. Exact JSON: <a href="fo-api.html">payload page</a>.</p>
 
 </div>
 </body>
