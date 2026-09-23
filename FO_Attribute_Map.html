@@ -22,7 +22,7 @@
 <body>
 <div class="wrap">
 <h1>F&amp;O → Pimcore — attribute mapping sheet</h1>
-<p class="small">Generated from the live Pimcore classes on 22 Sep 2026. Do not hand-edit — re-run <code>app:export-attribute-map</code>.</p>
+<p class="small">Generated from the live Pimcore classes on 23 Sep 2026. Do not hand-edit — re-run <code>app:export-attribute-map</code>.</p>
 
 <div class="ok"><b>Everything below already exists in Pimcore.</b> These are all the places an attribute value can land. No PIM work is needed to add them.</div>
 <div class="box"><b>The two yellow columns are what blocks <code>POST /attributes</code>.</b> We cannot write a value until we know which F&amp;O attribute name maps to which row, and what a real value looks like. Fill the rows F&amp;O actually holds and leave the rest blank — blank means "F&amp;O does not have this".</div>
@@ -54,7 +54,7 @@
 <tr><td><code>rangeAttributes › kl-09-core › kl_outerDia</code></td><td>Outer diameter</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
 <tr><td><code>rangeAttributes › kl-09-core › kl_thickness</code></td><td>Thickness</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
 </table>
-<h2>productGroup — 12 target(s)</h2>
+<h2>productGroup — 13 target(s)</h2>
 <table>
 <tr><th>Pimcore target</th><th>Label</th><th>Type</th><th>What Pimcore accepts</th><th>Allowed / existing values</th><th>F&amp;O attribute name</th><th>F&amp;O example value</th></tr>
 <tr><td><code>productGroupAttributes › screw_drawing_basic_group › kl_dMinor</code></td><td>Dminor(d)</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
@@ -69,6 +69,7 @@
 <tr><td><code>productGroupAttributes › screw_drawing_drillpoint_group › kl_drillDd</code></td><td>Drill Point Diameter (Dd)</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
 <tr><td><code>productGroupAttributes › screw_drawing_drillpoint_group › kl_drillDl</code></td><td>Drill Point Length (Dl)</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
 <tr><td><code>productGroupAttributes › screw_drawing_drillcap_group › kl_drillCap</code></td><td>Drill Cap from</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
+<tr><td><code>productGroupAttributes › screw_drawing_drillcap_group › kl_drillCapTo</code></td><td>Drill Cap to</td><td>quantityValue</td><td>number + unit. Valid units: mm / in. Default mm. Send number and unit separately, not &quot;35.00 mm&quot; in one string.</td><td class="small"></td><td class="fill"></td><td class="fill"></td></tr>
 </table>
 <h2>master — 6 target(s)</h2>
 <table>

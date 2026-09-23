@@ -212,7 +212,8 @@ Content-Type: application/json
     <tr><td><code>masterItemNumber</code></td><td>variant</td><td>Yes</td><td>Its master's <code>code</code>. Presence of this field makes the row a variant.</td></tr>
     <tr><td><code>layer</code></td><td>variant</td><td>Yes</td><td><code>"variant"</code></td></tr>
     <tr><td><code>name</code></td><td>both</td><td><b>Please add</b></td><td>Default product name. One value, not a language map.</td></tr>
-    <tr><td><code>config</code> <code>colour</code> <code>size</code> <code>style</code></td><td>variant</td><td>No</td><td>Send the <b>same identifier</b> you used as <code>code</code> on <code>/dimensions</code>. Omit = keep. <code>null</code> = clear.</td></tr>
+    <tr><td><code>allowedConfig</code> <code>allowedColour</code> <code>allowedSize</code> <code>allowedStyle</code></td><td>master</td><td>No</td><td>Array of dimension <code>code</code>s this master may use. Same codes as <code>/dimensions</code>. Omit = keep. <code>null</code> or <code>[]</code> = clear. A colour with no variant yet still belongs here, because a Pimcore user can create that variant later. Washers only have <code>allowedSize</code>.</td></tr>
+    <tr><td><code>config</code> <code>colour</code> <code>size</code> <code>style</code></td><td>variant</td><td>No</td><td>Send the <b>same identifier</b> you used as <code>code</code> on <code>/dimensions</code>. Omit = keep. <code>null</code> = clear. If the master's allowed list for that axis is non-empty, a code outside it is not written.</td></tr>
     <tr><td><code>washerItemNumber</code></td><td>variant</td><td><b>Please confirm</b></td><td>For a screw sold with a washer (style W), Pimcore links the SKU to a washer product. Can F&amp;O tell us which washer, or should we derive it? Until that is answered the field is accepted and listed back under <code>ignored</code> — it is not written.</td></tr>
     <tr><td><code>isDeleted</code></td><td>both</td><td>No</td><td>Unpublish.</td></tr>
   </table>
@@ -220,7 +221,9 @@ Content-Type: application/json
   "batchId": "adf-prod-001",
   "items": [
     { "code": "35044", "layer": "master", "parentKey": "5637145021",
-      "name": "Hex screw 100mm", "isDeleted": false },
+      "name": "Hex screw 100mm",
+      "allowedColour": ["59", "21", "8", "3"],
+      "isDeleted": false },
 
     { "itemNumber": "35044-21-59-8-1", "masterItemNumber": "35044", "layer": "variant",
       "name": "Hex screw 100mm RAL 1003",
@@ -232,7 +235,7 @@ Content-Type: application/json
   <h3>What the live API answers</h3>
 <pre>{
   "ok": true, "batchId": "adf-prod-001",
-  "processed": 3, "failed": 0, "mastersRederived": 1,
+  "processed": 3, "failed": 0, "allowedUpdated": 1,
   "results": [
     { "key": "35044", "layer": "master", "action": "created",
       "objectId": 8596, "path": "/ErpSync/Catalog/.../5637145021/35044" },
@@ -249,10 +252,11 @@ Content-Type: application/json
     <tr><td><code>parentKey</code> that is not a level-5 folder</td><td>Row fails, <code>VALIDATION</code>, not retryable. Masters only hang off a product group.</td></tr>
     <tr><td><code>masterItemNumber</code> we have not seen</td><td>Row fails, <code>NOT_FOUND</code>, <b>retryable</b>. Send the master and repeat the row.</td></tr>
     <tr><td>A dimension value not yet on <code>/dimensions</code></td><td>Variant is still created. That one dimension is left empty and named back to you under <code>ignored</code>. We do not invent a label.</td></tr>
+    <tr><td>A variant code outside the master's allowed list</td><td>Variant is still created. That dimension is not written and comes back under <code>ignored</code>. It is not added to the allowed list.</td></tr>
     <tr><td><code>config</code> / <code>colour</code> / <code>style</code> on a washer</td><td>Washers only carry <code>size</code>. The others come back under <code>ignored</code> rather than being silently dropped.</td></tr>
     <tr><td>The same batch twice</td><td>Same objects, updated in place. Safe to retry.</td></tr>
   </table>
-  <p class="small">Pimcore derives the master's allowed configuration / colour / size / style from the variants it receives — <code>mastersRederived</code> tells you how many masters that touched. You do not need to send that list.</p>
+  <p class="small">Send the allowed codes on the master. Pimcore does not rebuild that list from the variants. <code>allowedUpdated</code> is how many masters in this batch had an allowed list written. A Pimcore user creating a variant can only pick a value that is already on that list; the list is the Allowed Configuration / Colour / Size / Style relations on the master.</p>
   <p class="small">Written today: identity, the four dimension pointers, and publish state. Attribute values, shop release, and the washer link are separate feeds and are not written by this call.</p>
 </div>
 
@@ -315,12 +319,12 @@ Content-Type: application/json
     { "itemNumber": "35044", "name": "Material",  "value": "Carbon steel" }
   ]
 }</pre>
-  <div class="ask"><b>We have done our half — now we need yours.</b> <a href="./FO_Attribute_Map.html">Open the attribute mapping sheet</a> (<a href="./FO_Attribute_Map.csv">CSV to fill</a>). It lists all <b>31</b> places a value can land in Pimcore, with the type, the unit, and the allowed values for each. Two columns are empty: <b>F&amp;O attribute name</b> and <b>F&amp;O example value</b>. Fill only the rows F&amp;O actually holds; a blank row means F&amp;O does not have it. That sheet is the last thing blocking this endpoint.</div>
+  <div class="ask"><b>We have done our half — now we need yours.</b> <a href="./FO_Attribute_Map.html">Open the attribute mapping sheet</a> (<a href="./FO_Attribute_Map.csv">CSV to fill</a>). It lists all <b>32</b> places a value can land in Pimcore, with the type, the unit, and the allowed values for each. Two columns are empty: <b>F&amp;O attribute name</b> and <b>F&amp;O example value</b>. Fill only the rows F&amp;O actually holds; a blank row means F&amp;O does not have it. That sheet is the last thing blocking this endpoint.</div>
   <h3>Three things the sheet will settle</h3>
   <table>
     <tr><th>Question</th><th>Why it matters</th></tr>
     <tr><td>Which F&amp;O name maps to which row</td><td>The endpoint keys off <code>name</code>. We cannot guess: a wrong guess writes a wrong spec onto a real product.</td></tr>
-    <tr><td>Number and unit, separately</td><td>15 of the 31 targets store a number plus a unit. Send <code>35</code> and <code>mm</code> as two values, not <code>"35.00 mm"</code> as one string.</td></tr>
+    <tr><td>Number and unit, separately</td><td>16 of the 32 targets store a number plus a unit. Send <code>35</code> and <code>mm</code> as two values, not <code>"35.00 mm"</code> as one string.</td></tr>
     <tr><td>Metric or imperial</td><td>Length, diameter and pitch exist <b>twice</b> in Pimcore, once per system. Tell us how to tell which system an item uses.</td></tr>
   </table>
   <p class="small">Where a value is a coded word, give us the code and the label, the same way as <code>/dimensions</code>. Do not send Pimcore measure keys and do not send numeric attribute ids.</p>
@@ -422,7 +426,7 @@ Content-Type: application/json
     <tr><td>Series</td><td>Head type, drive, thread, point, features, target material</td><td class="fix">Only per item on <code>/attributes</code>. Needs the attribute list to know which of these F&amp;O holds</td></tr>
     <tr><td>Range</td><td>Material, coating, application</td><td class="fix">Same as series</td></tr>
     <tr><td>Product Group</td><td>PG number, geometry (diameter, pitch, head, drill)</td><td class="fix"><code>productGroupNumber</code> — the API accepts it, <b>you must add it</b>. Geometry via <code>/attributes</code></td></tr>
-    <tr><td>Master</td><td>Name, length, partial length, salt spray, allowed dimensions</td><td class="fix"><code>name</code> — <b>missing from <code>/products</code></b>. Measures via <code>/attributes</code>. Allowed dimensions already derived from the variants you send</td></tr>
+    <tr><td>Master</td><td>Name, length, partial length, salt spray, allowed dimensions</td><td class="fix"><code>name</code> — <b>please add it</b>. Measures via <code>/attributes</code>. Allowed dimensions: send <code>allowedColour</code> (and the other three) on the master row</td></tr>
     <tr><td>Variant</td><td>Item number, config, colour, size, style, washer link</td><td class="keep">Covered by <code>/products</code> + <code>/dimensions</code>. Washer link still open</td></tr>
     <tr><td>Shops</td><td>Which companies sell the SKU</td><td class="keep">Covered by <code>/companies</code> + <code>/released</code></td></tr>
     <tr><td>Pictures, certificates, shop copy</td><td>Images, documents, marketing text</td><td class="keep">Pimcore. Not a Function job</td></tr>
