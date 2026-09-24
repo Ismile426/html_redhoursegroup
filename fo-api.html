@@ -54,7 +54,7 @@
 <p class="small">Updated <b>23 Sep 2026</b>. What the Function should send, per call. TEST: <code>http://10.100.16.4:82/api/v1</code> (RH LAN only — Azure cannot reach Pimcore yet). Two pages, not one: <a href="how-pim-connects.html">for Red Horse</a> and <a href="how-pim-builds.html">for the developer</a> (diagrams from an empty Pimcore).</p>
 
 <div class="ok"><b>LIVE now:</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/tree</code> · <code>/dimensions</code> · <code>/products</code> · <code>/attribute-definitions</code> · <code>/product-attributes</code></div>
-<div class="ask"><b>Not built:</b> <code>/released</code> · <code>/translations</code>. POST returns 404. Corrosion category is on the Range, with material and coating. The catalogue icon for those two is uploaded in Pimcore; F&amp;O sends the code, not the picture.</div>
+<div class="ask"><b>Not built:</b> <code>/released</code> only (POST 404). <code>/translations</code> is live. Primary F&amp;O language: <code>en-CA</code> → product <code>name</code>. Corrosion category is on the Range, with material and coating. Catalogue icons for material and corrosion are uploaded in Pimcore; F&amp;O sends the code, not the picture.</div>
 <div class="box"><code>X-API-Key</code> on <b>every</b> call. Wrapper <code>{ "batchId", "items": [] }</code>. Max <b>500</b> rows / <b>2 MB</b>. Unknown extra keys are ignored, they do not fail a row.</div>
 
 <nav class="tabs" id="tabs" aria-label="API endpoints">
@@ -90,12 +90,12 @@
     <tr><td><code>/attribute-definitions</code></td><td class="keep"><span class="badge live">LIVE</span></td><td>One setup call, only when setup changes, never per product. Use <code>RH_Head</code>, not <code>HEAD TYPE</code>.</td></tr>
     <tr><td><code>/product-attributes</code></td><td class="keep"><span class="badge live">LIVE</span></td><td>Values on an item that already exists from <code>/products</code>. Send definitions first.</td></tr>
     <tr><td><code>/released</code></td><td class="keep"><span class="badge keep">KEEP</span></td><td>Nothing. Explicit <code>false</code> is what switches a shop off.</td></tr>
-    <tr><td><code>/translations</code></td><td class="fix"><span class="badge fix">KEEP, REDUCED</span></td><td>Needed — in your design the product <b>name</b> only arrives here. We consume one language until Pimcore has localized product fields.</td></tr>
+    <tr><td><code>/translations</code></td><td class="keep"><span class="badge live">LIVE</span></td><td><code>en-CA</code> fills <code>name</code>. Other F&amp;O languages and descriptions are stored on the object. Danish and Swedish shop copy stays in Pimcore. Also send <code>name</code> on <code>/products</code> if you create the row first.</td></tr>
     <tr><td><code>/attribute-setup</code></td><td class="drop"><span class="badge drop">NOT A FEED</span></td><td>Use <code>/attribute-definitions</code> instead. Same job: definitions, groups, and which folder uses which group.</td></tr>
     <tr><td><code>/units</code></td><td class="drop"><span class="badge drop">HOLD</span></td><td>No field for pack size (PCS/BOX) in Pimcore today. Measure units (mm / in) already sit on the measure key.</td></tr>
     <tr><td><code>/barcodes</code> <code>/relations</code></td><td class="drop"><span class="badge drop">HOLD</span></td><td>No field on the class yet. Red Horse decides if these belong in PIM; then we model, then we feed.</td></tr>
   </table>
-  <p class="small">The attribute work is two calls, not four and not a mapping sheet. <code>/released</code> and <code>/translations</code> stay as they are. Extra fields on <code>/tree</code> and <code>/products</code> are still needed — see <b>Gaps to close</b>.</p>
+  <p class="small">The attribute work is two calls, not four and not a mapping sheet. <code>/released</code> is still not built. Extra fields on <code>/tree</code> and <code>/products</code> are still needed — see <b>Gaps to close</b>.</p>
 </div>
 
 <!-- START -->
@@ -110,7 +110,8 @@
     <li><code>/products</code> — live. Masters before variants</li>
     <li><code>/attribute-definitions</code> — live. Setup only, when it changes. After <code>/tree</code></li>
     <li><code>/product-attributes</code> — live. After <code>/products</code></li>
-    <li><code>/released</code> · <code>/translations</code> — not built</li>
+    <li><code>/translations</code> — live. After <code>/products</code></li>
+    <li><code>/released</code> — not built</li>
   </ol>
   <h3>Rules for every write</h3>
   <table>
@@ -401,18 +402,20 @@ Content-Type: application/json
 
 <!-- TRANSLATIONS -->
 <div class="tab panel" id="tab-translations">
-  <h2><span class="badge plan">SHAPE — not live</span> <code>POST /api/v1/translations</code></h2>
-  <p>Keep this feed. Red Horse sells in English, Danish, and Swedish, so translated text is needed — and in your design the product <b>name</b> only arrives here.</p>
+  <h2><span class="badge live">LIVE</span> <code>POST /api/v1/translations</code></h2>
+  <p>Product name per F&amp;O language. Primary language <b>en-CA</b> (Red Horse system language) fills the plain <code>name</code> field. Danish and Swedish shop title and description stay in Pimcore.</p>
   <h3>What Pimcore can store today</h3>
   <table>
     <tr><th>Text</th><th>Pimcore field</th><th>Source</th></tr>
     <tr><td>Product name</td><td>One plain field, not per language <b>yet</b></td><td>F&amp;O</td></tr>
     <tr><td>Shop title and shop description</td><td>Per language (<code>en</code> / <code>da</code> / <code>sv</code>) on the shop block</td><td>Pimcore — marketing copy, not F&amp;O</td></tr>
   </table>
-  <h3>How we will take it</h3>
+  <h3>How it works today</h3>
   <ul>
-    <li><b>Step 1 (now):</b> send <code>texts[]</code> as you drew it. We read the <b>one</b> language Red Horse nominates as primary and write it to the product name. Other languages are stored on the raw payload, not lost.</li>
-    <li><b>Step 2:</b> Pimcore adds per-language product name and description fields. Then the same feed fills <code>en</code> without any change on your side.</li>
+    <li><code>texts[].languageId</code> <code>en-CA</code> → plain <code>name</code> on the master or variant.</li>
+    <li>Other language ids → JSON bag <code>foTranslationBag</code> on the same object (<code>name</code> and <code>description</code> per language).</li>
+    <li>Languages not listed in this batch are left unchanged. Missing language is not a delete.</li>
+    <li><code>isDeleted</code> on this feed is ignored. Unpublish on <code>/products</code>. Clear text with <code>null</code> or <code>""</code>.</li>
   </ul>
   <table>
     <tr><th>Field</th><th>Required</th><th>Rule</th></tr>
@@ -420,7 +423,7 @@ Content-Type: application/json
     <tr><td><code>texts[].languageId</code></td><td>Yes</td><td>Send the F&amp;O code unchanged (<code>en-CA</code>, <code>en-HK</code>, <code>en-US</code>, <code>zh-Hant</code>, …). Do not convert it. Pimcore's own languages are only <code>en</code>, <code>da</code>, <code>sv</code>, and none of those F&amp;O codes is one of them.</td></tr>
     <tr><td><code>texts[].name</code></td><td>Yes</td><td>Product name in that language. Pimcore stores one name today, not one per language.</td></tr>
     <tr><td><code>texts[].description</code></td><td>No</td><td>There is no product-description field yet, so this value is kept with the payload and not written to an object. Shop description is Pimcore marketing copy and is never touched by this feed.</td></tr>
-    <tr><td><code>isDeleted</code></td><td>No</td><td>Has nothing to unpublish. A translation is not its own object. To clear a text, send <code>null</code>. To unpublish the product, send <code>isDeleted: true</code> on <code>/products</code>.</td></tr>
+    <tr><td><code>isDeleted</code></td><td>No</td><td>Ignored. Listed in <code>ignored</code>. To clear a text, send <code>null</code> or <code>""</code> on <code>name</code> or <code>description</code>. To unpublish the product, send <code>isDeleted: true</code> on <code>/products</code>.</td></tr>
   </table>
 <pre>{
   "batchId": "adf-txt-001",
@@ -433,7 +436,7 @@ Content-Type: application/json
       "isDeleted": false }
   ]
 }</pre>
-  <div class="ask"><b>One answer needed from Red Horse:</b> which F&amp;O language is the primary product text (<code>en-CA</code>, <code>en-US</code>, or another)? And is it confirmed that Danish and Swedish product text will be written in Pimcore, since F&amp;O holds neither?</div>
+  <p class="small">Primary language locked: <code>en-CA</code>. Step 2 (per-language Pimcore fields for shop locales) is future work; this feed already stores every F&amp;O language id as sent.</p>
 </div>
 
 <!-- REPLY -->

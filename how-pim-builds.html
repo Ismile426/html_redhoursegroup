@@ -125,6 +125,8 @@
   <div class="vstep"><div class="n">/products</div>Master match <code>code</code>, parent is the level-5 folder. Variant match <code>itemNumber</code> plus <code>masterItemNumber</code>. Also the master’s allowed colour, size, config, and style. <code>washerItemNumber</code> is ignored. No attribute values here. <a href="fo-api.html#products">JSON</a></div>
   <div class="arrow">↓</div>
   <div class="vstep"><div class="n">/product-attributes</div>Match <code>itemNumber</code> that already exists. Writes the facts. See the next picture for where each fact lands. <a href="fo-api.html#product-attributes">JSON</a></div>
+  <div class="arrow">↓</div>
+  <div class="vstep"><div class="n">/translations</div>Match <code>itemNumber</code> on master or variant. <code>en-CA</code> → plain <code>name</code>. Other F&amp;O languages and descriptions → <code>foTranslationBag</code>. <a href="fo-api.html#translations">JSON</a></div>
 </div>
 
 <h2 id="layers">4. Where one value lands</h2>
@@ -203,7 +205,7 @@
 <div class="box no">
   <ul>
     <li><a href="fo-api.html#released"><code>/released</code></a> returns 404. Shop on/off is not written. Do not treat “stopped for sales” as shop off.</li>
-    <li><a href="fo-api.html#translations"><code>/translations</code></a> returns 404. Product name and description per F&amp;O language are not stored. Folder <code>texts[]</code> on <code>/tree</code> are also not stored. They are folder labels, not this call. Danish and Swedish shop copy is written in Pimcore. The one product name is <code>name</code> on <code>/products</code>.</li>
+    <li>Folder <code>texts[]</code> on <code>/tree</code> are accepted and not stored. They are folder labels, not product <code>/translations</code>.</li>
     <li><code>washerItemNumber</code> is accepted on <code>/products</code> and ignored.</li>
   </ul>
 </div>
