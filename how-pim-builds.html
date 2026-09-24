@@ -126,7 +126,7 @@
   <div class="arrow">↓</div>
   <div class="vstep"><div class="n">/product-attributes</div>Match <code>itemNumber</code> that already exists. Writes the facts. See the next picture for where each fact lands. <a href="fo-api.html#product-attributes">JSON</a></div>
   <div class="arrow">↓</div>
-  <div class="vstep"><div class="n">/translations</div>Match <code>itemNumber</code> on master or variant (needs <code>/products</code>). <code>en-CA</code> → plain <code>name</code>. Other F&amp;O languages and descriptions → <code>foTranslationBag</code>. Same position as step 6 or just after it. <a href="fo-api.html#translations">JSON</a></div>
+  <div class="vstep"><div class="n">/product-translations</div>Match <code>itemNumber</code> on master or variant (needs <code>/products</code>). <code>en-CA</code> → plain <code>name</code>. Other F&amp;O languages and descriptions → <code>foTranslationBag</code>. Same position as step 6 or just after it. <a href="fo-api.html#product-translations">JSON</a></div>
   <div class="arrow">↓</div>
   <div class="vstep"><div class="n">/released</div><b>Not built.</b> Would need variants and shop companies. POST returns 404 today.</div>
 </div>
@@ -207,7 +207,7 @@
 <div class="box no">
   <ul>
     <li><a href="fo-api.html#released"><code>/released</code></a> returns 404. Shop on/off is not written. Do not treat “stopped for sales” as shop off.</li>
-    <li>Folder <code>texts[]</code> on <code>/tree</code> are accepted and not stored. They are folder labels, not product <code>/translations</code>.</li>
+    <li>Folder <code>texts[]</code> on <code>/tree</code> are accepted and not stored. They are folder labels, not product <code>/product-translations</code>.</li>
     <li><code>washerItemNumber</code> is accepted on <code>/products</code> and ignored.</li>
   </ul>
 </div>

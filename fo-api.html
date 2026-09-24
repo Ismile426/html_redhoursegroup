@@ -53,8 +53,8 @@
 <h1>F&amp;O → Pimcore — API payload</h1>
 <p class="small">Updated <b>24 Sep 2026</b>. What the Function should send, per call. TEST: <code>http://10.100.16.4:82/api/v1</code> (RH LAN only — Azure cannot reach Pimcore yet). <b>Call order:</b> <a href="#tab-start">Order &amp; rules</a> tab. Plain-language: <a href="how-pim-connects.html">Red Horse</a> · <a href="how-pim-builds.html">developer</a>.</p>
 
-<div class="ok"><b>LIVE now:</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/dimensions</code> · <code>/tree</code> · <code>/attribute-definitions</code> · <code>/products</code> · <code>/product-attributes</code> · <code>/translations</code></div>
-<div class="ask"><b>Not built:</b> <code>/released</code> only (POST 404). <code>/translations</code> is live. Primary F&amp;O language: <code>en-CA</code> → product <code>name</code>. Corrosion category is on the Range, with material and coating. Catalogue icons for material and corrosion are uploaded in Pimcore; F&amp;O sends the code, not the picture.</div>
+<div class="ok"><b>LIVE now:</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/dimensions</code> · <code>/tree</code> · <code>/attribute-definitions</code> · <code>/products</code> · <code>/product-attributes</code> · <code>/product-translations</code></div>
+<div class="ask"><b>Not built:</b> <code>/released</code> only (POST 404). <code>/product-translations</code> is live. Primary F&amp;O language: <code>en-CA</code> → product <code>name</code>. Corrosion category is on the Range, with material and coating. Catalogue icons for material and corrosion are uploaded in Pimcore; F&amp;O sends the code, not the picture.</div>
 <div class="box"><code>X-API-Key</code> on <b>every</b> call. Wrapper <code>{ "batchId", "items": [] }</code>. Max <b>500</b> rows / <b>2 MB</b>. Unknown extra keys are ignored, they do not fail a row.</div>
 
 <nav class="tabs" id="tabs" aria-label="API endpoints">
@@ -69,7 +69,7 @@
   <button type="button" data-tab="attribute-definitions"><span class="verb post">POST</span>/attribute-definitions</button>
   <button type="button" data-tab="product-attributes"><span class="verb post">POST</span>/product-attributes</button>
   <button type="button" data-tab="released"><span class="verb post">POST</span>/released</button>
-  <button type="button" data-tab="translations"><span class="verb post">POST</span>/translations</button>
+  <button type="button" data-tab="product-translations"><span class="verb post">POST</span>/product-translations</button>
   <button type="button" data-tab="reply">Reply shape</button>
   <button type="button" data-tab="gaps">Gaps to close</button>
   <button type="button" data-tab="later">Not v1</button>
@@ -90,7 +90,7 @@
     <tr><td><code>/attribute-definitions</code></td><td class="keep"><span class="badge live">LIVE</span></td><td>One setup call, only when setup changes, never per product. Use <code>RH_Head</code>, not <code>HEAD TYPE</code>.</td></tr>
     <tr><td><code>/product-attributes</code></td><td class="keep"><span class="badge live">LIVE</span></td><td>Values on an item that already exists from <code>/products</code>. Send definitions first.</td></tr>
     <tr><td><code>/released</code></td><td class="keep"><span class="badge keep">KEEP</span></td><td>Nothing. Explicit <code>false</code> is what switches a shop off.</td></tr>
-    <tr><td><code>/translations</code></td><td class="keep"><span class="badge live">LIVE</span></td><td><code>en-CA</code> fills <code>name</code>. Other F&amp;O languages and descriptions are stored on the object. Danish and Swedish shop copy stays in Pimcore. Also send <code>name</code> on <code>/products</code> if you create the row first.</td></tr>
+    <tr><td><code>/product-translations</code></td><td class="keep"><span class="badge live">LIVE</span></td><td><code>en-CA</code> fills <code>name</code>. Other F&amp;O languages and descriptions are stored on the object. Danish and Swedish shop copy stays in Pimcore. Also send <code>name</code> on <code>/products</code> if you create the row first.</td></tr>
     <tr><td><code>/attribute-setup</code></td><td class="drop"><span class="badge drop">NOT A FEED</span></td><td>Use <code>/attribute-definitions</code> instead. Same job: definitions, groups, and which folder uses which group.</td></tr>
     <tr><td><code>/units</code></td><td class="drop"><span class="badge drop">HOLD</span></td><td>No field for pack size (PCS/BOX) in Pimcore today. Measure units (mm / in) already sit on the measure key.</td></tr>
     <tr><td><code>/barcodes</code> <code>/relations</code></td><td class="drop"><span class="badge drop">HOLD</span></td><td>No field on the class yet. Red Horse decides if these belong in PIM; then we model, then we feed.</td></tr>
@@ -113,10 +113,10 @@
     <tr><td>4</td><td><code>/attribute-definitions</code></td><td><code>/tree</code></td><td>Setup only (when it changes). <code>folderGroups</code> uses folder <code>categoryKey</code>s. Missing folder = retry that folder row, not the whole book.</td></tr>
     <tr><td>5</td><td><code>/products</code></td><td><code>/tree</code> level 5 · <code>/dimensions</code> for variant axes</td><td>Master hangs on the drawing folder. Variants after masters. Same batch: masters before variants.</td></tr>
     <tr><td>6</td><td><code>/product-attributes</code></td><td><code>/products</code> · <code>/attribute-definitions</code> recommended</td><td>Values on an existing <code>itemNumber</code> or master <code>code</code>. List options should be defined first.</td></tr>
-    <tr><td>7</td><td><code>/translations</code></td><td><code>/products</code></td><td>Names on master or variant. <code>en-CA</code> → plain <code>name</code>. Can run after step 5; order vs step 6 is flexible.</td></tr>
+    <tr><td>7</td><td><code>/product-translations</code></td><td><code>/products</code></td><td>Names on master or variant. <code>en-CA</code> → plain <code>name</code>. Can run after step 5; order vs step 6 is flexible.</td></tr>
     <tr><td>—</td><td><code>/released</code></td><td><code>/companies</code> · variants on <code>/products</code></td><td><b>Not built</b> (404). Shop on/off per SKU and company.</td></tr>
   </table>
-  <div class="ok"><b>One line:</b> companies → dimensions → tree → attribute-definitions → products → product-attributes (+ translations when you send names).</div>
+  <div class="ok"><b>One line:</b> companies → dimensions → tree → attribute-definitions → products → product-attributes → product-translations.</div>
   <h3>Inside one batch</h3>
   <ul>
     <li><code>/tree</code> — parent folder before child.</li>
@@ -129,7 +129,7 @@
     <tr><td>Match key</td><td>Business key, never a Pimcore id. Re-sending the same row updates in place, so retries are safe.</td></tr>
     <tr><td>Omit a field</td><td>Keep the current value. This is the only way to say "no change".</td></tr>
     <tr><td><code>null</code>, <code>""</code>, or spaces only</td><td>Clear the value. An empty string is not "no change".</td></tr>
-    <tr><td><code>isDeleted: true</code></td><td>Unpublish that object. Never a hard delete. It only applies to an object this feed creates — see <code>/translations</code>.</td></tr>
+    <tr><td><code>isDeleted: true</code></td><td>Unpublish that object. Never a hard delete. It only applies to an object this feed creates — see <code>/product-translations</code>.</td></tr>
     <tr><td>Missing parent</td><td>That row fails and is retryable. The rest of the batch still applies. We do not invent parents.</td></tr>
     <tr><td>First run vs delta</td><td>Full set per feed in the order above, then changed rows only.</td></tr>
   </table>
@@ -217,7 +217,7 @@ Content-Type: application/json
 <div class="tab panel" id="tab-products">
   <h2><span class="badge live">LIVE</span> <code>POST /api/v1/products</code></h2>
   <p><code>http://10.100.16.4:82/api/v1/products</code> — your master and variant identity is correct and now writes real objects. Two things are still missing on your side.</p>
-  <div class="ask"><b>Your <code>/products</code> has no <code>name</code>.</b> In your design a product name only arrives on <code>/translations</code>, so every object would be created unnamed. Please put a default <code>name</code> on the product row as well.</div>
+  <div class="ask"><b>Your <code>/products</code> has no <code>name</code>.</b> In your design a product name only arrives on <code>/product-translations</code>, so every object would be created unnamed. Please put a default <code>name</code> on the product row as well.</div>
   <table>
     <tr><th>Field</th><th>On</th><th>Required</th><th>Rule</th></tr>
     <tr><td><code>code</code></td><td>master</td><td>Yes</td><td>Match key. F&amp;O product number.</td></tr>
@@ -411,8 +411,8 @@ Content-Type: application/json
 </div>
 
 <!-- TRANSLATIONS -->
-<div class="tab panel" id="tab-translations">
-  <h2><span class="badge live">LIVE</span> <code>POST /api/v1/translations</code></h2>
+<div class="tab panel" id="tab-product-translations">
+  <h2><span class="badge live">LIVE</span> <code>POST /api/v1/product-translations</code></h2>
   <p>Product name per F&amp;O language. Primary language <b>en-CA</b> (Red Horse system language) fills the plain <code>name</code> field. Danish and Swedish shop title and description stay in Pimcore.</p>
   <h3>What Pimcore can store today</h3>
   <table>
@@ -545,6 +545,7 @@ Content-Type: application/json
   });
   var hash = (location.hash || "#vs").replace("#", "");
   if (hash === "attributes") hash = "attribute-definitions";
+  if (hash === "translations") hash = "product-translations";
   if (!document.getElementById("tab-" + hash)) hash = "vs";
   show(hash);
 })();
