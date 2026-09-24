@@ -51,9 +51,9 @@
 <div class="wrap">
 
 <h1>F&amp;O → Pimcore — API payload</h1>
-<p class="small">Updated <b>23 Sep 2026</b>. What the Function should send, per call. TEST: <code>http://10.100.16.4:82/api/v1</code> (RH LAN only — Azure cannot reach Pimcore yet). Two pages, not one: <a href="how-pim-connects.html">for Red Horse</a> and <a href="how-pim-builds.html">for the developer</a> (diagrams from an empty Pimcore).</p>
+<p class="small">Updated <b>24 Sep 2026</b>. What the Function should send, per call. TEST: <code>http://10.100.16.4:82/api/v1</code> (RH LAN only — Azure cannot reach Pimcore yet). <b>Call order:</b> <a href="#tab-start">Order &amp; rules</a> tab. Plain-language: <a href="how-pim-connects.html">Red Horse</a> · <a href="how-pim-builds.html">developer</a>.</p>
 
-<div class="ok"><b>LIVE now:</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/tree</code> · <code>/dimensions</code> · <code>/products</code> · <code>/attribute-definitions</code> · <code>/product-attributes</code></div>
+<div class="ok"><b>LIVE now:</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/dimensions</code> · <code>/tree</code> · <code>/attribute-definitions</code> · <code>/products</code> · <code>/product-attributes</code> · <code>/translations</code></div>
 <div class="ask"><b>Not built:</b> <code>/released</code> only (POST 404). <code>/translations</code> is live. Primary F&amp;O language: <code>en-CA</code> → product <code>name</code>. Corrosion category is on the Range, with material and coating. Catalogue icons for material and corrosion are uploaded in Pimcore; F&amp;O sends the code, not the picture.</div>
 <div class="box"><code>X-API-Key</code> on <b>every</b> call. Wrapper <code>{ "batchId", "items": [] }</code>. Max <b>500</b> rows / <b>2 MB</b>. Unknown extra keys are ignored, they do not fail a row.</div>
 
@@ -101,18 +101,28 @@
 <!-- START -->
 <div class="tab panel" id="tab-start">
   <h2>Order &amp; rules</h2>
-  <p>One tab = one POST body. Do not mix fields between tabs.</p>
-  <h3>Feed order</h3>
-  <ol>
-    <li><code>/companies</code> — live</li>
-    <li><code>/dimensions</code> — live. So variant colour and size resolve to a name</li>
-    <li><code>/tree</code> — live. Parents before children</li>
-    <li><code>/products</code> — live. Masters before variants</li>
-    <li><code>/attribute-definitions</code> — live. Setup only, when it changes. After <code>/tree</code></li>
-    <li><code>/product-attributes</code> — live. After <code>/products</code></li>
-    <li><code>/translations</code> — live. After <code>/products</code></li>
-    <li><code>/released</code> — not built</li>
-  </ol>
+  <p>One tab = one POST body. Do not mix fields between tabs. On a <b>first full load</b>, run the numbered feeds top to bottom. After that, send <b>only what changed</b>, but never before its parent exists in Pimcore.</p>
+  <h3>Before any batch</h3>
+  <p><code>/auth</code> or <code>/ping</code> — optional smoke test. They do not create catalogue data.</p>
+  <h3>Feed order (what must exist first)</h3>
+  <table>
+    <tr><th>#</th><th>POST</th><th>Needs first</th><th>Why</th></tr>
+    <tr><td>1</td><td><code>/companies</code></td><td>—</td><td>Legal entities. Independent of the catalogue tree.</td></tr>
+    <tr><td>2</td><td><code>/dimensions</code></td><td>—</td><td>Colour, size, config, style lists. Variants on <code>/products</code> point at these codes.</td></tr>
+    <tr><td>3</td><td><code>/tree</code></td><td>—</td><td>Five folder levels. Parents before children. Level 1 <code>06</code> or <code>09</code>.</td></tr>
+    <tr><td>4</td><td><code>/attribute-definitions</code></td><td><code>/tree</code></td><td>Setup only (when it changes). <code>folderGroups</code> uses folder <code>categoryKey</code>s. Missing folder = retry that folder row, not the whole book.</td></tr>
+    <tr><td>5</td><td><code>/products</code></td><td><code>/tree</code> level 5 · <code>/dimensions</code> for variant axes</td><td>Master hangs on the drawing folder. Variants after masters. Same batch: masters before variants.</td></tr>
+    <tr><td>6</td><td><code>/product-attributes</code></td><td><code>/products</code> · <code>/attribute-definitions</code> recommended</td><td>Values on an existing <code>itemNumber</code> or master <code>code</code>. List options should be defined first.</td></tr>
+    <tr><td>7</td><td><code>/translations</code></td><td><code>/products</code></td><td>Names on master or variant. <code>en-CA</code> → plain <code>name</code>. Can run after step 5; order vs step 6 is flexible.</td></tr>
+    <tr><td>—</td><td><code>/released</code></td><td><code>/companies</code> · variants on <code>/products</code></td><td><b>Not built</b> (404). Shop on/off per SKU and company.</td></tr>
+  </table>
+  <div class="ok"><b>One line:</b> companies → dimensions → tree → attribute-definitions → products → product-attributes (+ translations when you send names).</div>
+  <h3>Inside one batch</h3>
+  <ul>
+    <li><code>/tree</code> — parent folder before child.</li>
+    <li><code>/products</code> — master row before its variants.</li>
+    <li>Other feeds — order inside the batch does not matter; match keys are per row.</li>
+  </ul>
   <h3>Rules for every write</h3>
   <table>
     <tr><th>Rule</th><th>Behaviour</th></tr>

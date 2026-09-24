@@ -110,7 +110,7 @@
 </div>
 
 <h2 id="calls">3. Then the calls, in this order</h2>
-<p class="say">Each box needs the one above it. A repeat with the same key updates the same object. It does not create a second one. A missing key on the request is HTTP 401.</p>
+<p class="say">This is the Pimcore dependency order. Each numbered feed needs the rows above it to exist first. Full table: <a href="fo-api.html#tab-start">fo-api.html → Order &amp; rules</a>. A repeat with the same key updates the same object. A missing key is HTTP 401.</p>
 <div class="vflow">
   <div class="vstep"><div class="n">Check</div><a href="fo-api.html#auth">/auth</a> says the key is accepted. <a href="fo-api.html#ping">/ping</a> stores the raw JSON under <code>/ErpIntake</code>. Ping creates no company and no product.</div>
   <div class="arrow">↓</div>
@@ -126,7 +126,9 @@
   <div class="arrow">↓</div>
   <div class="vstep"><div class="n">/product-attributes</div>Match <code>itemNumber</code> that already exists. Writes the facts. See the next picture for where each fact lands. <a href="fo-api.html#product-attributes">JSON</a></div>
   <div class="arrow">↓</div>
-  <div class="vstep"><div class="n">/translations</div>Match <code>itemNumber</code> on master or variant. <code>en-CA</code> → plain <code>name</code>. Other F&amp;O languages and descriptions → <code>foTranslationBag</code>. <a href="fo-api.html#translations">JSON</a></div>
+  <div class="vstep"><div class="n">/translations</div>Match <code>itemNumber</code> on master or variant (needs <code>/products</code>). <code>en-CA</code> → plain <code>name</code>. Other F&amp;O languages and descriptions → <code>foTranslationBag</code>. Same position as step 6 or just after it. <a href="fo-api.html#translations">JSON</a></div>
+  <div class="arrow">↓</div>
+  <div class="vstep"><div class="n">/released</div><b>Not built.</b> Would need variants and shop companies. POST returns 404 today.</div>
 </div>
 
 <h2 id="layers">4. Where one value lands</h2>

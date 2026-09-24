@@ -43,16 +43,17 @@
 <p class="small">The test address is on the Red Horse network only. Azure cannot reach it yet. Every push needs a key. There is no login session.</p>
 
 <h2>The order that is live</h2>
-<p>Each box is one push. The next box needs the one before it. Sending the same thing again updates what is already there. It does not make a second copy.</p>
+<p>Each box is one push. Run them in this order on a first load. The next box needs what the earlier boxes created in Pimcore. Sending the same thing again updates what is already there. It does not make a second copy. Technical detail and “needs first” table: <a href="fo-api.html#tab-start">payload page → Order &amp; rules</a>.</p>
 <div class="flow">
   <div class="step on"><b>1. Companies</b><span>Which F&amp;O companies exist</span></div>
   <div class="step on"><b>2. Colours and sizes</b><span>The lists a variant can use</span></div>
   <div class="step on"><b>3. Folders</b><span>Type, family, series, range, drawing</span></div>
   <div class="step on"><b>4. What a fact is</b><span>Head, diameter, length — the definition</span></div>
   <div class="step on"><b>5. Products</b><span>The product and the item you can order</span></div>
-  <div class="step on"><b>6. The facts</b><span>The head, the material, the length</span></div>
-  <div class="step on"><b>7. Names in F&amp;O languages</b><span>English Canada is the main name</span></div>
+  <div class="step on"><b>6. The facts</b><span>The head, the material, the length — needs products</span></div>
+  <div class="step on"><b>7. Names in F&amp;O languages</b><span>English Canada is the main name — needs products; can follow step 6</span></div>
 </div>
+<p class="small">Step 4 (definitions) must come after folders (step 3). Step 5 (products) must come after folders and colour/size lists (steps 2–3). Steps 6 and 7 both need step 5.</p>
 
 <h2>What a screw looks like</h2>
 <p>One screw is seven levels. The top five are folders. The last two are the product and the thing a customer orders.</p>
