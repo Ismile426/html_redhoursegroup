@@ -2,7 +2,7 @@
 
 Use this to call **one API at a time**, see what appears in Pimcore, and understand how payloads map to classes and folders.
 
-**Contract (full field tables):** [FO_API.html](FO_API.html) · **Plain flow:** [how-pim-connects.html](how-pim-connects.html) · **Developer diagram:** [how-pim-builds.html](how-pim-builds.html)
+**Contract (full field tables):** [FO_API.html](FO_API.html) · **Keys, arrays, mapping:** [FO_API_PAYLOAD_GUIDE.md](FO_API_PAYLOAD_GUIDE.md) · **Plain flow:** [how-pim-connects.html](how-pim-connects.html) · **Developer diagram:** [how-pim-builds.html](how-pim-builds.html)
 
 ---
 

@@ -51,7 +51,7 @@
 <div class="wrap">
 
 <h1>F&amp;O → Pimcore — API payload</h1>
-<p class="small">Updated <b>24 Sep 2026</b>. What the Function should send, per call. TEST: <code>http://10.100.16.4:82/api/v1</code> (RH LAN only — Azure cannot reach Pimcore yet). <b>Call order:</b> <a href="#tab-start">Order &amp; rules</a> tab. Plain-language: <a href="how-pim-connects.html">Red Horse</a> · <a href="how-pim-builds.html">developer</a>. Step-by-step curl + Pimcore checks: <a href="FO_MANUAL_TEST_RUNBOOK.md">manual test runbook</a>.</p>
+<p class="small">Updated <b>24 Sep 2026</b>. What the Function should send, per call. TEST: <code>http://10.100.16.4:82/api/v1</code> (RH LAN only — Azure cannot reach Pimcore yet). <b>Call order:</b> <a href="#tab-start">Order &amp; rules</a> tab. Plain-language: <a href="how-pim-connects.html">Red Horse</a> · <a href="how-pim-builds.html">developer</a>. Step-by-step curl: <a href="FO_MANUAL_TEST_RUNBOOK.md">manual test runbook</a>. Keys, arrays, mapping: <a href="FO_API_PAYLOAD_GUIDE.md">payload guide</a>.</p>
 
 <div class="ok"><b>LIVE now:</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/dimensions</code> · <code>/tree</code> · <code>/attribute-definitions</code> · <code>/products</code> · <code>/product-attributes</code> · <code>/product-translations</code></div>
 <div class="ask"><b>Not built:</b> <code>/released</code> only (POST 404). <code>/product-translations</code> is live. Primary F&amp;O language: <code>en-CA</code> → product <code>name</code>. Corrosion category is on the Range, with material and coating. Catalogue icons for material and corrosion are uploaded in Pimcore; F&amp;O sends the code, not the picture.</div>
