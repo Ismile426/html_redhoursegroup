@@ -53,8 +53,8 @@
 <h1>F&amp;O → Pimcore — API payload</h1>
 <p class="small">Updated <b>24 Sep 2026</b>. What the Function should send, per call. TEST: <code>http://10.100.16.4:82/api/v1</code> (RH LAN only — Azure cannot reach Pimcore yet). <b>Call order:</b> <a href="#tab-start">Order &amp; rules</a> tab. Plain-language: <a href="how-pim-connects.html">Red Horse</a> · <a href="how-pim-builds.html">developer</a>. Step-by-step curl: <a href="FO_MANUAL_TEST_RUNBOOK.md">manual test runbook</a>. Keys, arrays, mapping: <a href="FO_API_PAYLOAD_GUIDE.md">payload guide</a>.</p>
 
-<div class="ok"><b>LIVE now:</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/dimensions</code> · <code>/tree</code> · <code>/attribute-definitions</code> · <code>/products</code> · <code>/product-attributes</code> · <code>/product-translations</code></div>
-<div class="ask"><b>Not built:</b> <code>/released</code> only (POST 404). <code>/product-translations</code> is live. Primary F&amp;O language: <code>en-CA</code> → product <code>name</code>. Corrosion category is on the Range, with material and coating. Catalogue icons for material and corrosion are uploaded in Pimcore; F&amp;O sends the code, not the picture.</div>
+<div class="ok"><b>LIVE now:</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/dimensions</code> · <code>/tree</code> · <code>/attribute-definitions</code> · <code>/product-master</code> · <code>/product-attributes</code> · <code>/product-translations</code></div>
+<div class="ask"><b>Not built:</b> <code>/product-release</code> only (POST 404). <code>/product-translations</code> is live. Primary F&amp;O language: <code>en-CA</code> → product <code>name</code>. Corrosion category is on the Range, with material and coating. Catalogue icons for material and corrosion are uploaded in Pimcore; F&amp;O sends the code, not the picture.</div>
 <div class="box"><code>X-API-Key</code> on <b>every</b> call. Wrapper <code>{ "batchId", "items": [] }</code>. Max <b>500</b> rows / <b>2 MB</b>. Unknown extra keys are ignored, they do not fail a row.</div>
 
 <nav class="tabs" id="tabs" aria-label="API endpoints">
@@ -64,11 +64,11 @@
   <button type="button" data-tab="ping"><span class="verb get">GET/POST</span>/ping</button>
   <button type="button" data-tab="companies"><span class="verb post">POST</span>/companies</button>
   <button type="button" data-tab="tree"><span class="verb post">POST</span>/tree</button>
-  <button type="button" data-tab="products"><span class="verb post">POST</span>/products</button>
+  <button type="button" data-tab="products"><span class="verb post">POST</span>/product-master</button>
   <button type="button" data-tab="dimensions"><span class="verb post">POST</span>/dimensions</button>
   <button type="button" data-tab="attribute-definitions"><span class="verb post">POST</span>/attribute-definitions</button>
   <button type="button" data-tab="product-attributes"><span class="verb post">POST</span>/product-attributes</button>
-  <button type="button" data-tab="released"><span class="verb post">POST</span>/released</button>
+  <button type="button" data-tab="released"><span class="verb post">POST</span>/product-release</button>
   <button type="button" data-tab="product-translations"><span class="verb post">POST</span>/product-translations</button>
   <button type="button" data-tab="reply">Reply shape</button>
   <button type="button" data-tab="gaps">Gaps to close</button>
@@ -85,17 +85,17 @@
     <tr><td><code>/ping</code></td><td class="keep"><span class="badge keep">KEEP</span></td><td>Nothing. Empty GET is fine; a POST body is stored so we can read it.</td></tr>
     <tr><td><code>/companies</code></td><td class="keep"><span class="badge keep">KEEP</span></td><td>Nothing. Which codes become shops is still open on the Red Horse sheet.</td></tr>
     <tr><td><code>/tree</code></td><td class="fix"><span class="badge fix">ADD FIELDS</span></td><td><code>productType</code> on level 1 (<b>now</b>, not later), <code>brand</code> on level 2, <code>productGroupNumber</code> on level 5.</td></tr>
-    <tr><td><code>/products</code></td><td class="fix"><span class="badge live">LIVE</span> <span class="badge fix">ADD FIELDS</span></td><td>Live for identity and the four dimension pointers. Add <code>name</code> — it is missing entirely. Washer link for style-W screws still open, sending it is accepted and ignored.</td></tr>
+    <tr><td><code>/product-master</code></td><td class="fix"><span class="badge live">LIVE</span> <span class="badge fix">ADD FIELDS</span></td><td>Live for identity and the four dimension pointers. Add <code>name</code> — it is missing entirely. Washer link for style-W screws still open, sending it is accepted and ignored.</td></tr>
     <tr><td><code>/dimensions</code></td><td class="keep"><span class="badge live">LIVE</span></td><td>Your shape, unchanged. Send <b>both</b> <code>code</code> and <code>name</code> per value. This is how variants get readable colours and sizes.</td></tr>
     <tr><td><code>/attribute-definitions</code></td><td class="keep"><span class="badge live">LIVE</span></td><td>One setup call, only when setup changes, never per product. Use <code>RH_Head</code>, not <code>HEAD TYPE</code>.</td></tr>
-    <tr><td><code>/product-attributes</code></td><td class="keep"><span class="badge live">LIVE</span></td><td>Values on an item that already exists from <code>/products</code>. Send definitions first.</td></tr>
-    <tr><td><code>/released</code></td><td class="keep"><span class="badge keep">KEEP</span></td><td>Nothing. Explicit <code>false</code> is what switches a shop off.</td></tr>
-    <tr><td><code>/product-translations</code></td><td class="keep"><span class="badge live">LIVE</span></td><td><code>en-CA</code> fills <code>name</code>. Other F&amp;O languages and descriptions are stored on the object. Danish and Swedish shop copy stays in Pimcore. Also send <code>name</code> on <code>/products</code> if you create the row first.</td></tr>
+    <tr><td><code>/product-attributes</code></td><td class="keep"><span class="badge live">LIVE</span></td><td>Values on an item that already exists from <code>/product-master</code>. Send definitions first.</td></tr>
+    <tr><td><code>/product-release</code></td><td class="keep"><span class="badge keep">KEEP</span></td><td>Nothing. Explicit <code>false</code> is what switches a shop off.</td></tr>
+    <tr><td><code>/product-translations</code></td><td class="keep"><span class="badge live">LIVE</span></td><td><code>en-CA</code> fills <code>name</code>. Other F&amp;O languages and descriptions are stored on the object. Danish and Swedish shop copy stays in Pimcore. Also send <code>name</code> on <code>/product-master</code> if you create the row first.</td></tr>
     <tr><td><code>/attribute-setup</code></td><td class="drop"><span class="badge drop">NOT A FEED</span></td><td>Use <code>/attribute-definitions</code> instead. Same job: definitions, groups, and which folder uses which group.</td></tr>
     <tr><td><code>/units</code></td><td class="drop"><span class="badge drop">HOLD</span></td><td>No field for pack size (PCS/BOX) in Pimcore today. Measure units (mm / in) already sit on the measure key.</td></tr>
     <tr><td><code>/barcodes</code> <code>/relations</code></td><td class="drop"><span class="badge drop">HOLD</span></td><td>No field on the class yet. Red Horse decides if these belong in PIM; then we model, then we feed.</td></tr>
   </table>
-  <p class="small">The attribute work is two calls, not four and not a mapping sheet. <code>/released</code> is still not built. Extra fields on <code>/tree</code> and <code>/products</code> are still needed — see <b>Gaps to close</b>.</p>
+  <p class="small">The attribute work is two calls, not four and not a mapping sheet. <code>/product-release</code> is still not built. Extra fields on <code>/tree</code> and <code>/product-master</code> are still needed — see <b>Gaps to close</b>.</p>
 </div>
 
 <!-- START -->
@@ -108,19 +108,19 @@
   <table>
     <tr><th>#</th><th>POST</th><th>Needs first</th><th>Why</th></tr>
     <tr><td>1</td><td><code>/companies</code></td><td>—</td><td>Legal entities. Independent of the catalogue tree.</td></tr>
-    <tr><td>2</td><td><code>/dimensions</code></td><td>—</td><td>Colour, size, config, style lists. Variants on <code>/products</code> point at these codes.</td></tr>
+    <tr><td>2</td><td><code>/dimensions</code></td><td>—</td><td>Colour, size, config, style lists. Variants on <code>/product-master</code> point at these codes.</td></tr>
     <tr><td>3</td><td><code>/tree</code></td><td>—</td><td>Five folder levels. Parents before children. Level 1 <code>06</code> or <code>09</code>.</td></tr>
     <tr><td>4</td><td><code>/attribute-definitions</code></td><td><code>/tree</code></td><td>Setup only (when it changes). <code>folderGroups</code> uses folder <code>categoryKey</code>s. Missing folder = retry that folder row, not the whole book.</td></tr>
-    <tr><td>5</td><td><code>/products</code></td><td><code>/tree</code> level 5 · <code>/dimensions</code> for variant axes</td><td>Master hangs on the drawing folder. Variants after masters. Same batch: masters before variants.</td></tr>
-    <tr><td>6</td><td><code>/product-attributes</code></td><td><code>/products</code> · <code>/attribute-definitions</code> recommended</td><td>Values on an existing <code>itemNumber</code> or master <code>code</code>. List options should be defined first.</td></tr>
-    <tr><td>7</td><td><code>/product-translations</code></td><td><code>/products</code></td><td>Names on master or variant. <code>en-CA</code> → plain <code>name</code>. Can run after step 5; order vs step 6 is flexible.</td></tr>
-    <tr><td>—</td><td><code>/released</code></td><td><code>/companies</code> · variants on <code>/products</code></td><td><b>Not built</b> (404). Shop on/off per SKU and company.</td></tr>
+    <tr><td>5</td><td><code>/product-master</code></td><td><code>/tree</code> level 5 · <code>/dimensions</code> for variant axes</td><td>Master hangs on the drawing folder. Variants after masters. Same batch: masters before variants.</td></tr>
+    <tr><td>6</td><td><code>/product-attributes</code></td><td><code>/product-master</code> · <code>/attribute-definitions</code> recommended</td><td>Values on an existing <code>itemNumber</code> or master <code>code</code>. List options should be defined first.</td></tr>
+    <tr><td>7</td><td><code>/product-translations</code></td><td><code>/product-master</code></td><td>Names on master or variant. <code>en-CA</code> → plain <code>name</code>. Can run after step 5; order vs step 6 is flexible.</td></tr>
+    <tr><td>—</td><td><code>/product-release</code></td><td><code>/companies</code> · variants on <code>/product-master</code></td><td><b>Not built</b> (404). Shop on/off per SKU and company.</td></tr>
   </table>
-  <div class="ok"><b>One line:</b> companies → dimensions → tree → attribute-definitions → products → product-attributes → product-translations.</div>
+  <div class="ok"><b>One line:</b> companies → dimensions → tree → attribute-definitions → product-master → product-attributes → product-translations.</div>
   <h3>Inside one batch</h3>
   <ul>
     <li><code>/tree</code> — parent folder before child.</li>
-    <li><code>/products</code> — master row before its variants.</li>
+    <li><code>/product-master</code> — master row before its variants.</li>
     <li>Other feeds — order inside the batch does not matter; match keys are per row.</li>
   </ul>
   <h3>Rules for every write</h3>
@@ -215,9 +215,9 @@ Content-Type: application/json
 
 <!-- PRODUCTS -->
 <div class="tab panel" id="tab-products">
-  <h2><span class="badge live">LIVE</span> <code>POST /api/v1/products</code></h2>
-  <p><code>http://10.100.16.4:82/api/v1/products</code> — your master and variant identity is correct and now writes real objects. Two things are still missing on your side.</p>
-  <div class="ask"><b>Your <code>/products</code> has no <code>name</code>.</b> In your design a product name only arrives on <code>/product-translations</code>, so every object would be created unnamed. Please put a default <code>name</code> on the product row as well.</div>
+  <h2><span class="badge live">LIVE</span> <code>POST /api/v1/product-master</code></h2>
+  <p><code>http://10.100.16.4:82/api/v1/product-master</code> — your master and variant identity is correct and now writes real objects. Two things are still missing on your side.</p>
+  <div class="ask"><b>Your <code>/product-master</code> has no <code>name</code>.</b> In your design a product name only arrives on <code>/product-translations</code>, so every object would be created unnamed. Please put a default <code>name</code> on the product row as well.</div>
   <table>
     <tr><th>Field</th><th>On</th><th>Required</th><th>Rule</th></tr>
     <tr><td><code>code</code></td><td>master</td><td>Yes</td><td>Match key. F&amp;O product number.</td></tr>
@@ -283,7 +283,7 @@ Content-Type: application/json
   <table>
     <tr><th>Field</th><th>Required</th><th>Rule</th></tr>
     <tr><td><code>dimension</code></td><td>Yes</td><td><code>config</code> · <code>colour</code> · <code>size</code> · <code>style</code></td></tr>
-    <tr><td><code>values[].code</code></td><td>Yes</td><td>Match key. Use the <b>same</b> value you send on the variant row in <code>/products</code>.</td></tr>
+    <tr><td><code>values[].code</code></td><td>Yes</td><td>Match key. Use the <b>same</b> value you send on the variant row in <code>/product-master</code>.</td></tr>
     <tr><td><code>values[].name</code></td><td>Yes</td><td>Readable label for admin, shop, and filters.</td></tr>
     <tr><td><code>values[].isDeleted</code></td><td>No</td><td>Unpublish that value.</td></tr>
   </table>
@@ -312,7 +312,7 @@ Content-Type: application/json
   "errors": []
 }</pre>
   <p class="small">Results are one row per value, keyed <code>dimension:code</code>. Re-sending the same code and name answers <code>unchanged</code>; a new name answers <code>updated</code>. A code is never duplicated — a value exists once for the whole system, so <code>code</code> must be stable.</p>
-  <p class="small">Send this before <code>/products</code>. If a variant arrives with a value we have never seen, we still create the variant and leave that dimension empty rather than inventing a label.</p>
+  <p class="small">Send this before <code>/product-master</code>. If a variant arrives with a value we have never seen, we still create the variant and leave that dimension empty rather than inventing a label.</p>
 </div>
 
 <!-- ATTRIBUTE DEFINITIONS -->
@@ -365,11 +365,11 @@ Content-Type: application/json
 <!-- PRODUCT ATTRIBUTES -->
 <div class="tab panel" id="tab-product-attributes">
   <h2><span class="badge live">LIVE</span> <code>POST /api/v1/product-attributes</code></h2>
-  <p>Renamed from <code>/attributes</code>. This is the value on an item that already exists from <code>/products</code>. An unknown item fails that row and is retryable. An unknown attribute code, an option that is not on the definition, or a diameter that contains <code>/</code> is listed in <code>ignored</code> and does not fail the row.</p>
+  <p>Renamed from <code>/attributes</code>. This is the value on an item that already exists from <code>/product-master</code>. An unknown item fails that row and is retryable. An unknown attribute code, an option that is not on the definition, or a diameter that contains <code>/</code> is listed in <code>ignored</code> and does not fail the row.</p>
   <div class="ask"><b>Use <code>RH_Head</code>, not <code>HEAD TYPE</code>.</b> Same pattern for <code>RH_Drive</code>, <code>RH_Point</code>, <code>RH_Coating</code>, <code>RH_Thread</code>, <code>RH_SpecialFeatures</code>. <code>DIAMETER</code>, <code>LENGTH MM</code>, <code>MATERIAL TYPE</code>, and <code>DRILL CAP MM</code> stay under those names.</div>
   <table>
     <tr><th>Field</th><th>Required</th><th>Rule</th></tr>
-    <tr><td><code>itemNumber</code></td><td>Yes</td><td>The master <code>code</code> or the variant number that already exists from <code>/products</code>.</td></tr>
+    <tr><td><code>itemNumber</code></td><td>Yes</td><td>The master <code>code</code> or the variant number that already exists from <code>/product-master</code>.</td></tr>
     <tr><td><code>attributes[].attributeCode</code></td><td>Yes</td><td>Must match <code>attributes[].code</code> from <code>/attribute-definitions</code>.</td></tr>
     <tr><td><code>attributes[].value</code></td><td>Yes</td><td>A list value is stored only when it is one of the option codes from the definition. A <code>DIAMETER</code> value containing <code>/</code> is skipped (range); a single number can be stored.</td></tr>
     <tr><td><code>attributes[].valueTo</code></td><td>No</td><td>Optional upper bound when the definition is a from-to decimal (drill cap).</td></tr>
@@ -392,7 +392,7 @@ Content-Type: application/json
 
 <!-- RELEASED -->
 <div class="tab panel" id="tab-released">
-  <h2><span class="badge plan">SHAPE — not live</span> <code>POST /api/v1/released</code></h2>
+  <h2><span class="badge plan">SHAPE — not live</span> <code>POST /api/v1/product-release</code></h2>
   <p>Your payload is the one we will use. One row per item and company. Shop companies only.</p>
   <table>
     <tr><th>Field</th><th>Required</th><th>Rule</th></tr>
@@ -425,7 +425,7 @@ Content-Type: application/json
     <li><code>texts[].languageId</code> <code>en-CA</code> → plain <code>name</code> on the master or variant.</li>
     <li>Other language ids → JSON bag <code>foTranslationBag</code> on the same object (<code>name</code> and <code>description</code> per language).</li>
     <li>Languages not listed in this batch are left unchanged. Missing language is not a delete.</li>
-    <li><code>isDeleted</code> on this feed is ignored. Unpublish on <code>/products</code>. Clear text with <code>null</code> or <code>""</code>.</li>
+    <li><code>isDeleted</code> on this feed is ignored. Unpublish on <code>/product-master</code>. Clear text with <code>null</code> or <code>""</code>.</li>
   </ul>
   <table>
     <tr><th>Field</th><th>Required</th><th>Rule</th></tr>
@@ -433,7 +433,7 @@ Content-Type: application/json
     <tr><td><code>texts[].languageId</code></td><td>Yes</td><td>Send the F&amp;O code unchanged (<code>en-CA</code>, <code>en-HK</code>, <code>en-US</code>, <code>zh-Hant</code>, …). Do not convert it. Pimcore's own languages are only <code>en</code>, <code>da</code>, <code>sv</code>, and none of those F&amp;O codes is one of them.</td></tr>
     <tr><td><code>texts[].name</code></td><td>Yes</td><td>Product name in that language. Pimcore stores one name today, not one per language.</td></tr>
     <tr><td><code>texts[].description</code></td><td>No</td><td>There is no product-description field yet, so this value is kept with the payload and not written to an object. Shop description is Pimcore marketing copy and is never touched by this feed.</td></tr>
-    <tr><td><code>isDeleted</code></td><td>No</td><td>Ignored. Listed in <code>ignored</code>. To clear a text, send <code>null</code> or <code>""</code> on <code>name</code> or <code>description</code>. To unpublish the product, send <code>isDeleted: true</code> on <code>/products</code>.</td></tr>
+    <tr><td><code>isDeleted</code></td><td>No</td><td>Ignored. Listed in <code>ignored</code>. To clear a text, send <code>null</code> or <code>""</code> on <code>name</code> or <code>description</code>. To unpublish the product, send <code>isDeleted: true</code> on <code>/product-master</code>.</td></tr>
   </table>
 <pre>{
   "batchId": "adf-txt-001",
@@ -488,8 +488,8 @@ Content-Type: application/json
     <tr><td>Range</td><td>Named facts that belong on that folder</td><td class="fix">Same two calls. Another folder, another group — not a new endpoint</td></tr>
     <tr><td>Product Group</td><td>PG number, geometry (diameter, pitch, head, drill)</td><td class="fix"><code>productGroupNumber</code> — the API accepts it, <b>you must add it</b>. Geometry via the two attribute calls</td></tr>
     <tr><td>Master</td><td>Name, length, allowed dimensions</td><td class="fix"><code>name</code> — <b>please add it</b>. Measures via <code>/product-attributes</code>. Allowed dimensions: send <code>allowedColour</code> (and the other three) on the master row</td></tr>
-    <tr><td>Variant</td><td>Item number, config, colour, size, style, washer link</td><td class="keep">Covered by <code>/products</code> + <code>/dimensions</code>. Washer link still open</td></tr>
-    <tr><td>Shops</td><td>Which companies sell the SKU</td><td class="keep">Covered by <code>/companies</code> + <code>/released</code></td></tr>
+    <tr><td>Variant</td><td>Item number, config, colour, size, style, washer link</td><td class="keep">Covered by <code>/product-master</code> + <code>/dimensions</code>. Washer link still open</td></tr>
+    <tr><td>Shops</td><td>Which companies sell the SKU</td><td class="keep">Covered by <code>/companies</code> + <code>/product-release</code></td></tr>
     <tr><td>Pictures, certificates, shop copy</td><td>Images, documents, marketing text</td><td class="keep">Pimcore. Not a Function job</td></tr>
   </table>
   <h3>Short list for you</h3>
@@ -497,7 +497,7 @@ Content-Type: application/json
     <li>Add <code>productType</code> to level-1 folders now.</li>
     <li>Add <code>brand</code> to level-2 and <code>productGroupNumber</code> to level-5 folders.</li>
     <li>Add <code>name</code> to product rows.</li>
-    <li><code>/dimensions</code> and <code>/products</code> are live — point your Function at them and send a real batch. Both are safe to re-run.</li>
+    <li><code>/dimensions</code> and <code>/product-master</code> are live — point your Function at them and send a real batch. Both are safe to re-run.</li>
     <li><code>/attribute-definitions</code> then <code>/product-attributes</code> are live. Send setup after the tree, values after products. Use <code>RH_Head</code>, not <code>HEAD TYPE</code>. Both are safe to re-run.</li>
     <li>Tell us whether F&amp;O can name the washer for a style-W screw.</li>
   </ol>
@@ -524,7 +524,7 @@ Content-Type: application/json
   <p>There is no barcode field on the product classes. Not a refusal: model it, then feed it.</p>
 
   <h3><code>/relations</code> — hold</h3>
-  <p>Accessory, alternative, and spare part are not fields today. The one product-to-product link that exists is the washer on a style-W screw, which belongs on <code>/products</code>. Cross-sell is a Red Horse decision first.</p>
+  <p>Accessory, alternative, and spare part are not fields today. The one product-to-product link that exists is the washer on a style-W screw, which belongs on <code>/product-master</code>. Cross-sell is a Red Horse decision first.</p>
 
   <h3>Never sent</h3>
   <p>Price and stock.</p>

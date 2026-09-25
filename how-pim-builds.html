@@ -122,13 +122,13 @@
   <div class="arrow">↓</div>
   <div class="vstep"><div class="n">/attribute-definitions</div>Once, when setup changes. Codes, type, unit, texts, options, groups, and which folder uses which group. Does not write a product value. Use <code>RH_Head</code>, not <code>HEAD TYPE</code>. Language ids are stored as sent. <a href="fo-api.html#attribute-definitions">JSON</a></div>
   <div class="arrow">↓</div>
-  <div class="vstep"><div class="n">/products</div>Master match <code>code</code>, parent is the level-5 folder. Variant match <code>itemNumber</code> plus <code>masterItemNumber</code>. Also the master’s allowed colour, size, config, and style. <code>washerItemNumber</code> is ignored. No attribute values here. <a href="fo-api.html#products">JSON</a></div>
+  <div class="vstep"><div class="n">/product-master</div>Master match <code>code</code>, parent is the level-5 folder. Variant match <code>itemNumber</code> plus <code>masterItemNumber</code>. Also the master’s allowed colour, size, config, and style. <code>washerItemNumber</code> is ignored. No attribute values here. <a href="fo-api.html#products">JSON</a></div>
   <div class="arrow">↓</div>
   <div class="vstep"><div class="n">/product-attributes</div>Match <code>itemNumber</code> that already exists. Writes the facts. See the next picture for where each fact lands. <a href="fo-api.html#product-attributes">JSON</a></div>
   <div class="arrow">↓</div>
-  <div class="vstep"><div class="n">/product-translations</div>Match <code>itemNumber</code> on master or variant (needs <code>/products</code>). <code>en-CA</code> → plain <code>name</code>. Other F&amp;O languages and descriptions → <code>foTranslationBag</code>. Same position as step 6 or just after it. <a href="fo-api.html#product-translations">JSON</a></div>
+  <div class="vstep"><div class="n">/product-translations</div>Match <code>itemNumber</code> on master or variant (needs <code>/product-master</code>). <code>en-CA</code> → plain <code>name</code>. Other F&amp;O languages and descriptions → <code>foTranslationBag</code>. Same position as step 6 or just after it. <a href="fo-api.html#product-translations">JSON</a></div>
   <div class="arrow">↓</div>
-  <div class="vstep"><div class="n">/released</div><b>Not built.</b> Would need variants and shop companies. POST returns 404 today.</div>
+  <div class="vstep"><div class="n">/product-release</div><b>Not built.</b> Would need variants and shop companies. POST returns 404 today.</div>
 </div>
 
 <h2 id="layers">4. Where one value lands</h2>
@@ -142,7 +142,7 @@
 </div>
 <p class="say">Length is the exception that still follows the same rule. Length belongs to the master, and each master under a drawing has its own length. So <code>LENGTH MM</code> is written on the master of this item, not as one number on the drawing folder.</p>
 <div class="stack" aria-label="Seven levels, bottom is the variant">
-  <div class="lvl l7"><b>Variant</b><span>colour, size, config, style · /products</span></div>
+  <div class="lvl l7"><b>Variant</b><span>colour, size, config, style · /product-master</span></div>
   <div class="lvl l6"><b>Master</b><span>length, partial, effective · /product-attributes</span></div>
   <div class="lvl l5"><b>Product group</b><span>diameter, drill cap, drive size · /product-attributes</span></div>
   <div class="lvl l4"><b>Range</b><span>material, coating, corrosion · /product-attributes</span></div>
@@ -173,8 +173,8 @@
         range       material A2, corrosion C4      <span class="hit">/product-attributes</span>
           5637145021  drawing  diameter 6.5 mm     <span class="hit">/product-attributes  DIAMETER</span>
                                drill cap 2.5 to 4
-            35044     master   length 23 mm        <span class="hit">/products then LENGTH MM</span>
-              35044-…   variant colour 59, size 8  <span class="hit">/products + /dimensions</span>
+            35044     master   length 23 mm        <span class="hit">/product-master then LENGTH MM</span>
+              35044-…   variant colour 59, size 8  <span class="hit">/product-master + /dimensions</span>
                               head type stays on the series
 </div>
 <p class="small">The A2 and C4 pictures are not created by the feed. They are uploaded on the material lookup and the corrosion lookup.</p>
@@ -206,9 +206,9 @@
 <h2 id="notyet">Not built</h2>
 <div class="box no">
   <ul>
-    <li><a href="fo-api.html#released"><code>/released</code></a> returns 404. Shop on/off is not written. Do not treat “stopped for sales” as shop off.</li>
+    <li><a href="fo-api.html#released"><code>/product-release</code></a> returns 404. Shop on/off is not written. Do not treat “stopped for sales” as shop off.</li>
     <li>Folder <code>texts[]</code> on <code>/tree</code> are accepted and not stored. They are folder labels, not product <code>/product-translations</code>.</li>
-    <li><code>washerItemNumber</code> is accepted on <code>/products</code> and ignored.</li>
+    <li><code>washerItemNumber</code> is accepted on <code>/product-master</code> and ignored.</li>
   </ul>
 </div>
 
