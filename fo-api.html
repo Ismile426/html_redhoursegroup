@@ -44,6 +44,10 @@
   td.keep { background: #f2fbf4; }
   td.fix { background: #fff8e8; }
   td.drop { background: #fff5f5; }
+  details { margin: 10px 0 14px; }
+  details summary { cursor: pointer; font-weight: 600; font-size: 13px; color: #0969da; }
+  .full { border-left: 4px solid #0969da; background: #f1f8ff; padding: 10px 14px; margin: 16px 0 8px; }
+  ul.rows li { margin-bottom: 4px; }
   @media (max-width: 640px) { .tabs button { flex: 1 1 46%; } }
 </style>
 </head>
@@ -117,6 +121,8 @@
     <tr><td>8</td><td><code>/product-release</code></td><td><code>/companies</code> · variants on <code>/product-master</code></td><td>Company on the variant Release tab. <code>RH</code> <code>RHU</code> <code>ASW</code> <code>SPI</code> also get a brick.</td></tr>
   </table>
   <div class="ok"><b>One line:</b> companies → dimensions → tree → attribute-definitions → product-master → product-attributes → product-translations → product-release.</div>
+  <div class="full"><b>Full examples.</b> Every write tab has a <b>Full example</b>: a body that uses every key that call reads, and the reply Pimcore gave to that exact body. The eight examples are one connected dataset. Run them in the order above and they build one screw end to end: companies <code>RH</code> <code>RHU</code> <code>ASW</code> <code>SPI</code> <code>DMM</code>, a screw branch <code>5637150101</code>–<code>5637150105</code> and a washer branch <code>5637150201</code>–<code>5637150205</code>, master <code>40100</code> with two variants, washer <code>W16</code>, its attributes, its texts, and its shops. The codes are examples. Send your own F&amp;O codes.</div>
+  <p class="small">The replies were captured on local Pimcore on 25 Sep 2026. A row says <code>updated</code> or <code>unchanged</code> where that code already existed from earlier tests. On an empty Pimcore the same row says <code>created</code>. Long paths are shortened to <code>…</code>.</p>
   <h3>Inside one batch</h3>
   <ul>
     <li><code>/tree</code> — parent folder before child.</li>
@@ -170,13 +176,42 @@ Content-Type: application/json
     <tr><td><code>name</code></td><td>No</td><td>Omit = keep. <code>null</code> = clear.</td></tr>
     <tr><td><code>isDeleted</code></td><td>No</td><td>Unpublish.</td></tr>
   </table>
-<pre>{
-  "batchId": "adf-run-123",
+  <h3>Full example — every key</h3>
+<pre>POST http://10.100.16.4:82/api/v1/companies
+X-API-Key: &lt;key&gt;
+Content-Type: application/json
+
+{
+  "batchId": "full-companies-001",
   "items": [
-    { "companyCode": "RH",  "name": "Red Horse A/S",   "isDeleted": false },
-    { "companyCode": "ASW", "name": "Aston Sweden AB", "isDeleted": false }
+    { "companyCode": "RH",  "name": "Red Horse A/S",       "isDeleted": false },
+    { "companyCode": "RHU", "name": "Red Horse US Inc.",   "isDeleted": false },
+    { "companyCode": "ASW", "name": "Aston Sweden AB",     "isDeleted": false },
+    { "companyCode": "SPI", "name": "Screw Products Inc.", "isDeleted": false },
+    { "companyCode": "DMM", "name": "DMM Distribution",    "isDeleted": false },
+    { "companyCode": "OLD", "name": "Closed company",      "isDeleted": true }
   ]
 }</pre>
+  <ul class="rows">
+    <li><code>RH</code> <code>RHU</code> <code>ASW</code> <code>SPI</code> — the four shop companies. <code>/product-release</code> later turns on their shop brick.</li>
+    <li><code>DMM</code> — any other company. It is stored and can be released to, but it never gets a shop brick.</li>
+    <li><code>OLD</code> with <code>isDeleted: true</code> — the company is unpublished, not deleted.</li>
+    <li><code>batchId</code> — your run id. It comes back unchanged so you can match the reply to the run.</li>
+  </ul>
+  <details><summary>Reply Pimcore gave to this body</summary>
+<pre>{
+  "ok": true, "service": "pimcore", "auth": "api_key", "batchId": "full-companies-001", "processed": 6, "failed": 0,
+  "results": [
+    {"key": "RH", "action": "updated", "objectId": 8642, "path": "/ErpSync/LegalEntities/RH"},
+    {"key": "RHU", "action": "created", "objectId": 8730, "path": "/ErpSync/LegalEntities/RHU"},
+    {"key": "ASW", "action": "created", "objectId": 8731, "path": "/ErpSync/LegalEntities/ASW"},
+    {"key": "SPI", "action": "created", "objectId": 8732, "path": "/ErpSync/LegalEntities/SPI"},
+    {"key": "DMM", "action": "updated", "objectId": 8664, "path": "/ErpSync/LegalEntities/DMM"},
+    {"key": "OLD", "action": "unpublished", "objectId": 8733, "path": "/ErpSync/LegalEntities/OLD"}
+  ],
+  "errors": []
+}</pre>
+  </details>
   <p class="small">Company <code>languageId</code> is not stored. Do not send production companies expecting them to be created.</p>
 </div>
 
@@ -197,19 +232,58 @@ Content-Type: application/json
     <tr><td><code>isDeleted</code></td><td>all</td><td>No</td><td>Unpublish.</td></tr>
     <tr><td><code>code</code>, <code>isActive</code>, <code>texts[]</code></td><td>all</td><td>No</td><td>Accepted and ignored in v1. Keep sending them — <code>texts[]</code> becomes useful when folder names go localized.</td></tr>
   </table>
+  <h3>Full example — every key, both product types</h3>
 <pre>{
-  "batchId": "adf-tree-001",
+  "batchId": "full-tree-001",
   "items": [
-    { "categoryKey": "5637144580", "parentKey": null, "level": 1,
+    { "categoryKey": "5637150101", "parentKey": null,         "level": 1, "layer": "type",
       "productType": "06", "name": "Screws", "isDeleted": false },
-
-    { "categoryKey": "5637144712", "parentKey": "5637144580", "level": 2,
+    { "categoryKey": "5637150102", "parentKey": "5637150101", "level": 2, "layer": "family",
       "name": "CREO", "brand": "CREO", "isDeleted": false },
+    { "categoryKey": "5637150103", "parentKey": "5637150102", "level": 3, "layer": "series",
+      "name": "Hex head roofing", "isDeleted": false },
+    { "categoryKey": "5637150104", "parentKey": "5637150103", "level": 4, "layer": "range",
+      "name": "Hex head roofing A2 Zytec", "isDeleted": false },
+    { "categoryKey": "5637150105", "parentKey": "5637150104", "level": 5, "layer": "productGroup",
+      "name": "PG | 6666", "productGroupNumber": "6666", "isDeleted": false },
 
-    { "categoryKey": "5637145021", "parentKey": "5637144980", "level": 5,
-      "name": "PG | 6666", "productGroupNumber": "6666", "isDeleted": false }
+    { "categoryKey": "5637150201", "parentKey": null,         "level": 1, "layer": "type",
+      "productType": "09", "name": "Washers", "isDeleted": false },
+    { "categoryKey": "5637150202", "parentKey": "5637150201", "level": 2, "layer": "family",
+      "name": "CREO", "brand": "CREO", "isDeleted": false },
+    { "categoryKey": "5637150203", "parentKey": "5637150202", "level": 3, "layer": "series",
+      "name": "Bonded EPDM", "isDeleted": false },
+    { "categoryKey": "5637150204", "parentKey": "5637150203", "level": 4, "layer": "range",
+      "name": "Bonded EPDM A2", "isDeleted": false },
+    { "categoryKey": "5637150205", "parentKey": "5637150204", "level": 5, "layer": "productGroup",
+      "name": "PG | W16", "productGroupNumber": "W16", "isDeleted": false }
   ]
 }</pre>
+  <ul class="rows">
+    <li>Two branches, five levels each. <code>productType</code> <code>06</code> makes the screw branch; <code>09</code> makes the washer branch. Only level 1 sends it; the levels below inherit it.</li>
+    <li><code>level</code> and <code>layer</code> say the same thing. Send either or both. They must agree.</li>
+    <li><code>brand</code> on level 2 fills the family brand. <code>productGroupNumber</code> on level 5 fills the PG number, so Pimcore never has to split it out of <code>name</code>.</li>
+    <li>Parents come before children in the same batch. A child whose parent is not there yet fails that row, and it is retryable.</li>
+    <li>Level 3 <code>5637150103</code> (series), level 4 <code>5637150104</code> (range) and level 5 <code>5637150105</code> (product group) are the folders the <code>/attribute-definitions</code> example points at.</li>
+  </ul>
+  <details><summary>Reply Pimcore gave to this body</summary>
+<pre>{
+  "ok": true, "service": "pimcore", "auth": "api_key", "batchId": "full-tree-001", "processed": 10, "failed": 0,
+  "results": [
+    {"key": "5637150101", "action": "created", "objectId": 8739, "path": "/ErpSync/Catalog/5637150101"},
+    {"key": "5637150102", "action": "created", "objectId": 8740, "path": "/ErpSync/Catalog/5637150101/5637150102"},
+    {"key": "5637150103", "action": "created", "objectId": 8741, "path": "/ErpSync/Catalog/5637150101/5637150102/5637150103"},
+    {"key": "5637150104", "action": "created", "objectId": 8742, "path": "/ErpSync/Catalog/5637150101/5637150102/5637150103/5637150104"},
+    {"key": "5637150105", "action": "created", "objectId": 8743, "path": "/ErpSync/Catalog/…/5637150105"},
+    {"key": "5637150201", "action": "created", "objectId": 8744, "path": "/ErpSync/Catalog/5637150201"},
+    {"key": "5637150202", "action": "created", "objectId": 8745, "path": "/ErpSync/Catalog/5637150201/5637150202"},
+    {"key": "5637150203", "action": "created", "objectId": 8746, "path": "/ErpSync/Catalog/5637150201/5637150202/5637150203"},
+    {"key": "5637150204", "action": "created", "objectId": 8747, "path": "/ErpSync/Catalog/5637150201/5637150202/5637150203/5637150204"},
+    {"key": "5637150205", "action": "created", "objectId": 8748, "path": "/ErpSync/Catalog/…/5637150205"}
+  ],
+  "errors": []
+}</pre>
+  </details>
   <p class="small">Max 500 rows per call. A folder's level cannot change after it is created.</p>
 </div>
 
@@ -232,36 +306,64 @@ Content-Type: application/json
     <tr><td><code>washerItemNumber</code></td><td>variant</td><td><b>Please confirm</b></td><td>For a screw sold with a washer (style W), Pimcore links the SKU to a washer product. Can F&amp;O tell us which washer, or should we derive it? Until that is answered the field is accepted and listed back under <code>ignored</code> — it is not written.</td></tr>
     <tr><td><code>isDeleted</code></td><td>both</td><td>No</td><td>Unpublish.</td></tr>
   </table>
+  <h3>Full example — screw master with two variants, washer master with one</h3>
 <pre>{
-  "batchId": "adf-prod-001",
+  "batchId": "full-master-001",
   "items": [
-    { "code": "35044", "layer": "master", "parentKey": "5637145021",
-      "name": "Hex screw 100mm",
-      "allowedColour": ["59", "21", "8", "3"],
+    { "code": "40100", "layer": "master", "parentKey": "5637150105",
+      "name": "Hex head roofing screw 6.5 x 100",
+      "allowedConfig": ["STD"],
+      "allowedColour": ["59", "21", "9005"],
+      "allowedSize":   ["8", "6"],
+      "allowedStyle":  ["1", "2"],
       "isDeleted": false },
 
-    { "itemNumber": "35044-21-59-8-1", "masterItemNumber": "35044", "layer": "variant",
-      "name": "Hex screw 100mm RAL 1003",
+    { "itemNumber": "40100-STD-59-8-1", "masterItemNumber": "40100", "layer": "variant",
+      "name": "Hex head roofing screw 6.5 x 100 RAL 1003",
       "config": "STD", "colour": "59", "size": "8", "style": "1",
+      "isDeleted": false },
+
+    { "itemNumber": "40100-STD-21-6-2", "masterItemNumber": "40100", "layer": "variant",
+      "name": "Hex head roofing screw 6.5 x 80 RAL 5010 with washer",
+      "config": "STD", "colour": "21", "size": "6", "style": "2",
+      "washerItemNumber": "W16-EPDM",
+      "isDeleted": false },
+
+    { "code": "W16", "layer": "master", "parentKey": "5637150205",
+      "name": "Bonded EPDM washer 16 mm",
+      "allowedSize": ["W16"],
+      "isDeleted": false },
+
+    { "itemNumber": "W16-EPDM", "masterItemNumber": "W16", "layer": "variant",
+      "name": "Bonded EPDM washer 16 mm",
+      "size": "W16",
       "isDeleted": false }
   ]
 }</pre>
-  <p class="small">Masters before variants. Only items flagged Publish to PIM, and only those sitting under a level-5 folder. An item with no variants: send the master plus one variant carrying the same number, so shops have a SKU to attach to.</p>
-  <h3>What the live API answers</h3>
+  <ul class="rows">
+    <li><b>Master <code>40100</code></b> hangs on product group <code>5637150105</code>. That folder is on the <code>06</code> branch, so it becomes a screw. Its four <code>allowed*</code> lists are every dimension code this master may use, including colour <code>9005</code>, which has no variant yet.</li>
+    <li><b>Variant <code>40100-STD-59-8-1</code></b> is matched on <code>itemNumber</code> alone. <code>masterItemNumber</code> puts it under <code>40100</code>. <code>config</code>, <code>colour</code>, <code>size</code> and <code>style</code> are codes from <code>/dimensions</code>.</li>
+    <li><b>Variant <code>40100-STD-21-6-2</code></b> is style <code>2</code> (with washer). <code>washerItemNumber</code> is accepted but not written yet. The reply lists it under <code>ignored</code> until the washer link is agreed.</li>
+    <li><b>Master <code>W16</code></b> hangs on the <code>09</code> branch, so it becomes a washer. Washers only have <code>size</code>: send <code>allowedSize</code> on the master and <code>size</code> on the variant.</li>
+    <li>Masters come before their variants in the same batch.</li>
+  </ul>
+  <details><summary>Reply Pimcore gave to this body</summary>
 <pre>{
-  "ok": true, "batchId": "adf-prod-001",
-  "processed": 3, "failed": 0, "allowedUpdated": 1,
+  "ok": true, "service": "pimcore", "auth": "api_key", "batchId": "full-master-001", "processed": 5, "failed": 0, "allowedUpdated": 2,
   "results": [
-    { "key": "35044", "layer": "master", "action": "created",
-      "objectId": 8596, "path": "/ErpSync/Catalog/.../5637145021/35044" },
-    { "key": "35044-STD-59-8-1", "layer": "variant", "action": "created",
-      "objectId": 8597, "path": ".../35044/35044-STD-59-8-1" },
-    { "key": "35044-STD-99-8-1", "layer": "variant", "action": "created",
-      "objectId": 8599,
-      "ignored": [ "colour \"99\" unknown — send it on /dimensions first" ] }
+    {"key": "40100", "layer": "master", "action": "created", "objectId": 8749, "path": "/ErpSync/Catalog/…/5637150105/40100"},
+    {"key": "40100-STD-59-8-1", "layer": "variant", "action": "created", "objectId": 8750, "path": "/ErpSync/Catalog/…/5637150105/40100/40100-STD-59-8-1"},
+    {"key": "40100-STD-21-6-2", "layer": "variant", "action": "created", "objectId": 8751, "path": "/ErpSync/Catalog/…/5637150105/40100/40100-STD-21-6-2", "ignored": ["washerItemNumber — still an open question, not applied"]},
+    {"key": "W16", "layer": "master", "action": "created", "objectId": 8752, "path": "/ErpSync/Catalog/…/5637150205/W16"},
+    {"key": "W16-EPDM", "layer": "variant", "action": "created", "objectId": 8753, "path": "/ErpSync/Catalog/…/5637150205/W16/W16-EPDM"}
   ],
   "errors": []
 }</pre>
+  <p class="small"><code>allowedUpdated: 2</code> — both masters had an allowed list written.</p>
+  </details>
+  <p class="small">Masters before variants. Only items flagged Publish to PIM, and only those sitting under a level-5 folder. An item with no variants: send the master plus one variant carrying the same number, so shops have a SKU to attach to.</p>
+  <h3>When something is off</h3>
+  <p class="small">For example, a variant with colour <code>99</code> that was never sent on <code>/dimensions</code> is still created. Its reply row carries <code>"ignored": ["colour \"99\" unknown — send it on /dimensions first"]</code>.</p>
   <table>
     <tr><th>You send</th><th>What happens</th></tr>
     <tr><td><code>parentKey</code> that is not a level-5 folder</td><td>Row fails, <code>VALIDATION</code>, not retryable. Masters only hang off a product group.</td></tr>
@@ -287,30 +389,51 @@ Content-Type: application/json
     <tr><td><code>values[].name</code></td><td>Yes</td><td>Readable label for admin, shop, and filters.</td></tr>
     <tr><td><code>values[].isDeleted</code></td><td>No</td><td>Unpublish that value.</td></tr>
   </table>
+  <h3>Full example — all four dimensions, every key</h3>
 <pre>{
-  "batchId": "adf-dim-001",
+  "batchId": "full-dimensions-001",
   "items": [
-    { "dimension": "colour",
-      "values": [ { "code": "59", "name": "RAL 1003" },
-                  { "code": "21", "name": "RAL 5010" } ] },
-    { "dimension": "size",
-      "values": [ { "code": "8", "name": "100" } ] },
     { "dimension": "config",
-      "values": [ { "code": "STD", "name": "Standard" } ] }
+      "values": [ { "code": "STD", "name": "Standard", "isDeleted": false } ] },
+    { "dimension": "colour",
+      "values": [ { "code": "59",   "name": "RAL 1003", "isDeleted": false },
+                  { "code": "21",   "name": "RAL 5010", "isDeleted": false },
+                  { "code": "9005", "name": "RAL 9005", "isDeleted": false },
+                  { "code": "77",   "name": "RAL 3000", "isDeleted": true } ] },
+    { "dimension": "size",
+      "values": [ { "code": "8",   "name": "100",   "isDeleted": false },
+                  { "code": "6",   "name": "80",    "isDeleted": false },
+                  { "code": "W16", "name": "16 mm", "isDeleted": false } ] },
+    { "dimension": "style",
+      "values": [ { "code": "1", "name": "Loose",       "isDeleted": false },
+                  { "code": "2", "name": "With washer", "isDeleted": false } ] }
   ]
 }</pre>
-  <div class="ask"><b>Red Horse, 22 Sep:</b> the variant code is the F&amp;O <b>Name</b> (example <code>59</code>) — that is what builds the item number. The F&amp;O <b>Unique ID</b> is the readable value (example <code>RAL 1003</code>). So <code>code</code> here = Name, <code>name</code> here = Unique ID, and the variant row sends that same Name. Where a dimension has no short Name, send the Unique ID in both fields.</div>
-  <h3>What the live API answers</h3>
+  <ul class="rows">
+    <li>One item per dimension. Each item carries all the values for that dimension.</li>
+    <li><code>code</code> is the F&amp;O Name (<code>59</code>). <code>name</code> is what people read (<code>RAL 1003</code>). The variant row on <code>/product-master</code> sends the same <code>code</code>.</li>
+    <li>Colour <code>77</code> with <code>isDeleted: true</code> — that value is unpublished, not deleted.</li>
+    <li>Size <code>W16</code> is the washer size used by washer <code>W16</code> in the <code>/product-master</code> example. Screws and washers share one size list.</li>
+  </ul>
+  <details><summary>Reply Pimcore gave to this body</summary>
 <pre>{
-  "ok": true, "batchId": "adf-dim-001", "processed": 5, "failed": 0,
+  "ok": true, "service": "pimcore", "auth": "api_key", "batchId": "full-dimensions-001", "processed": 10, "failed": 0,
   "results": [
-    { "key": "colour:59", "action": "created",
-      "objectId": 8583, "path": "/ErpSync/DimOptions/PtColourOption/59" },
-    { "key": "colour:21", "action": "created", "objectId": 8584 },
-    { "key": "size:8",    "action": "created", "objectId": 8586 }
+    {"key": "config:STD", "action": "unchanged", "objectId": 8609, "path": "/ErpSync/DimOptions/PtConfigOption/STD"},
+    {"key": "colour:59", "action": "unchanged", "objectId": 8607, "path": "/ErpSync/DimOptions/PtColourOption/59"},
+    {"key": "colour:21", "action": "unchanged", "objectId": 8618, "path": "/ErpSync/DimOptions/PtColourOption/21"},
+    {"key": "colour:9005", "action": "created", "objectId": 8734, "path": "/ErpSync/DimOptions/PtColourOption/9005"},
+    {"key": "colour:77", "action": "unpublished", "objectId": 8735, "path": "/ErpSync/DimOptions/PtColourOption/77"},
+    {"key": "size:8", "action": "unchanged", "objectId": 8608, "path": "/ErpSync/DimOptions/PtSizeOption/8"},
+    {"key": "size:6", "action": "created", "objectId": 8736, "path": "/ErpSync/DimOptions/PtSizeOption/6"},
+    {"key": "size:W16", "action": "created", "objectId": 8737, "path": "/ErpSync/DimOptions/PtSizeOption/W16"},
+    {"key": "style:1", "action": "unchanged", "objectId": 8610, "path": "/ErpSync/DimOptions/PtStyleOption/1"},
+    {"key": "style:2", "action": "created", "objectId": 8738, "path": "/ErpSync/DimOptions/PtStyleOption/2"}
   ],
   "errors": []
 }</pre>
+  </details>
+  <div class="ask"><b>Red Horse, 22 Sep:</b> the variant code is the F&amp;O <b>Name</b> (example <code>59</code>) — that is what builds the item number. The F&amp;O <b>Unique ID</b> is the readable value (example <code>RAL 1003</code>). So <code>code</code> here = Name, <code>name</code> here = Unique ID, and the variant row sends that same Name. Where a dimension has no short Name, send the Unique ID in both fields.</div>
   <p class="small">Results are one row per value, keyed <code>dimension:code</code>. Re-sending the same code and name answers <code>unchanged</code>; a new name answers <code>updated</code>. A code is never duplicated — a value exists once for the whole system, so <code>code</code> must be stable.</p>
   <p class="small">Send this before <code>/product-master</code>. If a variant arrives with a value we have never seen, we still create the variant and leave that dimension empty rather than inventing a label.</p>
 </div>
@@ -330,27 +453,104 @@ Content-Type: application/json
     <tr><td><code>groups[]</code></td><td>Yes</td><td>A named set of attribute codes. A later category is another group on this same call — no new endpoint.</td></tr>
     <tr><td><code>folderGroups[]</code></td><td>Yes</td><td>Which <code>/tree</code> folder uses which groups. The value is stored on the folder you name. We do not silently move it to another layer.</td></tr>
   </table>
+  <h3>Full example — all five data types, every known attribute, three folders</h3>
 <pre>{
-  "batchId": "adf-run-8821",
+  "batchId": "full-attrdef-001",
   "items": [{
     "attributes": [
+      { "code": "RH_Head", "dataType": "list",
+        "texts": [ { "languageId": "en-CA", "name": "Head type" },
+                   { "languageId": "en-US", "name": "Head type" } ],
+        "options": [ { "code": "HX17", "texts": [ { "languageId": "en-CA", "name": "Hex 17" },
+                                                  { "languageId": "en-US", "name": "Hex 17 US" } ] },
+                     { "code": "HX13", "texts": [] } ] },
+      { "code": "RH_Point", "dataType": "list",
+        "texts": [ { "languageId": "en-CA", "name": "Point type" } ],
+        "options": [ { "code": "DRILL", "texts": [ { "languageId": "en-CA", "name": "Drill point" } ] } ] },
+      { "code": "RH_Thread", "dataType": "list",
+        "texts": [ { "languageId": "en-CA", "name": "Thread type" } ],
+        "options": [ { "code": "METAL", "texts": [ { "languageId": "en-CA", "name": "Metal thread" } ] } ] },
+      { "code": "RH_SpecialFeatures", "dataType": "list",
+        "texts": [ { "languageId": "en-CA", "name": "Special features" } ],
+        "options": [ { "code": "WINGS", "texts": [ { "languageId": "en-CA", "name": "Wings" } ] },
+                     { "code": "SEAL",  "texts": [ { "languageId": "en-CA", "name": "Sealing washer" } ] } ] },
+      { "code": "MATERIAL TYPE", "dataType": "list",
+        "texts": [ { "languageId": "en-CA", "name": "Material" } ],
+        "options": [ { "code": "A2", "texts": [ { "languageId": "en-CA", "name": "Stainless steel A2" } ] } ] },
+      { "code": "RH_Coating", "dataType": "list",
+        "texts": [ { "languageId": "en-CA", "name": "Coating" } ],
+        "options": [ { "code": "ZYTEC", "texts": [ { "languageId": "en-CA", "name": "Zytec" } ] } ] },
+      { "code": "CORROSION CATEGORY", "dataType": "list",
+        "texts": [ { "languageId": "en-CA", "name": "Corrosion category" } ],
+        "options": [ { "code": "C4", "texts": [ { "languageId": "en-CA", "name": "C4" } ] } ] },
+      { "code": "RH_Drive", "dataType": "list",
+        "texts": [ { "languageId": "en-CA", "name": "Drive size" } ],
+        "options": [ { "code": "TX25", "texts": [] } ] },
       { "code": "DIAMETER", "dataType": "decimal", "unit": "mm",
         "texts": [ { "languageId": "en-CA", "name": "Diameter" } ] },
-      { "code": "RH_Head", "dataType": "list",
-        "texts": [ { "languageId": "en-CA", "name": "Head type" } ],
-        "options": [ { "code": "HX17", "texts": [] }, { "code": "HX13", "texts": [] } ] }
+      { "code": "DRILL CAP MM", "dataType": "decimal", "unit": "mm",
+        "texts": [ { "languageId": "en-CA", "name": "Drill capacity" } ] },
+      { "code": "LENGTH MM", "dataType": "decimal", "unit": "mm",
+        "texts": [ { "languageId": "en-CA", "name": "Length" } ] },
+      { "code": "RH_RoofPitch", "dataType": "integer", "unit": "deg",
+        "texts": [ { "languageId": "en-CA", "name": "Minimum roof pitch" } ] },
+      { "code": "RH_Certified", "dataType": "boolean",
+        "texts": [ { "languageId": "en-CA", "name": "Certified" } ] },
+      { "code": "RH_Note", "dataType": "text",
+        "texts": [ { "languageId": "en-CA", "name": "Note" } ] }
     ],
     "groups": [
-      { "code": "DIMENSIONS", "attributes": ["DIAMETER"],
-        "texts": [ { "languageId": "en-CA", "name": "Dimensions" } ] },
-      { "code": "SHAPE", "attributes": ["RH_Head"],
-        "texts": [ { "languageId": "en-CA", "name": "Shape" } ] }
+      { "code": "SHAPE", "attributes": ["RH_Head", "RH_Point", "RH_Thread", "RH_SpecialFeatures", "RH_RoofPitch"],
+        "texts": [ { "languageId": "en-CA", "name": "Shape" } ] },
+      { "code": "MATERIAL", "attributes": ["MATERIAL TYPE", "RH_Coating", "CORROSION CATEGORY", "RH_Certified"],
+        "texts": [ { "languageId": "en-CA", "name": "Material" } ] },
+      { "code": "DIMENSIONS", "attributes": ["DIAMETER", "DRILL CAP MM", "RH_Drive", "LENGTH MM", "RH_Note"],
+        "texts": [ { "languageId": "en-CA", "name": "Dimensions" } ] }
     ],
     "folderGroups": [
-      { "categoryKey": "5637145021", "groups": ["DIMENSIONS", "SHAPE"] }
+      { "categoryKey": "5637150103", "groups": ["SHAPE"] },
+      { "categoryKey": "5637150104", "groups": ["MATERIAL"] },
+      { "categoryKey": "5637150105", "groups": ["DIMENSIONS"] }
     ]
   }]
 }</pre>
+  <ul class="rows">
+    <li><b>All five <code>dataType</code>s</b>: <code>list</code> (head, point, …), <code>decimal</code> (diameter, drill cap, length), <code>integer</code> (roof pitch), <code>boolean</code> (certified), <code>text</code> (note).</li>
+    <li><b>Options.</b> Only the option codes listed here are valid values later. <code>HX13</code> and <code>TX25</code> have empty <code>texts</code>, so the code is the label. When a value is first used, Pimcore names it with the <code>en-CA</code> option text (<code>HX17</code> → "Hex 17"). <code>en-US</code> and other languages are stored and not shown.</li>
+    <li><b>Groups</b> bundle attributes. <b><code>folderGroups</code></b> say which <code>/tree</code> folder uses which group: <code>SHAPE</code> on the series, <code>MATERIAL</code> on the range, <code>DIMENSIONS</code> on the product group.</li>
+    <li><b>Known codes</b> land on a real Pimcore field: head, point, thread and features on the series; material, coating and corrosion category on the range; diameter, drill cap and drive size on the product group; length on each master under that product group.</li>
+    <li><b>Codes with no Pimcore field yet</b> (<code>RH_RoofPitch</code>, <code>RH_Certified</code>, <code>RH_Note</code>) are still accepted. Their values are stored on the folder you named, so nothing is lost.</li>
+    <li>Send this again only when setup changes. The same body again answers <code>unchanged</code>.</li>
+  </ul>
+  <details><summary>Reply Pimcore gave to this body</summary>
+<pre>{
+  "ok": true, "service": "pimcore", "auth": "api_key", "batchId": "full-attrdef-001", "processed": 20, "failed": 0,
+  "results": [
+    {"key": "attribute:RH_Head", "action": "updated"},
+    {"key": "attribute:RH_Point", "action": "created"},
+    {"key": "attribute:RH_Thread", "action": "created"},
+    {"key": "attribute:RH_SpecialFeatures", "action": "created"},
+    {"key": "attribute:MATERIAL TYPE", "action": "updated"},
+    {"key": "attribute:RH_Coating", "action": "created"},
+    {"key": "attribute:CORROSION CATEGORY", "action": "updated"},
+    {"key": "attribute:RH_Drive", "action": "created"},
+    {"key": "attribute:DIAMETER", "action": "unchanged"},
+    {"key": "attribute:DRILL CAP MM", "action": "updated"},
+    {"key": "attribute:LENGTH MM", "action": "updated"},
+    {"key": "attribute:RH_RoofPitch", "action": "created"},
+    {"key": "attribute:RH_Certified", "action": "created"},
+    {"key": "attribute:RH_Note", "action": "created"},
+    {"key": "group:SHAPE", "action": "updated"},
+    {"key": "group:MATERIAL", "action": "created"},
+    {"key": "group:DIMENSIONS", "action": "created"},
+    {"key": "folder:5637150103", "action": "created", "objectId": 8741, "path": "/ErpSync/Catalog/5637150101/5637150102/5637150103"},
+    {"key": "folder:5637150104", "action": "created", "objectId": 8742, "path": "/ErpSync/Catalog/5637150101/5637150102/5637150103/5637150104"},
+    {"key": "folder:5637150105", "action": "created", "objectId": 8743, "path": "/ErpSync/Catalog/…/5637150105"}
+  ],
+  "errors": []
+}</pre>
+  <p class="small">Reply keys carry a prefix: <code>attribute:</code>, <code>group:</code>, <code>folder:</code>. That keeps an attribute and a group with the same code apart.</p>
+  </details>
   <h3>How Pimcore will use this</h3>
   <ul>
     <li>Placement is <code>folderGroups</code>, not a hardcoded layer table. A later category is another folder and another group on the same call.</li>
@@ -376,16 +576,53 @@ Content-Type: application/json
     <tr><td><code>attributes[].unit</code></td><td>No</td><td>Send on a decimal. Omit on a word.</td></tr>
     <tr><td><code>attributes[].isDeleted</code></td><td>No</td><td><code>true</code> clears that attribute only. It does not unpublish the product.</td></tr>
   </table>
+  <h3>Full example — every attribute from the definitions example on one variant</h3>
 <pre>{
-  "batchId": "adf-attr-001",
-  "items": [{
-    "itemNumber": "35006-21-59-8-1",
-    "attributes": [
-      { "attributeCode": "DIAMETER", "value": "6.5", "unit": "mm", "isDeleted": false },
-      { "attributeCode": "RH_Head", "value": "HX17", "unit": null, "isDeleted": false }
-    ]
-  }]
+  "batchId": "full-attr-001",
+  "items": [
+    { "itemNumber": "40100-STD-59-8-1",
+      "attributes": [
+        { "attributeCode": "RH_Head",            "value": "HX17",  "unit": null,  "isDeleted": false },
+        { "attributeCode": "RH_Point",           "value": "DRILL", "unit": null,  "isDeleted": false },
+        { "attributeCode": "RH_Thread",          "value": "METAL", "unit": null,  "isDeleted": false },
+        { "attributeCode": "RH_SpecialFeatures", "value": "WINGS", "unit": null,  "isDeleted": false },
+        { "attributeCode": "RH_RoofPitch",       "value": "3",     "unit": "deg", "isDeleted": false },
+        { "attributeCode": "MATERIAL TYPE",      "value": "A2",    "unit": null,  "isDeleted": false },
+        { "attributeCode": "RH_Coating",         "value": "ZYTEC", "unit": null,  "isDeleted": false },
+        { "attributeCode": "CORROSION CATEGORY", "value": "C4",    "unit": null,  "isDeleted": false },
+        { "attributeCode": "RH_Certified",       "value": "true",  "unit": null,  "isDeleted": false },
+        { "attributeCode": "DIAMETER",           "value": "6.5",   "unit": "mm",  "isDeleted": false },
+        { "attributeCode": "DRILL CAP MM",       "value": "2", "valueTo": "5", "unit": "mm", "isDeleted": false },
+        { "attributeCode": "RH_Drive",           "value": "TX25",  "unit": null,  "isDeleted": false },
+        { "attributeCode": "LENGTH MM",          "value": "100",   "unit": "mm",  "isDeleted": false },
+        { "attributeCode": "RH_Note",            "value": null,    "unit": null,  "isDeleted": true }
+      ] }
+  ]
 }</pre>
+  <ul class="rows">
+    <li>You send everything on the item you know, here the variant. Pimcore climbs to the folder named in <code>folderGroups</code> and writes the value on the object that owns it. The reply's <code>written</code> list shows where each value went, as <code>code@categoryKey</code> or <code>code@master</code>.</li>
+    <li><b>List values</b> (<code>HX17</code>, <code>A2</code>, <code>C4</code>, …) must be option codes from the definition. The value object is created the first time a code is used, and named from its <code>en-CA</code> option text.</li>
+    <li><b>Decimals</b> send the number as text with its <code>unit</code>. <code>DRILL CAP MM</code> is a from–to value: <code>value</code> is from, <code>valueTo</code> is to.</li>
+    <li><code>LENGTH MM</code> lands on master <code>40100</code>, because each master has its own length.</li>
+    <li><code>RH_RoofPitch</code> and <code>RH_Certified</code> have no Pimcore field yet. They are kept on the series and range folders.</li>
+    <li><code>RH_Note</code> with <code>isDeleted: true</code> clears that one attribute. It does not unpublish the product. Nothing was stored for it here, so it does not appear in <code>written</code>. When there is a value to clear, the clear is listed in <code>written</code> like any other write.</li>
+  </ul>
+  <details><summary>Reply Pimcore gave to this body</summary>
+<pre>{
+  "ok": true, "service": "pimcore", "auth": "api_key", "batchId": "full-attr-001", "processed": 1, "failed": 0,
+  "results": [
+    {"key": "40100-STD-59-8-1", "action": "updated", "objectId": 8750,
+     "path": "/ErpSync/Catalog/…/5637150105/40100/40100-STD-59-8-1",
+     "written": ["RH_Head@5637150103", "RH_Point@5637150103", "RH_Thread@5637150103",
+                 "RH_SpecialFeatures@5637150103", "RH_RoofPitch@5637150103",
+                 "MATERIAL TYPE@5637150104", "RH_Coating@5637150104",
+                 "CORROSION CATEGORY@5637150104", "RH_Certified@5637150104",
+                 "DIAMETER@5637150105", "DRILL CAP MM@5637150105", "RH_Drive@5637150105",
+                 "LENGTH MM@40100"]}
+  ],
+  "errors": []
+}</pre>
+  </details>
   <p class="small">An attribute missing from the list is left unchanged. <code>null</code> or <code>isDeleted: true</code> clears that attribute only. It does not unpublish the product. Option codes come from the definition — HX17 / HX13 are examples, not a list we invented.</p>
   <p class="small"><code>folderGroups</code> decides the branch. Head type is written on the series folder, material and corrosion category on the range folder, diameter and drill cap on the product group, length on the master of this item. A code that has no field yet is stored on the folder you named. Sending the value again with the same contents answers <code>unchanged</code>.</p>
 </div>
@@ -400,13 +637,42 @@ Content-Type: application/json
     <tr><td><code>companyCode</code></td><td>Yes</td><td>Any company already stored. <code>RH</code>, <code>RHU</code>, <code>ASW</code>, and <code>SPI</code> also turn that shop brick on or off. Any other code is stored on Release and gets no brick.</td></tr>
     <tr><td><code>released</code></td><td>Yes</td><td><code>true</code> adds the company. <code>false</code> removes it, and removes that shop brick when the code is one of the four. The product itself stays. A missing row does not remove a shop.</td></tr>
   </table>
+  <h3>Full example — four shops, one non-shop company, one removal</h3>
 <pre>{
-  "batchId": "adf-rel-001",
+  "batchId": "full-release-001",
   "items": [
-    { "itemNumber": "35044-21-59-8-1", "companyCode": "ASW", "released": true },
-    { "itemNumber": "35044-21-59-8-1", "companyCode": "RH",  "released": false }
+    { "itemNumber": "40100-STD-59-8-1", "companyCode": "RH",  "released": true },
+    { "itemNumber": "40100-STD-59-8-1", "companyCode": "RHU", "released": true },
+    { "itemNumber": "40100-STD-59-8-1", "companyCode": "ASW", "released": true },
+    { "itemNumber": "40100-STD-59-8-1", "companyCode": "SPI", "released": true },
+    { "itemNumber": "40100-STD-59-8-1", "companyCode": "DMM", "released": true },
+    { "itemNumber": "40100-STD-21-6-2", "companyCode": "RH",  "released": true },
+    { "itemNumber": "40100-STD-21-6-2", "companyCode": "ASW", "released": false }
   ]
 }</pre>
+  <ul class="rows">
+    <li>One row per variant and company. The key is <code>itemNumber@companyCode</code>.</li>
+    <li><code>RH</code> <code>RHU</code> <code>ASW</code> <code>SPI</code> with <code>true</code> — the company is added to the variant's Release tab <b>and</b> its shop brick is turned on. The reply names the brick.</li>
+    <li><code>DMM</code> with <code>true</code> — added to Release. It has no shop brick, so <code>brick</code> is <code>null</code> and the reply says why.</li>
+    <li><code>40100-STD-21-6-2</code> @ <code>ASW</code> with <code>false</code> — removes that company and that brick. It was never released there, so the answer is <code>unchanged</code>.</li>
+    <li>A company you leave out keeps its current state. Send <code>false</code> to remove one.</li>
+  </ul>
+  <details><summary>Reply Pimcore gave to this body</summary>
+<pre>{
+  "ok": true, "service": "pimcore", "auth": "api_key", "batchId": "full-release-001", "processed": 7, "failed": 0,
+  "results": [
+    {"key": "40100-STD-59-8-1@RH", "action": "released", "objectId": 8750, "path": "/ErpSync/Catalog/…/40100/40100-STD-59-8-1", "companyCode": "RH", "brick": "PtRhStorefront"},
+    {"key": "40100-STD-59-8-1@RHU", "action": "released", "objectId": 8750, "path": "/ErpSync/Catalog/…/40100/40100-STD-59-8-1", "companyCode": "RHU", "brick": "PtRhUsStorefront"},
+    {"key": "40100-STD-59-8-1@ASW", "action": "released", "objectId": 8750, "path": "/ErpSync/Catalog/…/40100/40100-STD-59-8-1", "companyCode": "ASW", "brick": "PtAstonStorefront"},
+    {"key": "40100-STD-59-8-1@SPI", "action": "released", "objectId": 8750, "path": "/ErpSync/Catalog/…/40100/40100-STD-59-8-1", "companyCode": "SPI", "brick": "PtScrewProductsStorefront"},
+    {"key": "40100-STD-59-8-1@DMM", "action": "released", "objectId": 8750, "path": "/ErpSync/Catalog/…/40100/40100-STD-59-8-1", "companyCode": "DMM", "brick": null, "note": "company linked on Release; this code has no storefront brick"},
+    {"key": "40100-STD-21-6-2@RH", "action": "released", "objectId": 8751, "path": "/ErpSync/Catalog/…/40100/40100-STD-21-6-2", "companyCode": "RH", "brick": "PtRhStorefront"},
+    {"key": "40100-STD-21-6-2@ASW", "action": "unchanged", "objectId": 8751, "path": "/ErpSync/Catalog/…/40100/40100-STD-21-6-2", "companyCode": "ASW", "brick": null}
+  ],
+  "errors": []
+}</pre>
+  <p class="small">Actions on this feed: <code>released</code>, <code>unreleased</code>, <code>unchanged</code>, <code>failed</code>.</p>
+  </details>
   <p class="small">No <code>isDeleted</code> on this feed. Silence never removes a shop — send <code>false</code>. Do not send the hero image or the shop description. <code>false</code> on <code>RH</code>, <code>RHU</code>, <code>ASW</code>, or <code>SPI</code> removes that brick, including any hero already typed in Pimcore. Stopped-for-sales is not read from this flag.</p>
 </div>
 
@@ -435,17 +701,43 @@ Content-Type: application/json
     <tr><td><code>texts[].description</code></td><td>No</td><td>There is no product-description field yet, so this value is kept with the payload and not written to an object. Shop description is Pimcore marketing copy and is never touched by this feed.</td></tr>
     <tr><td><code>isDeleted</code></td><td>No</td><td>Ignored. Listed in <code>ignored</code>. To clear a text, send <code>null</code> or <code>""</code> on <code>name</code> or <code>description</code>. To unpublish the product, send <code>isDeleted: true</code> on <code>/product-master</code>.</td></tr>
   </table>
+  <h3>Full example — master and variant, three F&amp;O languages</h3>
 <pre>{
-  "batchId": "adf-txt-001",
+  "batchId": "full-txt-001",
   "items": [
-    { "itemNumber": "35044-21-59-8-1",
+    { "itemNumber": "40100",
       "texts": [
-        { "languageId": "en-CA", "name": "Hex screw 100mm", "description": "Stainless, RAL 1003" },
-        { "languageId": "en-US", "name": "Hex screw 100mm" }
-      ],
-      "isDeleted": false }
+        { "languageId": "en-CA", "name": "Hex head roofing screw 6.5 x 100", "description": "Stainless A2 roofing screw with drill point." },
+        { "languageId": "en-US", "name": "Hex head roofing screw 1/4 x 4",  "description": "Stainless A2 roofing screw, US sizing." },
+        { "languageId": "en-HK", "name": "Hex head roofing screw 6.5 x 100" }
+      ] },
+    { "itemNumber": "40100-STD-59-8-1",
+      "texts": [
+        { "languageId": "en-CA", "name": "Hex head roofing screw 6.5 x 100 RAL 1003", "description": "Colour RAL 1003, loose." },
+        { "languageId": "en-US", "name": "Hex head roofing screw 1/4 x 4 RAL 1003" }
+      ] }
   ]
 }</pre>
+  <ul class="rows">
+    <li><code>itemNumber</code> is the master <code>code</code> (<code>40100</code>) or the variant number. Both work.</li>
+    <li><code>en-CA</code> <code>name</code> overwrites the product <code>name</code> that <code>/product-master</code> set.</li>
+    <li><code>en-US</code>, <code>en-HK</code> and every description are stored on the same object as sent. The reply's <code>languages</code> list shows each text that was written.</li>
+    <li>A language you leave out keeps its text. To clear one text, send <code>"name": null</code> or <code>""</code> for that language.</li>
+    <li>No <code>isDeleted</code> here. Unpublish on <code>/product-master</code>.</li>
+  </ul>
+  <details><summary>Reply Pimcore gave to this body</summary>
+<pre>{
+  "ok": true, "service": "pimcore", "auth": "api_key", "batchId": "full-txt-001", "processed": 2, "failed": 0,
+  "results": [
+    {"key": "40100", "layer": "master", "action": "updated", "objectId": 8749, "path": "/ErpSync/Catalog/…/5637150105/40100",
+     "languages": ["en-CA:name", "en-CA:description", "en-US:name", "en-US:description", "en-HK:name"]},
+    {"key": "40100-STD-59-8-1", "layer": "variant", "action": "updated", "objectId": 8750, "path": "/ErpSync/Catalog/…/5637150105/40100/40100-STD-59-8-1",
+     "languages": ["en-CA:name", "en-CA:description", "en-US:name"]}
+  ],
+  "errors": []
+}</pre>
+  <p class="small"><code>updated</code>, not <code>created</code>: this feed never creates a product. The item must already exist from <code>/product-master</code>.</p>
+  </details>
   <p class="small">Primary language locked: <code>en-CA</code>. Step 2 (per-language Pimcore fields for shop locales) is future work; this feed already stores every F&amp;O language id as sent.</p>
 </div>
 
