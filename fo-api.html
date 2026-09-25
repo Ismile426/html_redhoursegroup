@@ -51,10 +51,10 @@
 <div class="wrap">
 
 <h1>F&amp;O → Pimcore — API payload</h1>
-<p class="small">Updated <b>24 Sep 2026</b>. What the Function should send, per call. TEST: <code>http://10.100.16.4:82/api/v1</code> (RH LAN only — Azure cannot reach Pimcore yet). <b>Call order:</b> <a href="#tab-start">Order &amp; rules</a> tab. Plain-language: <a href="how-pim-connects.html">Red Horse</a> · <a href="how-pim-builds.html">developer</a>. Step-by-step curl: <a href="FO_MANUAL_TEST_RUNBOOK.md">manual test runbook</a>. Keys, arrays, mapping: <a href="FO_API_PAYLOAD_GUIDE.md">payload guide</a>.</p>
+<p class="small">Updated <b>25 Sep 2026</b>. What the Function should send, per call. TEST: <code>http://10.100.16.4:82/api/v1</code> (RH LAN only — Azure cannot reach Pimcore yet). <b>Call order:</b> <a href="#tab-start">Order &amp; rules</a> tab. Plain-language: <a href="how-pim-connects.html">Red Horse</a> · <a href="how-pim-builds.html">developer</a>. Step-by-step curl: <a href="FO_MANUAL_TEST_RUNBOOK.md">manual test runbook</a>. Keys, arrays, mapping: <a href="FO_API_PAYLOAD_GUIDE.md">payload guide</a>.</p>
 
-<div class="ok"><b>LIVE now:</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/dimensions</code> · <code>/tree</code> · <code>/attribute-definitions</code> · <code>/product-master</code> · <code>/product-attributes</code> · <code>/product-translations</code></div>
-<div class="ask"><b>Not built:</b> <code>/product-release</code> only (POST 404). <code>/product-translations</code> is live. Primary F&amp;O language: <code>en-CA</code> → product <code>name</code>. Corrosion category is on the Range, with material and coating. Catalogue icons for material and corrosion are uploaded in Pimcore; F&amp;O sends the code, not the picture.</div>
+<div class="ok"><b>LIVE now:</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/dimensions</code> · <code>/tree</code> · <code>/attribute-definitions</code> · <code>/product-master</code> · <code>/product-attributes</code> · <code>/product-translations</code> · <code>/product-release</code></div>
+<div class="ask"><b>Live:</b> <code>/product-release</code> writes the company on the variant. <code>RH</code>, <code>RHU</code>, <code>ASW</code>, and <code>SPI</code> also get their shop brick. Other company codes do not. Primary F&amp;O language: <code>en-CA</code> → product <code>name</code>. Corrosion category is on the Range, with material and coating. Catalogue icons for material and corrosion are uploaded in Pimcore; F&amp;O sends the code, not the picture.</div>
 <div class="box"><code>X-API-Key</code> on <b>every</b> call. Wrapper <code>{ "batchId", "items": [] }</code>. Max <b>500</b> rows / <b>2 MB</b>. Unknown extra keys are ignored, they do not fail a row.</div>
 
 <nav class="tabs" id="tabs" aria-label="API endpoints">
@@ -83,19 +83,19 @@
     <tr><th>Call</th><th>Verdict</th><th>What changes</th></tr>
     <tr><td><code>/auth</code></td><td class="keep"><span class="badge keep">KEEP</span></td><td>Nothing. It is a key check, not a session — send the key on every call.</td></tr>
     <tr><td><code>/ping</code></td><td class="keep"><span class="badge keep">KEEP</span></td><td>Nothing. Empty GET is fine; a POST body is stored so we can read it.</td></tr>
-    <tr><td><code>/companies</code></td><td class="keep"><span class="badge keep">KEEP</span></td><td>Nothing. Which codes become shops is still open on the Red Horse sheet.</td></tr>
+    <tr><td><code>/companies</code></td><td class="keep"><span class="badge keep">KEEP</span></td><td>Any <code>companyCode</code> is stored. Shop bricks are only <code>RH</code>, <code>RHU</code>, <code>ASW</code>, <code>SPI</code>, and only when <code>/product-release</code> says so.</td></tr>
     <tr><td><code>/tree</code></td><td class="fix"><span class="badge fix">ADD FIELDS</span></td><td><code>productType</code> on level 1 (<b>now</b>, not later), <code>brand</code> on level 2, <code>productGroupNumber</code> on level 5.</td></tr>
     <tr><td><code>/product-master</code></td><td class="fix"><span class="badge live">LIVE</span> <span class="badge fix">ADD FIELDS</span></td><td>Live for identity and the four dimension pointers. Add <code>name</code> — it is missing entirely. Washer link for style-W screws still open, sending it is accepted and ignored.</td></tr>
     <tr><td><code>/dimensions</code></td><td class="keep"><span class="badge live">LIVE</span></td><td>Your shape, unchanged. Send <b>both</b> <code>code</code> and <code>name</code> per value. This is how variants get readable colours and sizes.</td></tr>
     <tr><td><code>/attribute-definitions</code></td><td class="keep"><span class="badge live">LIVE</span></td><td>One setup call, only when setup changes, never per product. Use <code>RH_Head</code>, not <code>HEAD TYPE</code>.</td></tr>
     <tr><td><code>/product-attributes</code></td><td class="keep"><span class="badge live">LIVE</span></td><td>Values on an item that already exists from <code>/product-master</code>. Send definitions first.</td></tr>
-    <tr><td><code>/product-release</code></td><td class="keep"><span class="badge keep">KEEP</span></td><td>Nothing. Explicit <code>false</code> is what switches a shop off.</td></tr>
+    <tr><td><code>/product-release</code></td><td class="keep"><span class="badge live">LIVE</span></td><td>One row per variant and company. <code>true</code> adds the company. The four shop codes also get a brick. <code>false</code> removes that company and that brick. Other codes have no brick.</td></tr>
     <tr><td><code>/product-translations</code></td><td class="keep"><span class="badge live">LIVE</span></td><td><code>en-CA</code> fills <code>name</code>. Other F&amp;O languages and descriptions are stored on the object. Danish and Swedish shop copy stays in Pimcore. Also send <code>name</code> on <code>/product-master</code> if you create the row first.</td></tr>
     <tr><td><code>/attribute-setup</code></td><td class="drop"><span class="badge drop">NOT A FEED</span></td><td>Use <code>/attribute-definitions</code> instead. Same job: definitions, groups, and which folder uses which group.</td></tr>
     <tr><td><code>/units</code></td><td class="drop"><span class="badge drop">HOLD</span></td><td>No field for pack size (PCS/BOX) in Pimcore today. Measure units (mm / in) already sit on the measure key.</td></tr>
     <tr><td><code>/barcodes</code> <code>/relations</code></td><td class="drop"><span class="badge drop">HOLD</span></td><td>No field on the class yet. Red Horse decides if these belong in PIM; then we model, then we feed.</td></tr>
   </table>
-  <p class="small">The attribute work is two calls, not four and not a mapping sheet. <code>/product-release</code> is still not built. Extra fields on <code>/tree</code> and <code>/product-master</code> are still needed — see <b>Gaps to close</b>.</p>
+  <p class="small">The attribute work is two calls, not four and not a mapping sheet. Extra fields on <code>/tree</code> and <code>/product-master</code> are still needed — see <b>Gaps to close</b>.</p>
 </div>
 
 <!-- START -->
@@ -114,9 +114,9 @@
     <tr><td>5</td><td><code>/product-master</code></td><td><code>/tree</code> level 5 · <code>/dimensions</code> for variant axes</td><td>Master hangs on the drawing folder. Variants after masters. Same batch: masters before variants.</td></tr>
     <tr><td>6</td><td><code>/product-attributes</code></td><td><code>/product-master</code> · <code>/attribute-definitions</code> recommended</td><td>Values on an existing <code>itemNumber</code> or master <code>code</code>. List options should be defined first.</td></tr>
     <tr><td>7</td><td><code>/product-translations</code></td><td><code>/product-master</code></td><td>Names on master or variant. <code>en-CA</code> → plain <code>name</code>. Can run after step 5; order vs step 6 is flexible.</td></tr>
-    <tr><td>—</td><td><code>/product-release</code></td><td><code>/companies</code> · variants on <code>/product-master</code></td><td><b>Not built</b> (404). Shop on/off per SKU and company.</td></tr>
+    <tr><td>8</td><td><code>/product-release</code></td><td><code>/companies</code> · variants on <code>/product-master</code></td><td>Company on the variant Release tab. <code>RH</code> <code>RHU</code> <code>ASW</code> <code>SPI</code> also get a brick.</td></tr>
   </table>
-  <div class="ok"><b>One line:</b> companies → dimensions → tree → attribute-definitions → product-master → product-attributes → product-translations.</div>
+  <div class="ok"><b>One line:</b> companies → dimensions → tree → attribute-definitions → product-master → product-attributes → product-translations → product-release.</div>
   <h3>Inside one batch</h3>
   <ul>
     <li><code>/tree</code> — parent folder before child.</li>
@@ -163,7 +163,7 @@ Content-Type: application/json
 <!-- COMPANIES -->
 <div class="tab panel" id="tab-companies">
   <h2><span class="badge live">LIVE</span> <code>POST /api/v1/companies</code></h2>
-  <p>Keys are final. Current allow-list is provisional until Red Horse confirms which companies are shops: create RH, RHU, ASW, SPI. Skip, and that is not a failure: GXN, DH, DE, DE2, unknown.</p>
+  <p>Keys are final. Any <code>companyCode</code> is created under <code>/ErpSync/LegalEntities</code>. F&amp;O does not send production-only companies. This does not turn the company into a storefront.</p>
   <table>
     <tr><th>Field</th><th>Required</th><th>Rule</th></tr>
     <tr><td><code>companyCode</code></td><td>Yes</td><td>Match key.</td></tr>
@@ -392,13 +392,13 @@ Content-Type: application/json
 
 <!-- RELEASED -->
 <div class="tab panel" id="tab-released">
-  <h2><span class="badge plan">SHAPE — not live</span> <code>POST /api/v1/product-release</code></h2>
-  <p>Your payload is the one we will use. One row per item and company. Shop companies only.</p>
+  <h2><span class="badge live">LIVE</span> <code>POST /api/v1/product-release</code></h2>
+  <p>One row per variant and company. The company must already exist from <code>/companies</code>. The variant must already exist from <code>/product-master</code>.</p>
   <table>
     <tr><th>Field</th><th>Required</th><th>Rule</th></tr>
-    <tr><td><code>itemNumber</code></td><td>Yes</td><td>The variant number. Shops attach to a SKU.</td></tr>
-    <tr><td><code>companyCode</code></td><td>Yes</td><td>A shop company. Production companies are ignored.</td></tr>
-    <tr><td><code>released</code></td><td>Yes</td><td><code>true</code> switches the shop on, <code>false</code> switches it off. The product itself stays.</td></tr>
+    <tr><td><code>itemNumber</code></td><td>Yes</td><td>The variant number. The master number is not accepted.</td></tr>
+    <tr><td><code>companyCode</code></td><td>Yes</td><td>Any company already stored. <code>RH</code>, <code>RHU</code>, <code>ASW</code>, and <code>SPI</code> also turn that shop brick on or off. Any other code is stored on Release and gets no brick.</td></tr>
+    <tr><td><code>released</code></td><td>Yes</td><td><code>true</code> adds the company. <code>false</code> removes it, and removes that shop brick when the code is one of the four. The product itself stays. A missing row does not remove a shop.</td></tr>
   </table>
 <pre>{
   "batchId": "adf-rel-001",
@@ -407,7 +407,7 @@ Content-Type: application/json
     { "itemNumber": "35044-21-59-8-1", "companyCode": "RH",  "released": false }
   ]
 }</pre>
-  <p class="small">No <code>isDeleted</code> on this feed, as you noted. Silence never removes a shop — we need the explicit <code>false</code>. Shop hero image and shop description stay in Pimcore; do not send them.</p>
+  <p class="small">No <code>isDeleted</code> on this feed. Silence never removes a shop — send <code>false</code>. Do not send the hero image or the shop description. <code>false</code> on <code>RH</code>, <code>RHU</code>, <code>ASW</code>, or <code>SPI</code> removes that brick, including any hero already typed in Pimcore. Stopped-for-sales is not read from this flag.</p>
 </div>
 
 <!-- TRANSLATIONS -->

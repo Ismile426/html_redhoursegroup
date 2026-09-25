@@ -128,7 +128,7 @@
   <div class="arrow">↓</div>
   <div class="vstep"><div class="n">/product-translations</div>Match <code>itemNumber</code> on master or variant (needs <code>/product-master</code>). <code>en-CA</code> → plain <code>name</code>. Other F&amp;O languages and descriptions → <code>foTranslationBag</code>. Same position as step 6 or just after it. <a href="fo-api.html#product-translations">JSON</a></div>
   <div class="arrow">↓</div>
-  <div class="vstep"><div class="n">/product-release</div><b>Not built.</b> Would need variants and shop companies. POST returns 404 today.</div>
+  <div class="vstep"><div class="n">/product-release</div><b>Live.</b> Adds the company on the variant. RH, RHU, ASW, and SPI also get their shop brick. Other codes do not.</div>
 </div>
 
 <h2 id="layers">4. Where one value lands</h2>
@@ -206,7 +206,7 @@
 <h2 id="notyet">Not built</h2>
 <div class="box no">
   <ul>
-    <li><a href="fo-api.html#released"><code>/product-release</code></a> returns 404. Shop on/off is not written. Do not treat “stopped for sales” as shop off.</li>
+    <li><a href="fo-api.html#released"><code>/product-release</code></a> is live. Explicit <code>released: false</code> removes that company and, for RH / RHU / ASW / SPI, that brick. Do not treat “stopped for sales” as shop off unless F&amp;O sends <code>false</code>.</li>
     <li>Folder <code>texts[]</code> on <code>/tree</code> are accepted and not stored. They are folder labels, not product <code>/product-translations</code>.</li>
     <li><code>washerItemNumber</code> is accepted on <code>/product-master</code> and ignored.</li>
   </ul>
