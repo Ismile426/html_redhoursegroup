@@ -151,7 +151,7 @@
   .rgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .rcard { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
   @media (max-width: 800px) { .rgrid { grid-template-columns: 1fr; } }
-  #pim-frame { width: 100%; border: 0; min-height: 80vh; background: #fff; border-radius: 10px; }
+  #pim-frame { width: 100%; border: 0; height: 0; background: #fff; display: block; }
   /* ---- explanations ---- */
   .step { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 18px; margin: 10px 0; }
   .step h3 { margin: 0 0 4px; font-size: 17px; display: flex; gap: 10px; align-items: center; }
@@ -516,7 +516,11 @@
       frame.style.height = doc.documentElement.scrollHeight + 'px';
     } catch (e) {}
   }
-  frame.addEventListener('load', fitFrame);
+  frame.addEventListener('load', function () {
+    fitFrame();
+    setTimeout(fitFrame, 300);
+  });
+  if (frame.contentDocument && frame.contentDocument.readyState === 'complete') fitFrame();
   var start = (location.hash || '').replace('#', '');
   if (start) showTab(start);
 </script>
