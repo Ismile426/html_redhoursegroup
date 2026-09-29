@@ -43,7 +43,7 @@
   .s7 { background: #854d0e; } .s8 { background: #9a3412; }
   .arrow { text-align: center; color: #a8a29e; font-size: 18px; line-height: 1.1; padding: 3px 0; }
   .note { color: var(--muted); font-size: 13px; margin: 4px 2px 8px; }
-  .tree { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13.5px; background: #1c1917; color: #fafaf9; border-radius: 12px; padding: 16px 18px; overflow-x: auto; line-height: 1.65; margin: 12px 0; }
+  .tree { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13.5px; background: #1c1917; color: #fafaf9; border-radius: 12px; padding: 16px 18px; overflow-x: auto; line-height: 1.65; margin: 12px 0; white-space: pre; }
   .tree .who { color: #86efac; }
   .tree .dim { color: #fde68a; }
   .gate { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 8px; align-items: stretch; }
@@ -55,7 +55,7 @@
   .arr { color: #a8a29e; font-size: 22px; display: flex; align-items: center; justify-content: center; }
   .shape { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
   .shape h3 { margin: 0 0 8px; }
-  .mini { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; background: #f5f5f4; border-radius: 8px; padding: 10px 12px; line-height: 1.55; }
+  .mini { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; background: #f5f5f4; border-radius: 8px; padding: 10px 12px; line-height: 1.55; white-space: pre; }
 </style>
 </head>
 <body>
@@ -207,7 +207,7 @@ Type            screw or washer                 <span class="who">tree</span>
 <p>This feed describes the attribute book. It does not put a value on a product. It says which attributes exist, which type each one is, which options a list has, which attributes sit in a group, and which folder uses which group.</p>
 <p>The folder assignment is what decides whether a later product may carry that attribute. A product only receives an attribute when one of its ancestor folders uses the attribute’s group. The assignment is the list. It is not the value.</p>
 <p>Send it when the book changes, not once per product. Leaving an attribute or a group out of a later send does not remove it. There is no delete for an attribute or a group yet. Sending a list attribute’s options again replaces that attribute’s option list. Sending an empty group list for a folder clears that folder’s assignment, so products under it no longer receive those attributes.</p>
-<p>The code you define is the code you must send later, including spaces and letter case. Pimcore stores that text as sent, after trimming the ends.</p>
+<p>The code you define is the code you send later. Pimcore stores that text as sent, after trimming the ends. A known field still matches when only the letter case differs.</p>
 
 <h2>Products</h2>
 <p>A master hangs on a product-group folder. That folder decides screw or washer. A variant hangs on its master. The variant is the thing a shop can sell. A master alone cannot be released to a shop.</p>
