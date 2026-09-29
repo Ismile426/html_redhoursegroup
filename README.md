@@ -11,6 +11,7 @@ Open `index.html` locally or deploy to Vercel for hosting.
 | `/` | Product Creation Wizard |
 | `/fo-api.html` | F&amp;O → Pimcore **live API** contract (auth, ping, companies, tree) |
 | `/what-the-feed-does.html` | What each F&amp;O feed does, and the order it has to arrive in |
+| `/how-data-travels.html` | Client page: the three F&amp;O conveyor tabs, plus what Pimcore stores |
 | `/product-listing.html` | Product Listing & Hierarchy (search + Method B tree) |
 | `/catalog-explorer.html` | Catalog Explorer (no nav link — direct URL only) |
 

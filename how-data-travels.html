@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Red Horse — how product data travels from F&amp;O to Pimcore</title>
+<style>
+  :root {
+    --ink: #1f2937; --muted: #6b7280; --line: #d1d5db; --bg: #f8fafc;
+    --fo: #2563eb; --fo-bg: #eff6ff;
+    --az: #7c3aed; --az-bg: #f5f3ff;
+    --fn: #0f766e; --fn-bg: #f0fdfa;
+    --pim: #c2410c; --pim-bg: #fff7ed;
+    --ok: #15803d; --warn: #b45309;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 16px/1.5 "Segoe UI", system-ui, sans-serif; color: var(--ink); background: var(--bg); }
+  header { background: #111827; color: #fff; padding: 22px 32px; }
+  header h1 { margin: 0 0 4px; font-size: 22px; }
+  header p { margin: 0; color: #cbd5e1; font-size: 14px; }
+  nav { display: flex; gap: 4px; padding: 0 32px; background: #111827; }
+  nav button { border: 0; background: #374151; color: #e5e7eb; padding: 10px 20px; font-size: 15px; cursor: pointer; border-radius: 8px 8px 0 0; }
+  nav button.active { background: var(--bg); color: var(--ink); font-weight: 600; }
+  main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 60px; }
+  .tab { display: none; } .tab.active { display: block; }
+
+  /* ---- the flow ---- */
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 22px; font-size: 14px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+  .stage { border-radius: 14px; padding: 16px 18px 18px; margin: 0 auto; max-width: 820px; border: 2px solid; }
+  .stage > h3 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
+  .fo { border-color: var(--fo); background: var(--fo-bg); } .fo > h3 { color: var(--fo); }
+  .az { border-color: var(--az); background: var(--az-bg); } .az > h3 { color: var(--az); }
+  .fn { border-color: var(--fn); background: var(--fn-bg); } .fn > h3 { color: var(--fn); }
+  .pim { border-color: var(--pim); background: var(--pim-bg); } .pim > h3 { color: var(--pim); }
+  .box { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 8px 0; display: flex; gap: 12px; align-items: flex-start; }
+  .num { flex: 0 0 28px; height: 28px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .box b { display: block; }
+  .box small { color: var(--muted); }
+  .arrow { text-align: center; font-size: 26px; line-height: 1; color: #9ca3af; margin: 6px 0; }
+  .arrow small { display: block; font-size: 12px; color: var(--muted); }
+  .grid8 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px; }
+  .mini { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font-size: 14px; position: relative; }
+  .mini b { display: block; font-size: 14px; }
+  .mini small { color: var(--muted); font-size: 12px; }
+  .mini .n { position: absolute; top: 6px; right: 8px; font-size: 11px; color: var(--muted); }
+  .check { border-left: 4px solid var(--warn); }
+  .stop { color: var(--warn); font-size: 13px; font-weight: 600; }
+  .loop { font-size: 13px; color: var(--az); background: #fff; border: 1px dashed var(--az); border-radius: 8px; padding: 6px 10px; margin-top: 8px; }
+  .pill { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 999px; font-weight: 600; margin-left: 6px; vertical-align: middle; }
+  .p-live { background: #dcfce7; color: var(--ok); } .p-soon { background: #fef3c7; color: var(--warn); } .p-off { background: #e5e7eb; color: #4b5563; }
+  .side { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 820px; margin: 18px auto 0; }
+  .note { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 14px; }
+  .note b { display: block; margin-bottom: 2px; }
+
+
+  /* ---- left-to-right pipeline ---- */
+  .line { display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: 34px; position: relative; }
+  .station { position: relative; background: #fff; border: 2px solid; border-radius: 12px; padding: 10px 10px 12px; min-height: 104px; font-size: 14px; }
+  .station .n { position: absolute; top: -12px; left: 10px; background: var(--ink); color: #fff; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 1px 8px; }
+  .station b { display: block; font-size: 15px; margin: 4px 0 2px; }
+  .station small { color: var(--muted); font-size: 12.5px; }
+  .station:not(:last-child)::after { content: "➜"; position: absolute; right: -28px; top: 38%; font-size: 20px; color: #9ca3af; }
+  .s-fo { border-color: var(--fo); background: var(--fo-bg); }
+  .s-az { border-color: var(--az); background: var(--az-bg); }
+  .s-fn { border-color: var(--fn); background: var(--fn-bg); }
+  .s-pim { border-color: var(--pim); background: var(--pim-bg); }
+  .s-end { border-width: 3px; box-shadow: 0 4px 14px rgba(194,65,12,.18); }
+  .s-end b { font-size: 18px; color: var(--pim); }
+  .stopflag { display: block; margin-top: 6px; font-size: 11.5px; font-weight: 600; color: var(--warn); }
+  .turn { margin: 0 calc((100% - (var(--cols) - 1) * 34px) / var(--cols) / 2); height: 22px; border: 2px solid #9ca3af; border-top: 0; border-left: 0; border-bottom-right-radius: 14px; }
+  .turn2 { margin: 0 calc((100% - (var(--cols) - 1) * 34px) / var(--cols) / 2); height: 22px; border-left: 2px solid #9ca3af; position: relative; margin-top: -2px; border-top: 2px solid #9ca3af; border-top-left-radius: 14px; }
+  .turn2::after { content: "▼"; position: absolute; left: -8px; bottom: -14px; font-size: 13px; color: #9ca3af; }
+  .turnwrap { margin: 2px 0 16px; }
+  .rowlabel { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; margin: 0 0 14px; }
+  .inner { font-size: 13px; color: var(--fn); background: #fff; border: 1px dashed var(--fn); border-radius: 8px; padding: 6px 10px; margin: 12px 0 0; }
+  @media (max-width: 900px) { .line { grid-template-columns: repeat(2, 1fr) !important; } .station::after { display: none; } .turn, .turn2 { display: none; } }
+
+
+  /* ---- tab 3: inside Data Factory ---- */
+  .ico { font-size: 22px; line-height: 1; display: block; margin-top: 4px; }
+  .chip { display: inline-block; font: 600 11px/1.6 Consolas, monospace; padding: 0 7px; border-radius: 6px; margin: 4px 3px 0 0; border: 1px solid; background: #fff; }
+  .c-fo { color: var(--fo); border-color: var(--fo); }
+  .c-st { color: #475569; border-color: #94a3b8; }
+  .c-fn { color: var(--fn); border-color: var(--fn); }
+  .c-pim { color: var(--pim); border-color: var(--pim); }
+  .code { font-family: Consolas, monospace; font-size: 12.5px; font-weight: 700; color: var(--ink); display: block; margin-top: 2px; word-break: break-all; }
+  .places { display: grid; grid-template-columns: 1fr 50px 1fr 50px 1fr 50px 1fr; align-items: stretch; margin: 10px 0 8px; }
+  .place { border: 2px solid; border-radius: 14px; padding: 10px; text-align: center; background: #fff; }
+  .place .big { font-size: 34px; display: block; }
+  .place b { display: block; }
+  .place small { color: var(--muted); font-size: 12.5px; }
+  .link { display: flex; align-items: center; justify-content: center; font-size: 22px; color: #9ca3af; }
+  .store { border: 2px solid; border-radius: 14px; padding: 12px 14px; background: #fff; }
+  .store h4 { margin: 0 0 8px; font-size: 15px; }
+  .tree { font: 13px/1.9 Consolas, monospace; margin: 0; padding: 0; list-style: none; }
+  .tree li { padding-left: 18px; position: relative; }
+  .tree li::before { content: "\2514"; position: absolute; left: 2px; color: #9ca3af; }
+  .tree .ds { font: 600 11px Consolas, monospace; background: #fef9c3; color: #854d0e; border-radius: 5px; padding: 1px 6px; margin-left: 6px; }
+  .stores { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .paused { opacity: .55; border-style: dashed !important; }
+  .fgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .ftile { background: #fff; border: 2px solid var(--fn); border-radius: 12px; padding: 10px; font-size: 13px; text-align: center; }
+  .ftile .ico { font-size: 26px; }
+  .ftile b { display: block; font: 700 12.5px Consolas, monospace; margin: 4px 0; word-break: break-all; }
+  .ftile .flow { color: var(--muted); font-size: 11.5px; margin-top: 4px; }
+  .trouble { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .tcard { background: #fff; border: 2px solid #fca5a5; border-radius: 12px; padding: 10px 12px; font-size: 13.5px; }
+  .tcard b { color: #b91c1c; display: block; font-family: Consolas, monospace; }
+  .tcard .fix { display: block; margin-top: 4px; color: var(--ok); font-weight: 600; }
+  .sect { margin: 34px 0 10px; font-size: 19px; display: flex; align-items: center; gap: 8px; }
+  .sect .tag { font-size: 12px; background: var(--ink); color: #fff; border-radius: 999px; padding: 1px 9px; }
+  @media (max-width: 900px) { .places { grid-template-columns: 1fr; } .link { transform: rotate(90deg); } .stores, .trouble { grid-template-columns: 1fr; } .fgrid { grid-template-columns: repeat(2, 1fr); } }
+
+
+
+  /* ---- vertical flow ---- */
+  .vflow { max-width: 560px; margin: 0 auto; }
+  .vgroup { position: relative; border-left: 6px solid; padding: 8px 0 8px 22px; margin: 0 0 6px 70px; }
+  .vlabel { position: absolute; left: -78px; top: 10px; width: 64px; text-align: right; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+  .g-fo { border-color: var(--fo); } .g-fo .vlabel { color: var(--fo); } .g-fo .vstep { border-color: var(--fo); background: var(--fo-bg); }
+  .g-az { border-color: var(--az); } .g-az .vlabel { color: var(--az); } .g-az .vstep { border-color: var(--az); background: var(--az-bg); }
+  .g-fn { border-color: var(--fn); } .g-fn .vlabel { color: var(--fn); } .g-fn .vstep { border-color: var(--fn); background: var(--fn-bg); }
+  .g-pim { border-color: var(--pim); } .g-pim .vlabel { color: var(--pim); } .g-pim .vstep { border-color: var(--pim); background: var(--pim-bg); }
+  .vstep { position: relative; border: 2px solid; border-radius: 10px; padding: 7px 12px 7px 46px; margin: 0 0 22px; background: #fff; }
+  .vstep b { display: inline; font-size: 15px; } .vstep small { color: var(--muted); font-size: 13px; margin-left: 8px; }
+  .vstep .vn { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .vstep::after { content: "\2193"; position: absolute; left: 50%; bottom: -21px; transform: translateX(-50%); color: #9ca3af; font-size: 16px; }
+  .g-pim .vstep::after { content: none; }
+  .vstep.stop small { color: var(--warn); font-weight: 600; }
+  .vstep.paused { opacity: .6; border-style: dashed; }
+  .vstep.end { border-width: 3px; box-shadow: 0 4px 14px rgba(194,65,12,.18); }
+  .vstep.end b { color: var(--pim); font-size: 17px; }
+  .vnote { font-size: 13px; color: var(--fn); background: #fff; border: 1px dashed var(--fn); border-radius: 8px; padding: 6px 10px; margin: -8px 0 22px; }
+  /* tab 3: visible details */
+  .act { display: block; margin-top: 6px; font: 600 11px Consolas, monospace; color: #64748b; }
+  .why { display: block; color: var(--muted); font-family: "Segoe UI", sans-serif; font-size: 12px; margin: -2px 0 4px; }
+  .tree .ds { margin: 0 6px 0 0; }
+  .place small { display: block; }
+  @media (max-width: 700px) { .vgroup { margin-left: 0; } .vlabel { position: static; text-align: left; width: auto; margin-bottom: 6px; } .vstep small { display: block; margin-left: 0; } }
+
+
+  .flowarrow { text-align: center; font-size: 26px; line-height: 1; color: #94a3b8; margin: 2px 0; }
+
+  /* ---- tab 3: conditions ---- */
+  .always { background: #fff; border: 2px solid var(--fn); border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+  .always h3, .rcard h3 { margin: 0 0 6px; font-size: 17px; }
+  .checks { list-style: none; padding: 0; margin: 0; }
+  .checks li { margin: 5px 0; font-size: 14.5px; }
+  .rgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .rcard { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+  @media (max-width: 800px) { .rgrid { grid-template-columns: 1fr; } }
+  #pim-frame { width: 100%; border: 0; min-height: 80vh; background: #fff; border-radius: 10px; }
+  /* ---- explanations ---- */
+  .step { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 18px; margin: 10px 0; }
+  .step h3 { margin: 0 0 4px; font-size: 17px; display: flex; gap: 10px; align-items: center; }
+  .step p { margin: 6px 0; }
+  .eg { background: #f1f5f9; border-left: 4px solid #94a3b8; padding: 8px 12px; border-radius: 6px; margin-top: 8px; font-size: 15px; }
+  .eg b { color: #334155; }
+  h2 { margin: 30px 0 4px; font-size: 20px; }
+  h2 + p { margin-top: 0; color: var(--muted); }
+  @media (max-width: 760px) { .grid8 { grid-template-columns: repeat(2, 1fr); } .side { grid-template-columns: 1fr; } }
+
+  /* ---- branding: matches redhorse-pim-review.vercel.app ---- */
+  :root { --navy: #1b2a4a; --navy-2: #24365c; --ink: #222; --muted: #5c6470; --line: #d8dee8; --wash: #f6f8fb; }
+  html, body { background: var(--wash); color: var(--ink); font: 16px/1.5 "Calibri", "Segoe UI", system-ui, sans-serif; }
+  .page { max-width: 1120px; margin: 0 auto; padding: 28px 20px 64px; }
+  .brand-bar { background: linear-gradient(135deg, #1b2a4a 0%, #2c2050 100%); color: #fff; border-radius: 10px 10px 0 0; padding: 28px 24px 32px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; }
+  .brand-logos { display: flex; align-items: center; justify-content: center; gap: 14px; }
+  .brand-logos .logo-pill { background: #fff; border-radius: 999px; padding: 7px 18px; display: inline-flex; align-items: center; justify-content: center; height: 34px; }
+  .brand-logos .logo-pill svg { display: block; height: 24px; width: auto; }
+  .brand-logos .logo-pill img { display: block; height: 15px; width: auto; }
+  .brand-plus { color: #fff; font-size: 18px; font-weight: 700; opacity: .75; }
+  .confidential-badge { display: inline-block; background: rgba(214, 90, 70, .2); border: 1px solid rgba(214, 90, 70, .55); color: #ff9d8a; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 4px 14px; border-radius: 999px; }
+  .brand-title { margin: 4px 0 0; font-size: 30px; font-weight: 700; line-height: 1.25; }
+  .brand-subtitle { margin: 0; font-size: 15.5px; font-weight: 600; letter-spacing: .03em; color: #a9c9ff; text-transform: uppercase; }
+  nav.flow-tabs { display: flex; gap: 4px; padding: 8px; background: var(--navy-2); border-radius: 0 0 10px 10px; margin: 0 0 8px; }
+  nav.flow-tabs button { appearance: none; border: 0; background: transparent; color: #c5d0e0; font: 700 15px/1.3 "Calibri", "Segoe UI", system-ui, sans-serif; padding: 11px 18px; border-radius: 6px; cursor: pointer; }
+  nav.flow-tabs button.active { background: var(--wash); color: var(--navy); }
+  main { max-width: none; padding: 16px 0 0; }
+  h2 { color: var(--navy); font-size: 22px; margin: 32px 0 12px; padding-bottom: 6px; border-bottom: 2px solid var(--line); }
+  h2 + p { color: var(--muted); }
+  .step h3, .always h3, .rcard h3, .store h4 { color: var(--navy-2); }
+  .num, .sect .tag, .vn { background: var(--navy) !important; }
+  .step, .rcard, .note, .store { border-color: var(--line); border-radius: 8px; }
+  .code, .chip, .act, .tree, .ds, .ftile b { font-family: ui-monospace, Menlo, Consolas, monospace; }
+  .sect { border-bottom: 2px solid var(--line); padding-bottom: 6px; color: var(--navy); }
+
+  /* ---- tabs clearly separate from the header ---- */
+  .brand-bar { border-radius: 10px; }
+  nav.flow-tabs { background: transparent; padding: 0; margin: 16px 0 6px; gap: 10px; flex-wrap: wrap; border-bottom: 2px solid var(--line); padding-bottom: 12px; border-radius: 0; }
+  nav.flow-tabs button { background: #fff; color: var(--navy); border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 18px; box-shadow: 0 1px 2px rgba(27,42,74,.06); }
+  nav.flow-tabs button:hover { border-color: var(--navy-2); }
+  nav.flow-tabs button.active { background: var(--navy); color: #fff; border-color: var(--navy); box-shadow: 0 3px 10px rgba(27,42,74,.25); }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="brand-bar">
+    <div class="brand-logos">
+        <span class="logo-pill">
+          <svg viewBox="0 0 406 95" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Biztech">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M99.3676 18.263C104.371 25.9642 105.282 35.4558 102.78 45.1474C12.1069 37.5561 49.8731 11.6819 64.053 3.69059C79.0635 2.69042 92.3927 7.58123 99.3376 18.263H99.3676ZM102.37 46.7476C98.4569 59.7898 88.44 73.0119 73.8398 82.4835C50.3134 97.756 22.7343 98.2061 8.79456 84.5538C25.306 58.0095 67.0551 49.2181 102.33 46.7476H102.37ZM0.0684893 65.0106C10.2613 54.5021 24.1485 48.3748 38.7854 47.9278C38.7854 47.9278 17.9609 41.6768 30.0293 15.6425C10.3256 28.5447 -0.992249 48.2579 0.0684893 65.0106Z" fill="#35B0BF"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M171.708 56.4192C171.822 59.5524 171.034 62.6525 169.436 65.3507C167.923 67.754 165.694 69.6221 163.062 70.6916C159.949 71.9201 156.621 72.5119 153.275 72.4318H131.35C130.641 72.3829 129.975 72.0794 129.473 71.5776C128.97 71.0758 128.667 70.4094 128.618 69.7014V18.173C128.615 17.8097 128.687 17.4498 128.83 17.1159C128.973 16.782 129.183 16.4812 129.448 16.2326C129.691 15.9704 129.985 15.7612 130.312 15.6183C130.639 15.4754 130.993 15.4019 131.35 15.4025H150.493C153.314 15.3568 156.128 15.6933 158.859 16.4027C160.984 16.9467 162.98 17.9052 164.733 19.2231C166.293 20.4471 167.515 22.0475 168.285 23.8739C169.116 25.8447 169.525 27.967 169.486 30.1049C169.486 36.3859 166.007 40.5566 159.049 42.617C163.252 43.3171 166.424 44.8773 168.536 47.3077C170.698 49.8442 171.83 53.0991 171.708 56.4292V56.4192ZM159.299 30.1049C159.369 28.8956 159.11 27.6899 158.55 26.6158C157.99 25.5417 157.149 24.6392 156.117 24.0039C153.709 22.5951 150.95 21.9012 148.161 22.0036H139.305V40.0065H146.73C155.11 40.0065 159.299 36.7193 159.299 30.1449V30.1049ZM161.301 56.4192C161.377 54.274 160.824 52.1532 159.71 50.3182C158.711 48.7583 157.263 47.5377 155.557 46.8177C153.782 46.0655 151.871 45.6875 149.943 45.7075H139.305V65.8408H150.313C152.221 65.8605 154.115 65.5212 155.897 64.8406C157.494 64.2285 158.871 63.152 159.85 61.7501C160.882 60.1616 161.396 58.292 161.321 56.3992L161.301 56.4192ZM191.492 23.9139C191.494 24.2678 191.423 24.6183 191.284 24.9436C191.144 25.2689 190.939 25.5619 190.681 25.8042C190.435 26.0627 190.138 26.2679 189.809 26.4072C189.481 26.5466 189.127 26.6171 188.77 26.6143H183.026C182.313 26.6042 181.633 26.313 181.134 25.8042C180.869 25.5661 180.657 25.2746 180.512 24.9488C180.367 24.6231 180.293 24.2704 180.294 23.9139V18.183C180.293 17.8196 180.366 17.4598 180.507 17.1248C180.648 16.7898 180.854 16.4865 181.114 16.2326C181.359 15.971 181.655 15.7624 181.984 15.6196C182.313 15.4768 182.667 15.4029 183.026 15.4025H188.68C189.05 15.3985 189.418 15.4681 189.762 15.6071C190.105 15.7462 190.418 15.952 190.681 16.2126C190.954 16.468 191.169 16.7785 191.312 17.1234C191.455 17.4683 191.523 17.8397 191.512 18.213V23.9439L191.492 23.9139ZM190.891 69.7014C190.891 70.4187 190.609 71.1072 190.105 71.6181C189.602 72.129 188.917 72.4213 188.199 72.4318H183.636C183.28 72.4261 182.928 72.3478 182.603 72.2016C182.278 72.0554 181.986 71.8445 181.745 71.5817C181.485 71.3419 181.277 71.0512 181.134 70.7278C180.991 70.4043 180.916 70.055 180.914 69.7014V37.5961C180.915 37.2344 180.988 36.8765 181.129 36.5434C181.27 36.2102 181.476 35.9085 181.735 35.6558C181.971 35.3828 182.263 35.1637 182.591 35.0136C182.919 34.8634 183.275 34.7857 183.636 34.7857H188.249C188.609 34.7799 188.965 34.851 189.295 34.9942C189.625 35.1374 189.92 35.3493 190.161 35.6158C190.418 35.8799 190.62 36.1931 190.754 36.5367C190.888 36.8804 190.952 37.2474 190.941 37.6161V69.7214L190.891 69.7014ZM228.547 69.7014C228.552 70.0607 228.484 70.4172 228.346 70.7491C228.209 71.081 228.005 71.3813 227.747 71.6317C227.505 71.8879 227.214 72.0919 226.89 72.2313C226.566 72.3706 226.218 72.4422 225.866 72.4419H200.738C200.383 72.4348 200.034 72.3558 199.71 72.2097C199.387 72.0635 199.096 71.8533 198.857 71.5917C198.595 71.3524 198.386 71.0621 198.241 70.7386C198.097 70.4152 198.02 70.0656 198.016 69.7114V68.5112C198.064 67.8793 198.301 67.2765 198.697 66.7809L217.53 40.2066H215.338L211.045 40.2666C209.044 40.2666 207.123 40.3366 205.301 40.3766C203.48 40.4166 202.299 40.3766 201.909 40.3766C201.555 40.376 201.205 40.304 200.88 40.1647C200.555 40.0255 200.262 39.822 200.018 39.5665C199.752 39.333 199.539 39.0453 199.394 38.7226C199.249 38.3999 199.175 38.0499 199.177 37.6962V37.5261C199.178 37.1644 199.251 36.8065 199.392 36.4734C199.533 36.1402 199.739 35.8385 199.998 35.5858C200.236 35.3135 200.53 35.0951 200.86 34.9451C201.189 34.7951 201.547 34.7169 201.909 34.7157H225.755C226.117 34.7116 226.475 34.7875 226.804 34.938C227.132 35.0884 227.424 35.3096 227.657 35.5858C228.157 36.1082 228.437 36.8031 228.437 37.5261V38.3363C228.436 38.9543 228.24 39.5562 227.877 40.0565L209.204 66.4609C210.925 66.4009 213.467 66.3309 216.839 66.2708C220.212 66.2108 223.234 66.1708 225.916 66.1708C226.273 66.1652 226.627 66.2355 226.954 66.3768C227.282 66.5182 227.576 66.7275 227.817 66.991C228.072 67.2567 228.273 67.5701 228.407 67.9134C228.541 68.2566 228.605 68.6229 228.597 68.9913V69.6314L228.547 69.7014ZM258.919 68.4912C258.91 68.6826 258.862 68.8701 258.777 69.0421C258.693 69.2141 258.574 69.3671 258.428 69.4914C257.345 70.2122 256.2 70.8347 255.006 71.3517C253.59 71.9773 252.12 72.4695 250.613 72.8219C249.081 73.1849 247.513 73.3729 245.94 73.382C243.078 73.382 241.026 72.5019 239.765 70.7316C238.504 68.9613 237.874 66.3208 237.874 62.8303V40.5266H235.462C235.11 40.5288 234.76 40.458 234.437 40.3185C234.113 40.1791 233.821 39.9741 233.581 39.7165C233.31 39.4605 233.098 39.1494 232.958 38.8043C232.818 38.4592 232.754 38.0881 232.77 37.7162V37.5461C232.771 36.8231 233.051 36.1282 233.551 35.6058C233.787 35.3305 234.08 35.1099 234.41 34.9596C234.74 34.8093 235.099 34.7329 235.462 34.7357H238.034V26.7344C238.031 26.3721 238.103 26.0132 238.244 25.6796C238.385 25.3459 238.593 25.0446 238.855 24.794C239.099 24.5324 239.395 24.3238 239.724 24.181C240.053 24.0382 240.407 23.9643 240.766 23.9639H244.769C245.133 23.9564 245.494 24.0266 245.829 24.1698C246.164 24.3129 246.464 24.5257 246.71 24.794C246.966 25.0475 247.168 25.35 247.304 25.6835C247.44 26.0169 247.507 26.3744 247.501 26.7344V34.7357H254.816C255.173 34.732 255.528 34.804 255.855 34.9471C256.183 35.0902 256.477 35.3011 256.717 35.5658C256.975 35.8299 257.177 36.1431 257.311 36.4867C257.445 36.8304 257.508 37.1974 257.498 37.5661V37.7362C257.512 38.1079 257.447 38.4784 257.307 38.8232C257.167 39.168 256.956 39.4793 256.687 39.7365C256.187 40.2258 255.515 40.4988 254.816 40.4966H247.581V61.35C247.511 62.7888 247.728 64.2271 248.221 65.5807C248.397 66.0304 248.713 66.4118 249.122 66.6692C249.53 66.9266 250.011 67.0463 250.493 67.011C251.604 67.0031 252.7 66.754 253.705 66.2808C254.679 65.8575 255.532 65.1974 256.187 64.3605C256.392 64.1222 256.683 63.9747 256.997 63.9505C257.317 63.9505 257.608 64.2005 257.838 64.6806L258.889 68.2512C258.914 68.2807 258.935 68.3145 258.949 68.3512C258.953 68.3944 258.953 68.438 258.949 68.4812L258.919 68.4912ZM297.255 51.7385C297.266 52.108 297.201 52.4758 297.065 52.8197C296.929 53.1635 296.725 53.4762 296.465 53.7388C296.221 54.0107 295.921 54.2273 295.586 54.3739C295.251 54.5206 294.889 54.5939 294.523 54.5889H273.389C273.502 59.1297 274.366 62.3969 275.98 64.3905C277.602 66.3909 279.983 67.391 283.185 67.391C285.118 67.3596 287.033 67.022 288.859 66.3909C291.076 65.6476 293.071 64.3616 294.663 62.6502C294.761 62.5477 294.879 62.4671 295.01 62.4136C295.141 62.3602 295.282 62.3352 295.424 62.3402C295.964 62.3402 296.275 62.6703 296.425 63.3404L296.865 68.3412V68.5712C296.885 68.7455 296.844 68.9214 296.749 69.0691C296.655 69.2168 296.512 69.3271 296.345 69.3814C294.473 70.5604 292.484 71.5425 290.41 72.3118C288.09 73.083 285.65 73.4352 283.205 73.352C276.347 73.352 271.424 71.485 268.435 67.7511C265.446 64.0171 263.945 59.193 263.932 53.2787C263.834 49.9073 264.388 46.5488 265.563 43.3871C266.461 41.0283 267.921 38.9238 269.816 37.2561C271.478 35.8549 273.424 34.8311 275.52 34.2556C277.591 33.6897 279.728 33.4037 281.875 33.4055C285.997 33.4055 289.206 34.2889 291.501 36.0559C293.677 37.6722 295.294 39.9276 296.124 42.5069C296.934 45.0419 297.342 47.6874 297.335 50.3482V51.7585L297.255 51.7385ZM289.21 50.1582C289.08 46.3776 288.469 43.6071 287.408 41.8868C286.348 40.1666 284.496 39.2864 281.905 39.2864C276.694 39.2864 273.929 42.9103 273.609 50.1582H289.21ZM333.771 68.7312C333.763 68.8644 333.723 68.9935 333.653 69.1071C333.583 69.2206 333.486 69.3149 333.37 69.3814C329.671 72.0232 325.228 73.424 320.682 73.382C314.21 73.382 309.597 71.6284 306.842 68.1211C304.087 64.6139 302.706 59.7598 302.699 53.5588C302.699 48.678 303.436 44.7406 304.911 41.7468C306.19 38.9542 308.396 36.6894 311.155 35.3358C314.146 33.989 317.402 33.3294 320.682 33.4055C322.87 33.3359 325.058 33.5818 327.176 34.1356C329.188 34.8561 331.103 35.8201 332.88 37.006C333.12 37.1661 333.24 37.5761 333.24 38.2462L332.32 43.5071C332.21 44.0772 331.949 44.3472 331.509 44.3472C331.352 44.3567 331.195 44.329 331.051 44.2665C330.906 44.2039 330.779 44.1082 330.678 43.9872C329.446 42.6736 328.006 41.572 326.416 40.7267C324.573 40.0215 322.602 39.7114 320.631 39.8165C319.701 39.7477 318.766 39.874 317.887 40.1875C317.008 40.501 316.205 40.9946 315.528 41.6368C314.325 42.9625 313.544 44.6165 313.286 46.3876C312.912 48.7524 312.738 51.1446 312.766 53.5388C312.766 58.5396 313.396 62.0001 314.667 63.9505C315.323 64.9206 316.224 65.7 317.278 66.2095C318.333 66.7189 319.504 66.9402 320.672 66.8509C322.74 66.876 324.79 66.4629 326.688 65.6389C328.585 64.8149 330.286 63.5986 331.679 62.0702C331.88 61.9022 332.139 61.8196 332.4 61.8401C332.644 61.8404 332.878 61.9375 333.05 62.1102C333.207 62.2766 333.303 62.492 333.32 62.7203L333.721 68.4912V68.7412L333.771 68.7312ZM373.648 69.6214C373.656 69.9914 373.589 70.3592 373.451 70.7028C373.314 71.0465 373.109 71.359 372.848 71.6217C372.605 71.8896 372.308 72.1037 371.977 72.2501C371.646 72.3965 371.288 72.4721 370.926 72.4719H366.053C365.699 72.4739 365.349 72.3999 365.026 72.255C364.703 72.11 364.415 71.8975 364.182 71.6317C363.919 71.3701 363.711 71.0581 363.572 70.7143C363.433 70.3706 363.364 70.0022 363.371 69.6314V44.6273C363.371 42.707 363.041 41.4068 362.371 40.7667C361.465 40.0177 360.299 39.658 359.128 39.7665C357.493 39.7209 355.898 40.276 354.645 41.3268C353.443 42.3504 352.509 43.6515 351.923 45.1174C351.357 46.4266 351.048 47.8323 351.013 49.2581V69.6214C351.019 69.9913 350.952 70.3587 350.814 70.7022C350.677 71.0457 350.472 71.3583 350.212 71.6217C349.97 71.8903 349.673 72.1042 349.342 72.2491C349.011 72.394 348.652 72.4665 348.291 72.4619H343.427C343.072 72.4596 342.721 72.3827 342.396 72.2363C342.072 72.0899 341.783 71.8771 341.546 71.6117C341.284 71.3495 341.077 71.0373 340.938 70.6937C340.799 70.3501 340.73 69.9821 340.735 69.6114V18.253C340.738 17.5068 341.028 16.7904 341.546 16.2526C341.776 15.9778 342.064 15.7566 342.389 15.6045C342.714 15.4525 343.069 15.3733 343.427 15.3725H348.131C348.488 15.3746 348.84 15.4513 349.166 15.5977C349.492 15.7441 349.783 15.957 350.022 16.2226C350.54 16.7591 350.828 17.4772 350.823 18.223V41.4168C352.059 39.2392 353.719 37.3314 355.706 35.8058C357.777 34.4362 360.23 33.7602 362.711 33.8755C366.984 33.8755 369.876 34.8757 371.357 36.806C372.945 39.08 373.73 41.8178 373.588 44.5873L373.648 69.6214Z" fill="#373435"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M390.75 13.6822H393.522C394.094 13.6173 394.67 13.7709 395.133 14.1123C395.479 14.6156 395.635 15.2252 395.574 15.8326V17.0928C395.583 17.4854 395.623 17.8767 395.694 18.263C395.734 18.443 395.794 18.6831 395.874 18.9831H398.996V18.6431C398.86 18.5584 398.743 18.4461 398.654 18.3134C398.564 18.1807 398.503 18.0306 398.476 17.8729C398.414 17.4558 398.391 17.034 398.406 16.6127V15.7026C398.45 14.9778 398.316 14.2532 398.015 13.5922C397.71 13.0916 397.239 12.7132 396.684 12.522C397.37 12.3077 397.945 11.8339 398.286 11.2018C398.599 10.6205 398.768 9.97195 398.776 9.31152C398.783 8.8224 398.695 8.33658 398.516 7.88129C398.352 7.4672 398.122 7.08221 397.835 6.7411C397.496 6.33192 397.064 6.0096 396.574 5.80095C395.888 5.55524 395.162 5.43661 394.433 5.45089H387.958V19.0031H390.72V13.7022L390.75 13.6822ZM390.75 7.80127H393.883C394.329 7.77478 394.776 7.85715 395.183 8.04131C395.457 8.21375 395.676 8.46059 395.814 8.75288C395.952 9.04518 396.004 9.3708 395.964 9.69158C395.999 9.9974 395.941 10.3066 395.798 10.5794C395.656 10.8521 395.435 11.0759 395.163 11.2218C394.729 11.3841 394.266 11.4556 393.802 11.4319H390.8L390.75 7.80127Z" fill="#5E5E5E"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M393.502 24.484C395.926 24.488 398.296 23.7733 400.313 22.4306C402.329 21.0878 403.902 19.1773 404.833 16.9407C405.763 14.7041 406.008 12.242 405.538 9.86598C405.067 7.48995 403.902 5.30676 402.19 3.59269C400.478 1.87861 398.296 0.710684 395.919 0.2367C393.543 -0.237284 391.079 0.00397747 388.84 0.929955C386.6 1.85593 384.686 3.42501 383.339 5.43863C381.993 7.45225 381.274 9.8199 381.274 12.242C381.276 15.488 382.568 18.6002 384.864 20.8955C387.161 23.1907 390.274 24.4814 393.522 24.484H393.502ZM393.502 1.76028C395.579 1.7583 397.61 2.3722 399.338 3.52428C401.066 4.67637 402.413 6.31485 403.209 8.23237C404.004 10.1499 404.213 12.2602 403.808 14.2964C403.404 16.3325 402.404 18.2029 400.935 19.6708C399.466 21.1387 397.595 22.1381 395.558 22.5426C393.52 22.9471 391.409 22.7385 389.49 21.9432C387.572 21.1478 385.933 19.8015 384.78 18.0746C383.627 16.3478 383.013 14.3179 383.015 12.242C383.018 9.46288 384.123 6.79836 386.089 4.83323C388.056 2.8681 390.722 1.76293 393.502 1.76028Z" fill="#5E5E5E"/>
+          </svg>
+        </span>
+        <span class="brand-plus">+</span>
+        <span class="logo-pill">
+          <img src="data:image/png;base64,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" alt="Red Horse">
+        </span>
+      </div>
+    <span class="confidential-badge">Confidential</span>
+    <h1 class="brand-title">How product data travels from F&amp;O to Pimcore</h1>
+    <p class="brand-subtitle">Red Horse integration · end to end</p>
+  </div>
+  <nav class="flow-tabs">
+    <button class="active" data-tab="explain">1. The flow, step by step</button>
+    <button data-tab="adf">2. Inside Data Factory</button>
+    <button data-tab="rules">3. What must be true to reach Pimcore</button>
+    <button data-tab="pim">4. What Pimcore stores</button>
+  </nav>
+<main>
+
+
+<!-- ================= TAB 1: THE FLOW, STEP BY STEP ================= -->
+<section id="explain" class="tab active">
+  <p>The example follows one screw, <b>35006</b>, whose length changes from 30&nbsp;mm to 35&nbsp;mm.</p>
+
+  <h2>Part 1 — F&amp;O</h2>
+  <p>Where every product starts. We only read from it.</p>
+
+  <div class="step"><h3><span class="num">1</span> A product is changed</h3>
+    <p>Someone edits a product in F&amp;O. Only products with <b>"Push to PIM"</b> ticked travel on.</p>
+    <div class="eg"><b>Example:</b> The length of 35006 is set to 35 mm.</div></div>
+  <div class="flowarrow">&#8595;</div>
+
+  <div class="step"><h3><span class="num">2</span> A change folder appears</h3>
+    <p>F&amp;O drops the changed rows into a new folder, named after the time it was made.</p>
+    <div class="eg"><b>Example:</b> Folder "10:00" holds the 35 mm change.</div></div>
+  <div class="flowarrow">&#8595;</div>
+
+  <h2>Part 2 — The conveyor (Data Factory)</h2>
+  <p>Picks up change folders one at a time and hands them to our app.</p>
+
+  <div class="step"><h3><span class="num">3</span> Start the run</h3>
+    <p>Started by hand today; a timer will start it every hour later.</p>
+    <div class="eg"><b>Example:</b> Adil starts a run at 10:15.</div></div>
+  <div class="flowarrow">&#8595;</div>
+
+  <div class="step"><h3><span class="num">4</span> Pick the next folder</h3>
+    <p>A bookmark records the last folder done. The run takes the next one, oldest first, one per run.</p>
+    <div class="eg"><b>Example:</b> The bookmark says "09:00 done", so this run takes "10:00".</div></div>
+  <div class="flowarrow">&#8595;</div>
+
+  <div class="step"><h3><span class="num">5</span> Copy it</h3>
+    <p>The folder is copied into our own storage, so we never work on F&amp;O's live area.</p>
+    <div class="eg"><b>Example:</b> "10:00" is copied.</div></div>
+  <div class="flowarrow">&#8595;</div>
+
+  <div class="step"><h3><span class="num">6</span> Check the copy ✋</h3>
+    <p>If the copy is incomplete, the run stops. The same folder is retried next run.</p>
+    <div class="eg"><b>Example:</b> An empty copy after a network hiccup stops the run; the next run copies "10:00" again.</div></div>
+  <div class="flowarrow">&#8595;</div>
+
+  <h2>Part 3 — Our app sends the data, one kind at a time</h2>
+  <p>Every step sends <b>only what changed</b>, <b>waits</b> if something it needs isn't in Pimcore yet, and keeps Pimcore's "got it" as a receipt.</p>
+
+  <div class="step"><h3><span class="num">7</span> Companies</h3>
+    <p>The list of Red Horse companies.</p>
+    <div class="eg"><b>Example:</b> RH, SPI, RHU…</div></div>
+  <div class="flowarrow">&#8595;</div>
+
+  <div class="step"><h3><span class="num">8</span> Folder tree</h3>
+    <p>The product folders, parents first. Today only Screws.</p>
+    <div class="eg"><b>Example:</b> Screws › 06-15546 › Standard › Carbon steel › 063333.</div></div>
+  <div class="flowarrow">&#8595;</div>
+
+  <div class="step"><h3><span class="num">9</span> Products</h3>
+    <p>Each product and its variants, with name and allowed colours and sizes. A variant waits until its colour exists in Pimcore.</p>
+    <div class="eg"><b>Example:</b> 35006 is placed in folder 063333.</div></div>
+  <div class="flowarrow">&#8595;</div>
+
+  <div class="step"><h3><span class="num">10</span> Colours &amp; sizes</h3>
+    <p>The short codes variants use, with their full names.</p>
+    <div class="eg"><b>Example:</b> Code "59" = RAL 1003.</div></div>
+  <div class="flowarrow">&#8595;</div>
+
+  <div class="step"><h3><span class="num">11</span> Who sells it</h3>
+    <p>Which companies sell each variant: "yes" when they start, "no" when they stop.</p>
+    <div class="eg"><b>Example:</b> Variant 35006-21-59-8-1 is sold by RH and SPI.</div></div>
+  <div class="flowarrow">&#8595;</div>
+
+  <div class="step"><h3><span class="num">12</span> Names</h3>
+    <p>Name and description in every language, as written in F&amp;O. A deleted language is emptied in Pimcore.</p>
+    <div class="eg"><b>Example:</b> The English name of 35006.</div></div>
+  <div class="flowarrow">&#8595;</div>
+
+  <div class="step"><h3><span class="num">13</span> Product facts</h3>
+    <p>Each product's own facts, with the unit. A removed fact is cleared in Pimcore.</p>
+    <div class="eg"><b>Example:</b> Length 35 mm. This is our change arriving.</div></div>
+  <div class="flowarrow">&#8595;</div>
+
+  <div class="step"><h3><span class="num">14</span> List of facts</h3>
+    <p>Which facts exist, their choices, and which folders use them.</p>
+    <div class="eg"><b>Example:</b> "Head type" with the choices Countersunk and Pan.</div></div>
+  <div class="flowarrow">&#8595;</div>
+
+  <h2>Part 4 — Finish the folder</h2>
+
+  <div class="step"><h3><span class="num">15</span> Health check ✋</h3>
+    <p>If anything looks wrong, the run stops and the folder is retried next run.</p>
+    <div class="eg"><b>Example:</b> The folder tree can't be found, so the run stops instead of removing anything.</div></div>
+  <div class="flowarrow">&#8595;</div>
+
+  <div class="step"><h3><span class="num">16</span> Move the bookmark</h3>
+    <p>Only now is the folder marked done.</p>
+    <div class="eg"><b>Example:</b> "09:00 done" becomes "10:00 done".</div></div>
+  <div class="flowarrow">&#8595;</div>
+
+  <div class="step"><h3><span class="num">17</span> Tidy up (paused)</h3>
+    <p>Our copy is deleted after a good run. Switched off while testing.</p>
+    <div class="eg"><b>Example:</b> The copy of "10:00" is kept for now.</div></div>
+  <div class="flowarrow">&#8595;</div>
+
+  <h2>Part 5 — Pimcore</h2>
+
+  <div class="step"><h3><span class="num">18</span> Pimcore stores it</h3>
+    <p>It answers every record: created, updated, unchanged, or "could not use this". What it doesn't confirm is resent.</p>
+    <div class="eg"><b>Example:</b> Pimcore answers "updated": 35006 now shows 35 mm.</div></div>
+
+  <h2>What happens when…</h2>
+  <div class="step"><h3>…a product is unticked or deleted in F&amp;O?</h3>
+    <p>It is unpublished in Pimcore once. Nothing is removed without a clear signal.</p></div>
+  <div class="step"><h3>…Pimcore is down?</h3>
+    <p>The run stops; the same folder is retried next run. Nothing is lost.</p></div>
+  <div class="step"><h3>…Pimcore loses data?</h3>
+    <p>Adil asks for a full resend. It happened once on TEST: the folder tree was restored in one run.</p></div>
+</section>
+
+<!-- ================= TAB 3: INSIDE DATA FACTORY ================= -->
+<section id="adf" class="tab">
+  <p style="color:var(--muted);margin-top:0">Names are as they appear in ADF Studio.</p>
+
+  <h2 class="sect"><span class="tag">1</span> The places and connections</h2>
+  <div class="places">
+    <div class="place" style="border-color:var(--fo)"><span class="big">📦</span><b>F&amp;O storage</b><small>Data Factory only reads here</small><br><span class="chip c-fo">ls_datalake_f</span></div>
+    <div class="link">➜</div>
+    <div class="place" style="border-color:#94a3b8"><span class="big">🗄️</span><b>Our storage</b><small>copies, bookmarks, each step's memory</small><br><span class="chip c-st">ls_staging</span></div>
+    <div class="link">➜</div>
+    <div class="place" style="border-color:var(--fn)"><span class="big">⚙️</span><b>Our app</b><small>called with its own key</small><br><span class="chip c-fn">ls_func_pimcore</span></div>
+    <div class="link">➜</div>
+    <div class="place" style="border-color:var(--pim)"><span class="big">🏁</span><b>Pimcore</b><small>only our app talks to it</small><br><span class="chip c-pim">PIM API</span></div>
+  </div>
+
+  <h2 class="sect"><span class="tag">2</span> The datasets: what each one points at</h2>
+  <div class="stores">
+    <div class="store" style="border-color:var(--fo)">
+      <h4>📦 F&amp;O storage</h4>
+      <ul class="tree">
+        <li><span class="ds">ds_lake_root</span> all folders <small class="why">to list every change folder</small></li>
+        <li><span class="ds">ds_changelog</span> changelog.info <small class="why">which folder F&amp;O is still writing (skip it)</small></li>
+        <li><span class="ds">ds_lake_folder</span> one change folder <small class="why">what we copy</small></li>
+      </ul>
+    </div>
+    <div class="store" style="border-color:#94a3b8">
+      <h4>🗄️ Our storage</h4>
+      <ul class="tree">
+        <li><span class="ds">ds_staging_folder</span> our copy <small class="why">copy target, deleted afterwards</small></li>
+        <li><span class="ds">ds_staging_model</span> its table list <small class="why">checked after the copy</small></li>
+        <li><span class="ds">ds_watermark_marker</span> bookmark file <small class="why">one per finished folder</small></li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 class="sect"><span class="tag">3</span> <code>pl_sync_pimcore</code>: picks the next folder</h2>
+  <div class="line" style="--cols:4">
+    <div class="station s-az"><span class="ico">📂</span><b>List folders</b><small>skip the one still being written</small><span class="act">ListLakeFolders · GetCurrentFolder</span></div>
+    <div class="station s-az"><span class="ico">🔖</span><b>Read bookmarks</b><small>which folders are done?</small><span class="act">ListWatermarkMarkers</span></div>
+    <div class="station s-fn"><span class="ico">🧭</span><b>Pick the next</b><small>our app: oldest first, one per run</small><span class="act">PlanFolders</span></div>
+    <div class="station s-az"><span class="ico">🔁</span><b>Run pipeline 2</b><small>for that folder</small><span class="act">LoopFolders › RunFolder</span></div>
+  </div>
+
+  <h2 class="sect"><span class="tag">4</span> <code>pl_sync_folder</code>: processes one folder</h2>
+  <div class="line" style="--cols:5">
+    <div class="station s-az"><span class="ico">📋</span><b>Copy</b><small>into our storage</small><span class="act">SafeToCopy · CopyFolderToStaging</span></div>
+    <div class="station s-az"><span class="ico">🔍</span><b>Check</b><small>copy complete? ✋</small><span class="act">CheckModelJson · StagedFolderBad</span></div>
+    <div class="station s-fn"><span class="ico">📤</span><b>Send 8 kinds</b><small>in this order, only changes</small>
+      <span class="chip c-pim">companies</span><span class="chip c-pim">tree</span><span class="chip c-pim">products</span><span class="chip c-pim">colours</span><span class="chip c-pim">released</span><span class="chip c-pim">names</span><span class="chip c-pim">facts</span><span class="chip c-pim">fact list</span><span class="act">Sync… (8 calls)</span></div>
+    <div class="station s-az"><span class="ico">🩺</span><b>Health check</b><small>all 8 OK? ✋</small><span class="act">RunUnhealthy</span></div>
+    <div class="station s-az"><span class="ico">🔖</span><b>Bookmark</b><small>"folder done"; then delete the copy (paused)</small><span class="act">WriteWatermark</span></div>
+  </div>
+
+  <p class="inner" style="margin-top:22px">✋ = a run can stop here. The bookmark then stays where it was, so the next run simply retries the same folder. Nothing is lost.</p>
+</section>
+
+<!-- ================= TAB 3: CONDITIONS TO REACH PIMCORE ================= -->
+<section id="rules" class="tab">
+  <p style="margin-top:0">A record reaches Pimcore only when <b>every</b> ✅ in its box is true. If one is not true yet, it simply waits. It is never lost, and it goes on a later run once the condition is met.</p>
+
+  <div class="always">
+    <h3>🔑 Always needed, for every kind of data</h3>
+    <ul class="checks">
+      <li>✅ <b>Something changed</b> since the last time it was sent. Unchanged data is not sent again.</li>
+      <li>✅ That kind of data is <b>switched on</b> (live). Switched off = rehearsal only, nothing is sent.</li>
+      <li>✅ The run is <b>healthy</b>. For example, the folder tree was found.</li>
+    </ul>
+  </div>
+
+  <div class="rgrid">
+    <div class="rcard"><h3>🏢 Companies</h3>
+      <ul class="checks">
+        <li>✅ The company has a name in F&amp;O.</li>
+        <li>✅ It is not on the "leave out" list (internal codes such as DAT and GXN are left out).</li>
+      </ul></div>
+
+    <div class="rcard"><h3>🌳 Folder tree</h3>
+      <ul class="checks">
+        <li>✅ It is in the <b>"Product Catalogue"</b> tree.</li>
+        <li>✅ It is in a product type we send. Today that is <b>Screws</b> only.</li>
+        <li>✅ The folder has a name, and its parent folder is sent too.</li>
+        <li>✅ It is no deeper than 5 levels (type › plate › series › range › drawing).</li>
+      </ul></div>
+
+    <div class="rcard"><h3>🔩 Products</h3>
+      <ul class="checks">
+        <li>✅ <b>"Push to PIM" is ticked</b>, on the main product <b>and</b> on each variant. Ticking the main product does not tick its variants.</li>
+        <li>✅ The main product sits in <b>one drawing folder</b> (level 5) of the tree we send.</li>
+        <li>✅ A variant's main product is sent too.</li>
+        <li>✅ A variant's colour and size codes are <b>already in Pimcore</b>.</li>
+        <li>✅ The item number is used only once.</li>
+      </ul></div>
+
+    <div class="rcard"><h3>🎨 Colours &amp; sizes</h3>
+      <ul class="checks">
+        <li>✅ It belongs to a main product that sits in a folder we send. It does not need "Push to PIM".</li>
+        <li>✅ Its short code (for example "59") means only one colour. Clashing codes are held back.</li>
+      </ul></div>
+
+    <div class="rcard"><h3>🏷️ Who sells it</h3>
+      <ul class="checks">
+        <li>✅ The company is a <b>shop company</b>: RH, RHU, ASW or SPI.</li>
+        <li>✅ The product or variant is <b>already in Pimcore</b>.</li>
+        <li>✅ The company is <b>already in Pimcore</b>.</li>
+      </ul></div>
+
+    <div class="rcard"><h3>🌐 Names</h3>
+      <ul class="checks">
+        <li>✅ The product is <b>already in Pimcore</b>.</li>
+        <li>✅ The text is the product's own. A variant does not borrow its main product's name.</li>
+      </ul></div>
+
+    <div class="rcard"><h3>📏 Product facts</h3>
+      <ul class="checks">
+        <li>✅ The product is <b>already in Pimcore</b>.</li>
+        <li>✅ The fact is on the <b>list of facts</b> in Pimcore (next box).</li>
+        <li>✅ For a pick-list, the value is <b>one of its choices</b>.</li>
+        <li>✅ The fact is <b>linked to the product's folder</b> (or a folder above it).</li>
+        <li>✅ It is a business fact, not an F&amp;O system field.</li>
+      </ul></div>
+
+    <div class="rcard"><h3>📚 List of facts</h3>
+      <ul class="checks">
+        <li>✅ The fact type is one we understand: text, number, yes/no, or pick-list.</li>
+        <li>✅ It belongs to an <b>attribute group</b>, and that group is linked to a folder we send.</li>
+        <li>✅ A pick-list has at least one choice.</li>
+      </ul></div>
+  </div>
+
+  <div class="always" style="border-color:#fca5a5;background:#fef2f2">
+    <h3 style="color:#b91c1c">🚫 Never sent to Pimcore</h3>
+    <p style="margin:4px 0 0">Prices, stock and customer-specific data.</p>
+  </div>
+
+  <div class="always" style="border-color:#86efac;background:#f0fdf4">
+    <h3 style="color:var(--ok)">🗑️ When is something removed from Pimcore?</h3>
+    <p style="margin:4px 0 0">Only on a clear signal from F&amp;O: it was <b>deleted</b>, or <b>"Push to PIM" was unticked</b>. Missing or late data never removes anything.</p>
+  </div>
+</section>
+
+<section id="pim" class="tab">
+  <p>This is what Pimcore stores once a record arrives. The first three tabs are how the conveyor picks the change up. The order on this tab is the order Pimcore accepts.</p>
+  <iframe id="pim-frame" title="What the F&amp;O feed does" src="what-the-feed-does.html"></iframe>
+</section>
+</main>
+</div>
+
+<script>
+  function showTab(id) {
+    var buttons = document.querySelectorAll('nav.flow-tabs button');
+    var found = false;
+    buttons.forEach(function (b) {
+      var on = b.dataset.tab === id;
+      if (on) found = true;
+      b.classList.toggle('active', on);
+    });
+    if (!found) id = 'explain';
+    document.querySelectorAll('.tab').forEach(function (t) {
+      t.classList.toggle('active', t.id === id);
+    });
+    if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id);
+  }
+  document.querySelectorAll('nav.flow-tabs button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      showTab(b.dataset.tab);
+      window.scrollTo(0, 0);
+    });
+  });
+  var frame = document.getElementById('pim-frame');
+  function fitFrame() {
+    try {
+      var doc = frame.contentDocument;
+      if (!doc) return;
+      frame.style.height = doc.documentElement.scrollHeight + 'px';
+    } catch (e) {}
+  }
+  frame.addEventListener('load', fitFrame);
+  var start = (location.hash || '').replace('#', '');
+  if (start) showTab(start);
+</script>
+</body>
+</html>
