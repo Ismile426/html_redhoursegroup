@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What the F&amp;O feed does</title>
+<style>
+  :root { --ink:#1c1917; --muted:#57534e; --line:#e7e5e4; --paper:#fafaf9; --ok:#166534; --blue:#1e3a8a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; color: var(--ink); background: var(--paper); line-height: 1.55; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.92em; background: #f5f5f4; padding: 1px 5px; border-radius: 3px; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 32px 18px 80px; }
+  header h1 { font-size: 30px; line-height: 1.2; margin: 0 0 8px; }
+  header p { margin: 0; color: var(--muted); }
+  h2 { font-size: 22px; margin: 36px 0 8px; }
+  h3 { font-size: 17px; margin: 22px 0 6px; }
+  p { margin: 0 0 10px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin: 12px 0; }
+  .plain { border-left: 4px solid var(--ok); }
+  .label { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  ol.flow { list-style: none; margin: 12px 0; padding: 0; counter-reset: step; }
+  ol.flow li { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px 12px 58px; margin: 0 0 8px; position: relative; }
+  ol.flow li::before { counter-increment: step; content: counter(step); position: absolute; left: 14px; top: 12px; width: 28px; height: 28px; border-radius: 50%; background: #f0fdf4; color: var(--ok); font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  ol.flow b { display: block; }
+  ol.flow span { color: var(--muted); }
+  .levels { display: flex; flex-direction: column-reverse; gap: 6px; max-width: 560px; margin: 12px 0; }
+  .lvl { border-radius: 8px; padding: 8px 12px; color: #fff; display: flex; justify-content: space-between; gap: 12px; }
+  .lvl span { font-size: 13px; opacity: .92; }
+  .l1 { background: #1e3a8a; } .l2 { background: #1d4ed8; } .l3 { background: #0369a1; }
+  .l4 { background: #0f766e; } .l5 { background: #166534; } .l6 { background: #3f6212; } .l7 { background: #854d0e; }
+  table { width: 100%; border-collapse: collapse; background: #fff; font-size: 14.5px; margin: 10px 0; }
+  th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: #f5f5f4; }
+  .small { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>What the F&amp;O feed does</h1>
+  <p>29 Sep 2026. What Pimcore stores, and the order the feeds have to arrive in. This page does not describe request bodies.</p>
+</header>
+
+<h2>What is happening</h2>
+<p>F&amp;O pushes the catalogue into Pimcore. Pimcore does not read F&amp;O. Each feed creates or updates one kind of thing: a company, a folder, a dimension value, a product, a product’s attributes, a product’s names, or the shops that sell a variant.</p>
+<div class="card plain">
+  <div class="label">The point of the feed</div>
+  <p>Folders say where a product sits and which attributes apply there. The product itself holds the values, the name, and the shops. Two products under one folder keep their own values.</p>
+</div>
+<p>Sending the same business key again updates that same object. It does not create a second one. A missing parent does not get invented: that row fails, and the rest of the batch still applies.</p>
+
+<h2>Order</h2>
+<p>On a first load, run them in this order. After that, send only what changed, and only after the thing it hangs on already exists.</p>
+<ol class="flow">
+  <li><b>Companies</b><span>The legal entities. Independent of the catalogue.</span></li>
+  <li><b>Dimensions</b><span>The colour, size, config, and style lists. A variant can point at these only after they exist.</span></li>
+  <li><b>Tree</b><span>The five folder levels. Parents before children.</span></li>
+  <li><b>Attribute setup</b><span>Which attributes exist, how they are grouped, and which folder uses which group. Not the values.</span></li>
+  <li><b>Products</b><span>Masters on the lowest folder. Variants on their master, after that master exists.</span></li>
+  <li><b>Attribute values</b><span>Each product’s own values. The product must already exist.</span></li>
+  <li><b>Names</b><span>The product’s names. The product must already exist. Can run before or after attribute values.</span></li>
+  <li><b>Shops</b><span>Which companies sell a variant. The company and the variant must already exist.</span></li>
+</ol>
+<p class="small">A key check and a reachability check exist. Neither one writes catalogue data.</p>
+
+<h2>The catalogue</h2>
+<p>One class runs from the top folder down to the variant. Level 1 chooses screw or washer. Children keep that choice. A folder’s level cannot be changed after it is created. Moving it under another existing parent is allowed. Giving it a new identity creates a second folder and leaves the old one in place.</p>
+<div class="levels" aria-label="Seven catalogue levels">
+  <div class="lvl l7"><b>Variant</b><span>The sellable item. Shops hang here.</span></div>
+  <div class="lvl l6"><b>Master</b><span>The product the variants belong to.</span></div>
+  <div class="lvl l5"><b>Product group</b><span>The folder a master hangs on.</span></div>
+  <div class="lvl l4"><b>Range</b><span>Folder. Says which attributes apply.</span></div>
+  <div class="lvl l3"><b>Series</b><span>Folder. Says which attributes apply.</span></div>
+  <div class="lvl l2"><b>Family</b><span>Folder. Brand is accepted and is not being sent.</span></div>
+  <div class="lvl l1"><b>Type</b><span>Screw or washer.</span></div>
+</div>
+
+<h2>Companies</h2>
+<p>Any company code is stored as a legal entity. Creating the company does not put the product in a shop. Four codes can later become a shop on a variant: <code>RH</code>, <code>RHU</code>, <code>ASW</code>, and <code>SPI</code>. Any other company can still be released to, and it does not get a shop brick. Unpublishing a company does not delete it.</p>
+
+<h2>Dimensions</h2>
+<p>Configuration, colour, size, and style are lists of values. Each value is its own object, matched by its code. A variant points at one value from each list it uses. The code has to stay stable. Sending the same code again updates that value. A code that already belongs to the workshop catalogue is reused and its workshop name is left alone.</p>
+<p>These lists are not product attributes. Diameter, length, head type, material, and coating are attributes. They are not sent here.</p>
+
+<h2>Tree</h2>
+<p>Five folders, from product type down to product group. The level-1 folder must say screw or washer. Anything else is skipped and the folder is not created. Children do not repeat that choice; they inherit it. An empty brand or an empty product-group number still creates the folder.</p>
+<p>Brand on the family is accepted. It is not part of the current send. Pimcore does not copy the folder name into the brand.</p>
+
+<h2>Attribute setup</h2>
+<p>This feed describes the attribute book. It does not put a value on a product. It says which attributes exist, which type each one is, which options a list has, which attributes sit in a group, and which folder uses which group.</p>
+<p>The folder assignment is what decides whether a later product may carry that attribute. A product only receives an attribute when one of its ancestor folders uses the attribute’s group. The assignment is the list. It is not the value.</p>
+<p>Send it when the book changes, not once per product. Leaving an attribute or a group out of a later send does not remove it. There is no delete for an attribute or a group yet. Sending a list attribute’s options again replaces that attribute’s option list. Sending an empty group list for a folder clears that folder’s assignment, so products under it no longer receive those attributes.</p>
+<p>The code you define is the code you must send later, including spaces and letter case. Pimcore stores that text as sent, after trimming the ends.</p>
+
+<h2>Products</h2>
+<p>A master hangs on a product-group folder. That folder decides screw or washer. A variant hangs on its master. The variant is the thing a shop can sell. A master alone cannot be released to a shop.</p>
+<div class="card">
+  <h3>A sellable product that has no variants</h3>
+  <p>Send the master, and one variant with the same number. Do not invent a second number, and do not fill config, colour, size, or style. Empty dimensions mean this product has no dimensions. That variant is enough for a shop to attach to.</p>
+</div>
+<div class="card">
+  <h3>A master that has no variants yet</h3>
+  <p>Send the master only. Do not create a variant until the real variants exist. A shop row for that master number is not found, because no variant carries it.</p>
+</div>
+<p>A real variant sends the dimension codes it actually has. Those codes must already exist in the dimension lists, and they must be allowed on that master when the master has a list for that axis. An unknown code does not fail the variant; that axis is left unset.</p>
+<p>The master’s allowed lists are sent on the master. They are not guessed from the variants. An empty list does not restrict that axis.</p>
+
+<h2>Attribute values</h2>
+<p>Each value is stored on the product the row names. If that number is a variant, the value is stored on the variant. If no variant has that number, it is stored on the master. Nothing in this feed is written onto a folder.</p>
+<p>The folder assignment from setup only answers one question: does this product’s branch include this attribute? If not, the value is not stored. If yes, the product keeps its own value. A second product under the same folder does not replace the first. Clearing a value clears that product only.</p>
+<p>Head, material, coating, diameter, and length all follow that rule. A code that has no catalogue field yet is still kept on that same product. A unit that is left out keeps the unit already stored. A list value has to be one of the options from setup.</p>
+<p>If an older copy of the same value is still sitting on a folder above the product, that folder copy is removed when the product row is applied. Otherwise every product with an empty field would still show the folder’s value.</p>
+
+<h2>Names</h2>
+<p><code>en-CA</code> is the language that fills the product’s name. That is the same name the product feed can set, and the later write wins. The <code>en-CA</code> description is stored on that same product. It does not fill the name, and it does not fill the shop description.</p>
+<p>Every other language, both name and description, is stored on that same product. The language code is kept as sent. <code>en-CA</code> and <code>en-ca</code> are not the same code. Only <code>en-CA</code> fills the name field. A language that is left out of a later batch is kept. The shop text typed in Pimcore is never changed by this feed.</p>
+<p>When a variant exists with that number, the texts are written on the variant. They are not copied onto the master.</p>
+
+<h2>Shops</h2>
+<p>One row says whether one variant is sold by one company. <code>true</code> adds that company. For <code>RH</code>, <code>RHU</code>, <code>ASW</code>, and <code>SPI</code> it also turns on that shop. Any other company is recorded on the variant and does not get a shop. <code>false</code> removes that company, and removes that shop when the code is one of the four. Silence does not remove a shop. Stopped-for-sales is not read from this flag.</p>
+<p>The row has to name a variant. A master that has no variant with the same number is not found. A variant Pimcore has never held is not found either. Sending <code>false</code> for a variant and company that were never linked, when that variant does exist, changes nothing.</p>
+
+<h2>Repeats, clears, and removal</h2>
+<table>
+  <tr><th>What you do</th><th>What Pimcore does</th></tr>
+  <tr><td>Send the same key again</td><td>Updates that object. Does not create another.</td></tr>
+  <tr><td>Leave a field out</td><td>Keeps the stored value.</td></tr>
+  <tr><td>Send an empty value</td><td>Clears that value.</td></tr>
+  <tr><td>Mark a company, folder, or product deleted</td><td>Unpublishes it. Does not hard-delete it.</td></tr>
+  <tr><td>Leave an attribute or a group out of setup</td><td>Leaves it in place. Setup has no delete yet.</td></tr>
+  <tr><td>Clear one product’s attribute</td><td>Clears that product only.</td></tr>
+</table>
+<p>A batch that is too large is refused as a whole. Split it and send the pieces. There is no rate limit on these feeds. A row that fails does not roll back the rows that succeeded.</p>
+
+<h2>Not in this version</h2>
+<p>Barcodes, pack size, and relations between products are not stored. Brand on the family folder is accepted and is not part of the current send. There is no production address yet. The behaviour on this page is what the current Pimcore feeds do.</p>
+
+</div>
+</body>
+</html>
