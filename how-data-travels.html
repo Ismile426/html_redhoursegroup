@@ -151,7 +151,12 @@
   .rgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .rcard { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
   @media (max-width: 800px) { .rgrid { grid-template-columns: 1fr; } }
-  #pim-frame { width: 100%; border: 0; height: 0; background: #fff; display: block; }
+  #pim table { width: 100%; border-collapse: collapse; background: #fff; font-size: 15px; margin: 10px 0 18px; }
+  #pim th, #pim td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; vertical-align: top; }
+  #pim th { background: var(--navy); color: #fff; font-weight: 700; }
+  #pim code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .92em; }
+  #pim .mini { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; background: #f1f5f9; border-radius: 8px; padding: 10px 12px; white-space: pre; line-height: 1.55; margin: 8px 0; }
+  #pim h3 { color: var(--navy-2); font-size: 17px; margin: 22px 0 8px; }
   /* ---- explanations ---- */
   .step { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 18px; margin: 10px 0; }
   .step h3 { margin: 0 0 4px; font-size: 17px; display: flex; gap: 10px; align-items: center; }
@@ -482,7 +487,186 @@
 
 <section id="pim" class="tab">
   <p>This is what Pimcore stores once a record arrives. The first three tabs are how the conveyor picks the change up. The order on this tab is the order Pimcore accepts.</p>
-  <iframe id="pim-frame" title="What the F&amp;O feed does" src="what-the-feed-does.html"></iframe>
+
+  <h2>What is happening</h2>
+  <p>F&amp;O pushes the catalogue into Pimcore. Pimcore does not read F&amp;O. Each feed creates or updates one kind of thing: a company, a folder, a dimension value, a product, a product’s attributes, a product’s names, or the shops that sell a variant.</p>
+  <div class="step">
+    <h3>The point of the feed</h3>
+    <p>Folders say where a product sits and which attributes apply there. The product holds its own values, the name, and the shops. Two products under one folder do not replace each other. A folder default shows only where the product has no value of its own.</p>
+  </div>
+  <p>Sending the same business key again updates that same object. It does not create a second one. A missing parent does not get invented: that row fails, and the rest of the batch still applies.</p>
+
+  <h2>Order</h2>
+  <p>On a first load, run them in this order. After that, send only what changed, and only after the thing it hangs on already exists.</p>
+  <div class="step"><h3><span class="num">1</span> Companies</h3><p>The legal entities. Independent of the catalogue. A legal entity is not a shop yet.</p></div>
+  <div class="flowarrow">&#8595;</div>
+  <div class="step"><h3><span class="num">2</span> Dimensions</h3><p>The colour, size, config, and style lists. A variant can point at these only after they exist. These two do not depend on each other.</p></div>
+  <div class="flowarrow">&#8595;</div>
+  <div class="step"><h3><span class="num">3</span> Tree</h3><p>Type, then family, then series, then range, then product group. Parents before children.</p></div>
+  <div class="flowarrow">&#8595;</div>
+  <div class="step"><h3><span class="num">4</span> Attribute setup</h3><p>Which attributes exist, and which folder uses which group. No product values.</p></div>
+  <div class="flowarrow">&#8595;</div>
+  <div class="step"><h3><span class="num">5</span> Products</h3><p>The master hangs on the product group. Variants hang on that master.</p></div>
+  <div class="flowarrow">&#8595;</div>
+  <div class="rgrid">
+    <div class="step"><h3><span class="num">6</span> Attribute values</h3><p>Stored on that product. Needs step 4 and step 5.</p></div>
+    <div class="step"><h3><span class="num">7</span> Names</h3><p>Stored on that product. Needs step 5. Either order with step 6.</p></div>
+  </div>
+  <div class="flowarrow">&#8595;</div>
+  <div class="step"><h3><span class="num">8</span> Shops</h3><p>Only a variant. The company from step 1 must already exist.</p></div>
+  <p>A key check and a reachability check exist. Neither one writes catalogue data.</p>
+
+  <h2>One product, after the feeds</h2>
+  <p>This is the object the eight steps build. Nothing here is a request body.</p>
+  <table>
+    <tr><th>Level</th><th>What it holds</th><th>Which feed wrote it</th></tr>
+    <tr><td>Type</td><td>Screw or washer. A group may apply here too.</td><td>Tree and attribute setup</td></tr>
+    <tr><td>Family</td><td>Brand, only if it is sent. A group may apply here too.</td><td>Tree and attribute setup</td></tr>
+    <tr><td>Series</td><td>A group may apply here.</td><td>Attribute setup</td></tr>
+    <tr><td>Range</td><td>A group may apply here.</td><td>Attribute setup</td></tr>
+    <tr><td>Product group</td><td>The folder the master hangs on. A group may apply here too.</td><td>Tree and attribute setup</td></tr>
+    <tr><td>Master</td><td>Its own head, length, and name.</td><td>Products, then values and names</td></tr>
+    <tr><td>Variant</td><td>The sellable item.</td><td>Products</td></tr>
+    <tr><td>Dimensions</td><td>Colour, size, config, style. Pointed at by the variant.</td><td>Dimensions</td></tr>
+    <tr><td>Its own values</td><td>Head, length, name, when the row names this variant.</td><td>Attribute values and names</td></tr>
+    <tr><td>Shops</td><td>Which companies sell it.</td><td>Shops</td></tr>
+  </table>
+  <p>Any of the five folders can say which attribute groups apply. That list is not a value. The master and the variant hold their own values. Two products under one product group do not replace each other.</p>
+
+  <h2>Where each thing lands</h2>
+  <table>
+    <tr><th>What F&amp;O is sending</th><th>Where it lands</th></tr>
+    <tr><td>A company</td><td>A legal entity. Creating it does not put any product in a shop.</td></tr>
+    <tr><td><code>RH</code> released on a variant</td><td>That variant is sold by Red Horse DK, and the shop is on.</td></tr>
+    <tr><td><code>RHU</code> released on a variant</td><td>Red Horse US.</td></tr>
+    <tr><td><code>ASW</code> released on a variant</td><td>Aston.</td></tr>
+    <tr><td><code>SPI</code> released on a variant</td><td>Screw Products.</td></tr>
+    <tr><td>Any other company released on a variant</td><td>Recorded on the variant. No shop.</td></tr>
+    <tr><td>A dimension code</td><td>One entry in colour, size, config, or style. The variant points at it. It is not an attribute.</td></tr>
+    <tr><td>A folder</td><td>One of the five levels under its parent. A new identity creates a second folder.</td></tr>
+    <tr><td>An attribute group on a folder</td><td>Permission only. Any of the five folders can carry it. The group list is not the value.</td></tr>
+    <tr><td>An attribute value on a product</td><td>On the variant, if that number is a variant. Otherwise on the master. It does not change a folder, and it does not change the next product.</td></tr>
+    <tr><td>An attribute default on a series, range, or product group</td><td>Stored on that folder. An empty field on a product below shows it. The product’s own value wins. A type or family folder does not take a default yet.</td></tr>
+    <tr><td><code>en-CA</code> name</td><td>The product’s name. A later product send or a later name send wins.</td></tr>
+    <tr><td><code>en-CA</code> description, and every other language</td><td>Stored on that same product. Not the name. Not the shop text.</td></tr>
+    <tr><td>Release <code>false</code></td><td>That company comes off the variant. For the four codes above, the shop comes off too.</td></tr>
+    <tr><td>Marked deleted</td><td>Unpublished. Not removed.</td></tr>
+  </table>
+
+  <h2>Which attribute fills which field</h2>
+  <p>Letter case does not pick a different field. <code>RH Head type</code> and <code>RH_Head</code> are the same field. The value is still stored on the product the row names, and only if a folder above that product uses the attribute’s group.</p>
+  <table>
+    <tr><th>Codes that mean the same field</th><th>Field on that product</th></tr>
+    <tr><td><code>RH Head type</code>, <code>RH_Head</code>, <code>Head type</code></td><td>Head type</td></tr>
+    <tr><td><code>RH Point type</code>, <code>RH_Point</code>, <code>Point type</code></td><td>Point type</td></tr>
+    <tr><td><code>RH Thread type</code>, <code>RH_Thread</code>, <code>Thread type</code></td><td>Thread type</td></tr>
+    <tr><td><code>RH Surface treatment</code>, <code>RH_Coating</code>, <code>Coating</code>, <code>Surface treatment</code></td><td>Coating</td></tr>
+    <tr><td><code>RH Special features</code>, <code>RH_SpecialFeatures</code>, <code>Special features</code></td><td>Special features. More than one value.</td></tr>
+    <tr><td><code>RH Material</code>, <code>Material type</code>, <code>Material</code></td><td>Material</td></tr>
+    <tr><td><code>Corrosion category</code>, <code>Corrosion class</code></td><td>Corrosion category</td></tr>
+    <tr><td><code>Drive type</code>, <code>RH Drive type</code></td><td>Drive type, such as Torx, Phillips, or Pozi.</td></tr>
+    <tr><td><code>RH Drive</code>, <code>RH_Drive</code></td><td>Drive size, such as TX10. Not drive type.</td></tr>
+    <tr><td><code>Application</code></td><td>Application</td></tr>
+    <tr><td><code>Target material</code>, <code>Target materials</code></td><td>Target material. More than one value.</td></tr>
+    <tr><td><code>Washer kind</code></td><td>Washer kind</td></tr>
+    <tr><td><code>Diameter</code></td><td>Diameter. A value that contains <code>/</code> is not stored.</td></tr>
+    <tr><td><code>Drill cap mm</code></td><td>Drill cap from, and drill cap to.</td></tr>
+    <tr><td><code>Length</code>, <code>Length mm</code></td><td>Length</td></tr>
+    <tr><td><code>Partial length</code></td><td>Partial length</td></tr>
+    <tr><td><code>Effective length</code></td><td>Effective length</td></tr>
+    <tr><td><code>Drillpoint</code></td><td>Drill point, yes or no</td></tr>
+    <tr><td><code>Drillpoint size</code></td><td>Drill point size</td></tr>
+    <tr><td>Any other code from setup</td><td>Kept on that same product. No separate field is created.</td></tr>
+  </table>
+  <h3>How one value is accepted</h3>
+  <div class="rgrid">
+    <div class="rcard"><h3>A value for one product</h3><p>The number is a variant, or it is a master.</p></div>
+    <div class="rcard"><h3>Folder check</h3><p>An ancestor folder must use this attribute’s group. If none does, the value is not stored.</p></div>
+    <div class="rcard"><h3>That product only</h3><p>The known field above, or kept on the product if the code has no field. The next product is a separate write.</p></div>
+  </div>
+
+  <h2>The catalogue</h2>
+  <p>One class runs from the top folder down to the variant. Level 1 chooses screw or washer. Children keep that choice. A folder’s level cannot be changed after it is created. Moving it under another existing parent is allowed. Giving it a new identity creates a second folder and leaves the old one in place.</p>
+  <div class="step"><h3><span class="num">1</span> Type</h3><p>Screw or washer. Tree.</p></div>
+  <div class="step"><h3><span class="num">2</span> Family</h3><p>Folder. Brand is accepted and is not being sent.</p></div>
+  <div class="step"><h3><span class="num">3</span> Series</h3><p>Folder. Can say which attributes apply.</p></div>
+  <div class="step"><h3><span class="num">4</span> Range</h3><p>Folder. Can say which attributes apply.</p></div>
+  <div class="step"><h3><span class="num">5</span> Product group</h3><p>The folder a master hangs on.</p></div>
+  <div class="step"><h3><span class="num">6</span> Master</h3><p>The product the variants belong to.</p></div>
+  <div class="step"><h3><span class="num">7</span> Variant</h3><p>The sellable item. Shops hang here.</p></div>
+
+  <h2>Companies</h2>
+  <p>Any company code is stored as a legal entity. Creating the company does not put the product in a shop. Four codes can later become a shop on a variant: <code>RH</code>, <code>RHU</code>, <code>ASW</code>, and <code>SPI</code>. Any other company can still be released to, and it does not get a shop. Unpublishing a company does not delete it.</p>
+
+  <h2>Dimensions</h2>
+  <p>Configuration, colour, size, and style are lists of values. Each value is its own object, matched by its code. A variant points at one value from each list it uses. The code has to stay stable. Sending the same code again updates that value. A code that already belongs to the workshop catalogue is reused and its workshop name is left alone.</p>
+  <p>These lists are not product attributes. Diameter, length, head type, material, and coating are attributes. They are not sent here. A washer uses size only. Config, colour, and style are for screws.</p>
+
+  <h2>Tree</h2>
+  <p>Five folders, from product type down to product group. The level-1 folder must say screw or washer. Anything else is skipped and the folder is not created. Children do not repeat that choice; they inherit it. An empty brand or an empty product-group number still creates the folder.</p>
+  <p>Brand on the family is accepted. It is not part of the current send. Pimcore does not copy the folder name into the brand.</p>
+
+  <h2>Attribute setup</h2>
+  <p>This feed describes the attribute book. It does not put a value on a product. It says which attributes exist, which type each one is, which options a list has, which attributes sit in a group, and which folder uses which group.</p>
+  <p>The folder assignment decides whether a later product may carry that attribute. A product receives an attribute only when one of its ancestor folders uses that attribute’s group. The assignment is the list. It is not the value.</p>
+  <p>Send it when the book changes, not once per product. Leaving an attribute or a group out of a later send does not remove it. There is no delete for an attribute or a group yet. Sending a list attribute’s options again replaces that attribute’s option list. Sending an empty group list for a folder clears that folder’s assignment, so products under it no longer receive those attributes.</p>
+  <p>The code you define is the code you send later. Pimcore stores that text as sent, after trimming the ends. A known field still matches when only the letter case differs.</p>
+
+  <h2>Products</h2>
+  <p>A master hangs on a product-group folder. That folder decides screw or washer. A variant hangs on its master. The variant is the thing a shop can sell. A master alone cannot be released to a shop.</p>
+  <div class="rgrid">
+    <div class="rcard">
+      <h3>Sellable, and F&amp;O has no real variants</h3>
+      <div class="mini">Product group
+  Master
+    Variant   same number
+              dimensions empty
+              shops can attach</div>
+      <p>Do not invent a second number. Do not fill config, colour, size, or style.</p>
+    </div>
+    <div class="rcard">
+      <h3>Master only, variants do not exist yet</h3>
+      <div class="mini">Product group
+  Master
+    (no variant)
+
+A shop row for that
+number is not found.</div>
+      <p>Do not create a variant until the real variants exist.</p>
+    </div>
+  </div>
+  <p>A real variant sends the dimension codes it actually has. Those codes must already exist in the dimension lists, and they must be allowed on that master when the master has a list for that axis. An unknown code does not fail the variant; that axis is left unset.</p>
+  <p>The master’s allowed lists are sent on the master. They are not guessed from the variants. An empty list does not restrict that axis.</p>
+
+  <h2>Attribute values</h2>
+  <p>A product row stores the value on the product it names. A variant number stores it on the variant. A master number, when no variant has that number, stores it on the master. That row does not write the value onto a folder, and it does not replace the next product. Clearing it clears that product only.</p>
+  <p>A default may be stored on a series, range, or product group. It sits on that folder. A product with its own value keeps that value. A product with an empty field shows the folder default. Clearing the product does not clear the folder. Clearing the folder does not clear a product that has its own value. A type folder or a family folder does not take a default yet.</p>
+  <p>The folder assignment from setup only answers one question: does this product’s branch include this attribute? If not, the value is not stored. Head, material, coating, diameter, and length follow the same rule. A code with no catalogue field is still kept on that same product. A unit that is left out keeps the unit already stored. A list value has to be one of the options from setup.</p>
+
+  <h2>Names</h2>
+  <p><code>en-CA</code> is the language that fills the product’s name. That is the same name the product feed can set, and the later write wins. The <code>en-CA</code> description is stored on that same product. It does not fill the name, and it does not fill the shop description.</p>
+  <p>Every other language, both name and description, is stored on that same product. The language code is kept as sent. <code>en-CA</code> and <code>en-ca</code> are not the same code. Only <code>en-CA</code> fills the name field. A language that is left out of a later batch is kept. The shop text typed in Pimcore is never changed by this feed.</p>
+  <p>When a variant exists with that number, the texts are written on the variant. They are not copied onto the master.</p>
+
+  <h2>Shops</h2>
+  <p>One row says whether one variant is sold by one company. <code>true</code> adds that company. For <code>RH</code>, <code>RHU</code>, <code>ASW</code>, and <code>SPI</code> it also turns on that shop. Any other company is recorded on the variant and does not get a shop. <code>false</code> removes that company, and removes that shop when the code is one of the four. Silence does not remove a shop. Stopped-for-sales is not read from this flag.</p>
+  <p>The row has to name a variant. A master that has no variant with the same number is not found. A variant Pimcore has never held is not found either. Sending <code>false</code> for a variant and company that were never linked, when that variant does exist, changes nothing.</p>
+
+  <h2>Repeats, clears, and removal</h2>
+  <table>
+    <tr><th>What you do</th><th>What Pimcore does</th></tr>
+    <tr><td>Send the same key again</td><td>Updates that object. Does not create another.</td></tr>
+    <tr><td>Leave a field out</td><td>Keeps the stored value.</td></tr>
+    <tr><td>Send an empty value</td><td>Clears that value.</td></tr>
+    <tr><td>Mark a company, folder, or product deleted</td><td>Unpublishes it. Does not hard-delete it.</td></tr>
+    <tr><td>Leave an attribute or a group out of setup</td><td>Leaves it in place. Setup has no delete yet.</td></tr>
+    <tr><td>Clear one product’s attribute</td><td>Clears that product only. A folder default above it is left in place.</td></tr>
+    <tr><td>Clear one folder default</td><td>Clears that folder only. A product that has its own value keeps it.</td></tr>
+  </table>
+  <p>A batch that is too large is refused as a whole. Split it and send the pieces. There is no rate limit on these feeds. A row that fails does not roll back the rows that succeeded.</p>
+
+  <h2>Not in this version</h2>
+  <p>Barcodes, pack size, and relations between products are not stored. Brand on the family folder is accepted and is not part of the current send. There is no production address yet. The behaviour on this tab is what the current Pimcore feeds do.</p>
 </section>
 </main>
 </div>
@@ -508,19 +692,6 @@
       window.scrollTo(0, 0);
     });
   });
-  var frame = document.getElementById('pim-frame');
-  function fitFrame() {
-    try {
-      var doc = frame.contentDocument;
-      if (!doc) return;
-      frame.style.height = doc.documentElement.scrollHeight + 'px';
-    } catch (e) {}
-  }
-  frame.addEventListener('load', function () {
-    fitFrame();
-    setTimeout(fitFrame, 300);
-  });
-  if (frame.contentDocument && frame.contentDocument.readyState === 'complete') fitFrame();
   var start = (location.hash || '').replace('#', '');
   if (start) showTab(start);
 </script>
