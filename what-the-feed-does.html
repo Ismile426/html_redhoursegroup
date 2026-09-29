@@ -43,7 +43,16 @@
   .s7 { background: #854d0e; } .s8 { background: #9a3412; }
   .arrow { text-align: center; color: #a8a29e; font-size: 18px; line-height: 1.1; padding: 3px 0; }
   .note { color: var(--muted); font-size: 13px; margin: 4px 2px 8px; }
-  .tree { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13.5px; background: #1c1917; color: #fafaf9; border-radius: 12px; padding: 16px 18px; overflow-x: auto; line-height: 1.65; margin: 12px 0; white-space: pre; }
+  .tree { background: #1c1917; color: #fafaf9; border-radius: 12px; padding: 8px; margin: 12px 0; }
+  .brow { display: grid; grid-template-columns: minmax(140px, 1.1fr) minmax(160px, 1.4fr) auto; gap: 10px; align-items: baseline; padding: 7px 12px; border-radius: 8px; }
+  .brow b { font-weight: 650; }
+  .brow span { color: #e7e5e4; font-size: 13.5px; }
+  .brow em { color: #86efac; font-style: normal; font-size: 13px; text-align: right; }
+  .brow.dim span { color: #fde68a; }
+  @media (max-width: 700px) {
+    .brow { grid-template-columns: 1fr; gap: 2px; }
+    .brow em { text-align: left; }
+  }
   .tree .who { color: #86efac; }
   .tree .dim { color: #fde68a; }
   .gate { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 8px; align-items: stretch; }
@@ -112,17 +121,16 @@
 <h2>One product, after the feeds</h2>
 <p>This is the object the eight steps build. The green notes are which feed wrote that line. Nothing here is a request body.</p>
 <div class="tree" aria-label="Where each feed lands on one product">
-Type            screw or washer                 <span class="who">tree</span>
-  Family        brand, only if it is sent       <span class="who">tree</span>
-    Series      which attribute groups apply    <span class="who">attribute setup</span>
-      Range     which attribute groups apply    <span class="who">attribute setup</span>
-        Product group                           <span class="who">tree + attribute setup</span>
-          Master                                <span class="who">products</span>
-            its own head, length, name          <span class="who">attribute values + names</span>
-            Variant                             <span class="who">products</span>
-              colour, size, config, style       <span class="dim">dimensions, pointed at by the product</span>
-              its own head, length, name        <span class="who">attribute values + names, when the row names this variant</span>
-              which companies sell it           <span class="who">shops</span>
+  <div class="brow" style="margin-left:0"><b>Type</b><span>screw or washer</span><em>tree</em></div>
+  <div class="brow" style="margin-left:16px"><b>Family</b><span>brand, only if it is sent</span><em>tree</em></div>
+  <div class="brow" style="margin-left:32px"><b>Series</b><span>which attribute groups apply</span><em>attribute setup</em></div>
+  <div class="brow" style="margin-left:48px"><b>Range</b><span>which attribute groups apply</span><em>attribute setup</em></div>
+  <div class="brow" style="margin-left:64px"><b>Product group</b><span>the folder the master hangs on</span><em>tree + attribute setup</em></div>
+  <div class="brow" style="margin-left:80px"><b>Master</b><span>its own head, length, name</span><em>products, then values and names</em></div>
+  <div class="brow" style="margin-left:96px"><b>Variant</b><span>the sellable item</span><em>products</em></div>
+  <div class="brow dim" style="margin-left:112px"><b>Dimensions</b><span>colour, size, config, style</span><em>dimensions, pointed at by the variant</em></div>
+  <div class="brow" style="margin-left:112px"><b>Its own values</b><span>head, length, name, when the row names this variant</span><em>attribute values + names</em></div>
+  <div class="brow" style="margin-left:112px"><b>Shops</b><span>which companies sell it</span><em>shops</em></div>
 </div>
 <p class="small">Folders decide the place and which attributes are allowed. The master and the variant hold the values. Two products under one product group do not share those values.</p>
 
