@@ -220,11 +220,11 @@
     <h1 class="brand-title">Two ways to keep the catalogue</h1>
     <p class="brand-subtitle">Red Horse integration · PIM and F&amp;O folders</p>
   </div>
-<p class="lead">From the 1 October discussion. Approach 1 keeps a single folder structure in both systems. Approach 2 keeps a structure in PIM and a structure in F&amp;O, with a link between them. Neither has been chosen. Nothing on this page is live.</p>
+<p class="lead">From the 1 October discussion. Approach 1 keeps the same folders in PIM and F&amp;O. Approach 2 keeps separate folders, joined by a link. Neither has been chosen. Nothing on this page is live.</p>
 <nav class="tabs2">
   <button type="button" class="active" data-tab="today">Today</button>
-  <button type="button" class="t-rigid" data-tab="rigid">Approach 1 — one structure</button>
-  <button type="button" class="t-dynamic" data-tab="dynamic">Approach 2 — two structures and a link</button>
+  <button type="button" class="t-rigid" data-tab="rigid">Approach 1 — the same folders in PIM and F&amp;O</button>
+  <button type="button" class="t-dynamic" data-tab="dynamic">Approach 2 — separate folders, joined by a link</button>
   <button type="button" data-tab="compare">Side by side</button>
   <button type="button" data-tab="walk">Follow one product</button>
 </nav>
@@ -308,7 +308,7 @@
 </div>
 
 <div class="panel p-rigid" id="rigid">
-<div class="opthead oh-rigid"><h2>Approach 1 — one structure</h2><p>The folders are kept in PIM and sent to F&O. F&O receives the same folders. There is no separate link table.</p></div>
+<div class="opthead oh-rigid"><h2>Approach 1 — the same folders in PIM and F&amp;O</h2><p>The folders are kept in PIM and sent to F&O. F&O receives the same folders. There is no separate link table.</p></div>
 <div class="acc-tools"><button type="button" data-acc="open">Open all</button><button type="button" data-acc="close">Close all</button></div>
 <details class="acc"><summary>How it works</summary><div class="acc-body"><div class="card rigid">
     
@@ -338,7 +338,7 @@
   <span><i class="swatch" style="background:#ffedd5;border-color:#fdba74"></i>Moves with the other side</span>
   <span><i class="swatch" style="background:#dbeafe;border-color:#93c5fd"></i>Stays put</span>
   <span><i class="swatch" style="background:#fff;border-style:dashed"></i>Does not exist</span>
-</div><h3 style="margin-top:12px">Approach 1 — one structure, drawn twice because both sides hold it</h3>
+</div><h3 style="margin-top:12px">Approach 1 — the same folders, drawn on both sides</h3>
 <p>The folders are the same object on both sides. Move Carbon in PIM and the F&amp;O category moves with it. There is no link table.</p>
 <div class="frame">
 <svg viewBox="0 0 980 360" role="img" aria-label="Approach 1, the same tree on both sides">
@@ -470,7 +470,7 @@
 <div class="result" id="rigid-proto-result"></div></div></details>
 </div>
 <div class="panel p-dynamic" id="dynamic">
-<div class="opthead oh-dynamic"><h2>Approach 2 — two structures and a link</h2><p>PIM keeps its own folders. F&O keeps its own categories. One row links a PIM folder to an F&O category. A change on one side does not rewrite the other.</p></div>
+<div class="opthead oh-dynamic"><h2>Approach 2 — separate folders, joined by a link</h2><p>PIM keeps its own folders. F&O keeps its own categories. One row links a PIM folder to an F&O category. A change on one side does not rewrite the other.</p></div>
 <div class="acc-tools"><button type="button" data-acc="open">Open all</button><button type="button" data-acc="close">Close all</button></div>
 <details class="acc"><summary>How it works</summary><div class="acc-body"><div class="card dynamic">
     
@@ -512,7 +512,7 @@
   <span><i class="swatch" style="background:#ffedd5;border-color:#fdba74"></i>Moves with the other side</span>
   <span><i class="swatch" style="background:#dbeafe;border-color:#93c5fd"></i>Stays put</span>
   <span><i class="swatch" style="background:#fff;border-style:dashed"></i>Does not exist</span>
-</div><h3 style="margin-top:12px">Approach 2 — two structures, joined by a row</h3>
+</div><h3 style="margin-top:12px">Approach 2 — separate folders, joined by a link</h3>
 <p>PIM can put Carbon under a series. F&amp;O can keep Carbon beside the other categories. The line is the only thing that joins them. Move Carbon in PIM and the F&amp;O category stays.</p>
 <div class="frame">
 <svg viewBox="0 0 980 420" role="img" aria-label="Approach 2, two trees joined by link lines">
@@ -584,7 +584,7 @@
         <b>Against</b>
         <ul>
           <li>Someone has to update the row. A move with no row update leaves the two sides describing different things.</li>
-          <li>Over time the two structures stop looking alike, so a question about one has to be answered through the link.</li>
+          <li>Over time the two sets of folders stop looking alike, so a question about one has to be answered through the link.</li>
         </ul>
       </div>
     </div></div>
@@ -743,8 +743,8 @@
 <div class="panel" id="walk">
 <h2>Follow one product</h2><p class="lead">The same example folders as the rest of this page. Pick an option, then step through. A category assignment sent back from PIM, a product arriving with no folder, and a value shared by every company are not in this walk. Those were not agreed.</p>
 <div class="subtabs">
-  <button type="button" id="walk-rigid-btn">Approach 1 — one structure</button>
-  <button type="button" id="walk-dynamic-btn" class="on">Approach 2 — two structures and a link</button>
+  <button type="button" id="walk-rigid-btn">Approach 1 — the same folders in PIM and F&amp;O</button>
+  <button type="button" id="walk-dynamic-btn" class="on">Approach 2 — separate folders, joined by a link</button>
 </div>
 <div class="walkbox" id="walkbox-rigid"><div class="steps" id="rigid-w-steps"></div>
 <h3 id="rigid-w-title" style="margin-top:14px"></h3><p id="rigid-w-text"></p>
@@ -823,7 +823,7 @@
       if (mode === "rigid" && moved) result.textContent = "Approach 1: Carbon moved in PIM, and the F&O category moved with it. Old orders still show the category they were posted with.";
       else if (mode === "dynamic" && unlinked) result.textContent = "Approach 2: the Carbon link is gone. The PIM range and the F&O category are both still there.";
       else if (mode === "dynamic" && moved) result.textContent = "Approach 2: Carbon now sits under Series · Other in PIM. The F&O Carbon category stayed under Procurement · Screws. The link still joins them.";
-      else if (mode === "rigid") result.textContent = "Approach 1: one structure. Carbon in PIM and the Carbon category in F&O are the same folder. A move changes both.";
+      else if (mode === "rigid") result.textContent = "Approach 1: the same folders in PIM and F&O. Carbon in PIM and the Carbon category in F&O are the same folder. A move changes both.";
       else result.textContent = "Approach 2: Carbon in PIM sits under Pan-head. The F&O Carbon category sits beside Pan-head, not under it. The link joins them.";
     }
     document.getElementById(p + "-do-move").onclick = function () { moved = !moved; draw(); };
