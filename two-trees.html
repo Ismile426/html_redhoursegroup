@@ -71,9 +71,18 @@
   .vstep .n { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 2px; }
   .down { text-align: center; color: #a8a29e; font-size: 17px; line-height: 1.1; padding: 3px 0; }
   .stop { border-style: dashed; color: var(--muted); }
-  .pc { margin-top: 10px; }
-  .pc b { display: block; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 10px 0 2px; }
-  .pc ul { margin: 2px 0 0; }
+  .pc { margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; align-items: start; }
+  .pc b { display: block; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 2px; }
+  .pc b:nth-of-type(1) { grid-column: 1; grid-row: 1; }
+  .pc ul:nth-of-type(1) { grid-column: 1; grid-row: 2; margin: 2px 0 0; }
+  .pc b:nth-of-type(2) { grid-column: 2; grid-row: 1; }
+  .pc ul:nth-of-type(2) { grid-column: 2; grid-row: 2; margin: 2px 0 0; }
+  @media (max-width: 700px) {
+    .pc { grid-template-columns: 1fr; }
+    .pc b:nth-of-type(1), .pc ul:nth-of-type(1), .pc b:nth-of-type(2), .pc ul:nth-of-type(2) { grid-column: 1; }
+    .pc b:nth-of-type(2) { grid-row: 3; }
+    .pc ul:nth-of-type(2) { grid-row: 4; }
+  }
   .scen { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-top: 12px; }
   .scen h3 { font-size: 15px; }
   .scen .q { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
@@ -98,7 +107,7 @@
 
   /* ---- branding: matches redhorse-flow-site.vercel.app ---- */
   :root { --navy: #1b2a4a; --navy-2: #24365c; --ink: #222; --muted: #5c6470; --line: #d8dee8; --wash: #f6f8fb; --paper: #f6f8fb;
-          --fo: #2563eb; --fo-bg: #eff6ff; --pim: #c2410c; --pim-bg: #fff7ed; }
+          --fo: #2563eb; --fo-bg: #eff6ff; --pim: #2563eb; --pim-bg: #eff6ff; }
   html, body { background: var(--wash); color: var(--ink); font: 16px/1.5 "Calibri", "Segoe UI", system-ui, sans-serif; }
   .wrap { max-width: 1120px; padding: 28px 20px 64px; }
   .brand-bar { background: linear-gradient(135deg, #1b2a4a 0%, #2c2050 100%); color: #fff; border-radius: 10px; padding: 28px 24px 32px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; margin-bottom: 14px; }
@@ -160,7 +169,7 @@
   .opthead { border-radius: 10px; padding: 16px 20px; margin: 18px 0 6px; color: #fff; }
   .opthead h2 { color: #fff !important; border: 0; margin: 0 0 4px; padding: 0; font-size: 24px; }
   .opthead p { margin: 0; color: rgba(255,255,255,.9); }
-  .oh-rigid { background: linear-gradient(135deg, #9a3412 0%, #c2410c 100%); }
+  .oh-rigid { background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); }
   .oh-dynamic { background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); }
   .p-rigid h2 { color: var(--pim); } .p-dynamic h2 { color: var(--fo); }
   .sit { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin-top: 12px; }
@@ -211,11 +220,11 @@
     <h1 class="brand-title">Two ways to keep the catalogue</h1>
     <p class="brand-subtitle">Red Horse integration · PIM and F&amp;O folders</p>
   </div>
-<p class="lead">From the 1 October discussion. One option keeps a single folder structure in both systems. The other keeps a structure in PIM and a structure in F&amp;O, with a link between them. Neither has been chosen. Nothing on this page is live.</p>
+<p class="lead">From the 1 October discussion. Approach 1 keeps a single folder structure in both systems. Approach 2 keeps a structure in PIM and a structure in F&amp;O, with a link between them. Neither has been chosen. Nothing on this page is live.</p>
 <nav class="tabs2">
   <button type="button" class="active" data-tab="today">Today</button>
-  <button type="button" class="t-rigid" data-tab="rigid">Rigid — one structure</button>
-  <button type="button" class="t-dynamic" data-tab="dynamic">Dynamic — two structures and a link</button>
+  <button type="button" class="t-rigid" data-tab="rigid">Approach 1 — one structure</button>
+  <button type="button" class="t-dynamic" data-tab="dynamic">Approach 2 — two structures and a link</button>
   <button type="button" data-tab="compare">Side by side</button>
   <button type="button" data-tab="walk">Follow one product</button>
 </nav>
@@ -299,7 +308,7 @@
 </div>
 
 <div class="panel p-rigid" id="rigid">
-<div class="opthead oh-rigid"><h2>Rigid — one structure</h2><p>The folders are kept in PIM and sent to F&O. F&O receives the same folders. There is no separate link table.</p></div>
+<div class="opthead oh-rigid"><h2>Approach 1 — one structure</h2><p>The folders are kept in PIM and sent to F&O. F&O receives the same folders. There is no separate link table.</p></div>
 <div class="acc-tools"><button type="button" data-acc="open">Open all</button><button type="button" data-acc="close">Close all</button></div>
 <details class="acc"><summary>How it works</summary><div class="acc-body"><div class="card rigid">
     
@@ -329,10 +338,10 @@
   <span><i class="swatch" style="background:#ffedd5;border-color:#fdba74"></i>Moves with the other side</span>
   <span><i class="swatch" style="background:#dbeafe;border-color:#93c5fd"></i>Stays put</span>
   <span><i class="swatch" style="background:#fff;border-style:dashed"></i>Does not exist</span>
-</div><h3 style="margin-top:12px">Rigid — one structure, drawn twice because both sides hold it</h3>
+</div><h3 style="margin-top:12px">Approach 1 — one structure, drawn twice because both sides hold it</h3>
 <p>The folders are the same object on both sides. Move Carbon in PIM and the F&amp;O category moves with it. There is no link table.</p>
 <div class="frame">
-<svg viewBox="0 0 980 360" role="img" aria-label="Rigid option, the same tree on both sides">
+<svg viewBox="0 0 980 360" role="img" aria-label="Approach 1, the same tree on both sides">
   <text x="180" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">PIM</text>
   <text x="800" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">F&amp;O</text>
   <g font-size="13" fill="#1c1917">
@@ -428,7 +437,7 @@
         </ul>
       </div>
     </div></div>
-<div class="sit"><h3>Another system is added later</h3><p class="q">Named in the discussion as a reason to prefer the second option. Nothing for it was designed.</p><div class="card rigid">
+<div class="sit"><h3>Another system is added later</h3><p class="q">Named in the discussion as a reason to prefer Approach 2. Nothing for it was designed.</p><div class="card rigid">
       
       <div class="pc">
         <b>Against</b>
@@ -461,7 +470,7 @@
 <div class="result" id="rigid-proto-result"></div></div></details>
 </div>
 <div class="panel p-dynamic" id="dynamic">
-<div class="opthead oh-dynamic"><h2>Dynamic — two structures and a link</h2><p>PIM keeps its own folders. F&O keeps its own categories. One row links a PIM folder to an F&O category. A change on one side does not rewrite the other.</p></div>
+<div class="opthead oh-dynamic"><h2>Approach 2 — two structures and a link</h2><p>PIM keeps its own folders. F&O keeps its own categories. One row links a PIM folder to an F&O category. A change on one side does not rewrite the other.</p></div>
 <div class="acc-tools"><button type="button" data-acc="open">Open all</button><button type="button" data-acc="close">Close all</button></div>
 <details class="acc"><summary>How it works</summary><div class="acc-body"><div class="card dynamic">
     
@@ -503,10 +512,10 @@
   <span><i class="swatch" style="background:#ffedd5;border-color:#fdba74"></i>Moves with the other side</span>
   <span><i class="swatch" style="background:#dbeafe;border-color:#93c5fd"></i>Stays put</span>
   <span><i class="swatch" style="background:#fff;border-style:dashed"></i>Does not exist</span>
-</div><h3 style="margin-top:12px">Dynamic — two structures, joined by a row</h3>
+</div><h3 style="margin-top:12px">Approach 2 — two structures, joined by a row</h3>
 <p>PIM can put Carbon under a series. F&amp;O can keep Carbon beside the other categories. The line is the only thing that joins them. Move Carbon in PIM and the F&amp;O category stays.</p>
 <div class="frame">
-<svg viewBox="0 0 980 420" role="img" aria-label="Dynamic option, two trees joined by link lines">
+<svg viewBox="0 0 980 420" role="img" aria-label="Approach 2, two trees joined by link lines">
   <text x="150" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">PIM folders</text>
   <text x="490" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">Link</text>
   <text x="820" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">F&amp;O categories</text>
@@ -606,7 +615,7 @@
         </ul>
       </div>
     </div></div>
-<div class="sit"><h3>Another system is added later</h3><p class="q">Named in the discussion as a reason to prefer the second option. Nothing for it was designed.</p><div class="card dynamic">
+<div class="sit"><h3>Another system is added later</h3><p class="q">Named in the discussion as a reason to prefer Approach 2. Nothing for it was designed.</p><div class="card dynamic">
       
       <div class="pc">
         <b>For</b>
@@ -646,7 +655,7 @@
 
 <div class="panel" id="compare">
 <h2>What each option adds</h2><table>
-  <tbody><tr><th></th><th>Rigid</th><th>Dynamic</th></tr>
+  <tbody><tr><th></th><th>Approach 1</th><th>Approach 2</th></tr>
   <tr>
     <td>Folders</td>
     <td>The folders PIM already has are sent across, so F&amp;O has the same ones.</td>
@@ -726,7 +735,7 @@
 </div>
 <p class="small">If a value is sent back, F&amp;O receives the value the product shows, on the item number. F&amp;O does not repeat the folder structure for that value.</p>
 <div style="margin-top:14px"><div class="card note" style="margin-top:14px">
-  <p><b>Reading of the fit.</b> Entering a value once, and letting the products below show it, fits PIM as it is. It does not require either option. Rigid is the smaller change to the folders, and it is the one that moves F&amp;O categories when someone moves a folder in PIM. Dynamic leaves those categories in place and adds the link, which is the extra work. PIM can maintain the folders and the values for either choice. It does not maintain F&amp;O’s order history.</p>
+  <p><b>Reading of the fit.</b> Entering a value once, and letting the products below show it, fits PIM as it is. It does not require either option. Approach 1 is the smaller change to the folders, and it is the one that moves F&amp;O categories when someone moves a folder in PIM. Approach 2 leaves those categories in place and adds the link, which is the extra work. PIM can maintain the folders and the values for either choice. It does not maintain F&amp;O’s order history.</p>
 </div></div>
 <p class="small">Example only. Not a live catalogue, and not a decision.</p>
 </div>
@@ -734,8 +743,8 @@
 <div class="panel" id="walk">
 <h2>Follow one product</h2><p class="lead">The same example folders as the rest of this page. Pick an option, then step through. A category assignment sent back from PIM, a product arriving with no folder, and a value shared by every company are not in this walk. Those were not agreed.</p>
 <div class="subtabs">
-  <button type="button" id="walk-rigid-btn">Rigid — one structure</button>
-  <button type="button" id="walk-dynamic-btn" class="on">Dynamic — two structures and a link</button>
+  <button type="button" id="walk-rigid-btn">Approach 1 — one structure</button>
+  <button type="button" id="walk-dynamic-btn" class="on">Approach 2 — two structures and a link</button>
 </div>
 <div class="walkbox" id="walkbox-rigid"><div class="steps" id="rigid-w-steps"></div>
 <h3 id="rigid-w-title" style="margin-top:14px"></h3><p id="rigid-w-text"></p>
@@ -811,15 +820,15 @@
         : "<div class=\"sheet\"><div class=\"bar\">Link table · one row per folder</div><table><tr><th>PIM folder</th><th>F&amp;O category</th></tr>"
           + "<tr><td>Series · Pan-head</td><td>Pan-head category</td></tr>" + carbonRow
           + "<tr><td>Range · Stainless — under Series · Pan-head</td><td>Stainless category — under Procurement · Screws</td></tr></table></div>";
-      if (mode === "rigid" && moved) result.textContent = "Rigid: Carbon moved in PIM, and the F&O category moved with it. Old orders still show the category they were posted with.";
-      else if (mode === "dynamic" && unlinked) result.textContent = "Dynamic: the Carbon link is gone. The PIM range and the F&O category are both still there.";
-      else if (mode === "dynamic" && moved) result.textContent = "Dynamic: Carbon now sits under Series · Other in PIM. The F&O Carbon category stayed under Procurement · Screws. The link still joins them.";
-      else if (mode === "rigid") result.textContent = "Rigid: one structure. Carbon in PIM and the Carbon category in F&O are the same folder. A move changes both.";
-      else result.textContent = "Dynamic: Carbon in PIM sits under Pan-head. The F&O Carbon category sits beside Pan-head, not under it. The link joins them.";
+      if (mode === "rigid" && moved) result.textContent = "Approach 1: Carbon moved in PIM, and the F&O category moved with it. Old orders still show the category they were posted with.";
+      else if (mode === "dynamic" && unlinked) result.textContent = "Approach 2: the Carbon link is gone. The PIM range and the F&O category are both still there.";
+      else if (mode === "dynamic" && moved) result.textContent = "Approach 2: Carbon now sits under Series · Other in PIM. The F&O Carbon category stayed under Procurement · Screws. The link still joins them.";
+      else if (mode === "rigid") result.textContent = "Approach 1: one structure. Carbon in PIM and the Carbon category in F&O are the same folder. A move changes both.";
+      else result.textContent = "Approach 2: Carbon in PIM sits under Pan-head. The F&O Carbon category sits beside Pan-head, not under it. The link joins them.";
     }
     document.getElementById(p + "-do-move").onclick = function () { moved = !moved; draw(); };
     document.getElementById(p + "-do-unlink").onclick = function () {
-      if (mode === "rigid") { result.textContent = "Rigid has no separate link to remove. The folder exists on both sides. F&O cannot delete a category that orders already use."; return; }
+      if (mode === "rigid") { result.textContent = "Approach 1 has no separate link to remove. The folder exists on both sides. F&O cannot delete a category that orders already use."; return; }
       unlinked = !unlinked; draw();
     };
     document.getElementById(p + "-do-reset").onclick = function () { moved = false; unlinked = false; draw(); };
@@ -889,7 +898,7 @@
       var x = steps[step];
       el("w-steps").innerHTML = steps.map(function (y, i) { return '<button type="button" data-i="' + i + '" class="' + (i === step ? "on" : "") + '">' + y.t + '</button>'; }).join("");
       Array.prototype.forEach.call(el("w-steps").querySelectorAll("button"), function (bt) { bt.onclick = function () { step = +this.getAttribute("data-i"); draw(); }; });
-      el("w-title").textContent = (mode === "rigid" ? "Rigid · " : "Dynamic · ") + x.t;
+      el("w-title").textContent = (mode === "rigid" ? "Approach 1 · " : "Approach 2 · ") + x.t;
       el("w-text").textContent = x.d;
       el("w-pim").innerHTML = pimTree(x.s);
       el("w-across-h").textContent = mode === "dynamic" ? "What crosses · the link" : "What crosses";
