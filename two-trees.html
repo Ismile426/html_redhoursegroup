@@ -33,12 +33,18 @@
   .tabbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 8px; }
   .tabbar label { cursor: pointer; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 14px; }
   #tab-options:checked ~ .tabbar label[for="tab-options"],
+  #tab-diagram:checked ~ .tabbar label[for="tab-diagram"],
   #tab-try:checked ~ .tabbar label[for="tab-try"],
   #tab-choose:checked ~ .tabbar label[for="tab-choose"] { background: #1c1917; color: #fff; border-color: #1c1917; }
   .panel { display: none; }
   #tab-options:checked ~ .panel.options,
+  #tab-diagram:checked ~ .panel.diagram,
   #tab-try:checked ~ .panel.try,
   #tab-choose:checked ~ .panel.choose { display: block; }
+  .frame { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 8px 8px 4px; margin-top: 12px; }
+  .frame svg { width: 100%; height: auto; display: block; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; font-size: 13px; color: var(--muted); }
+  .swatch { display: inline-block; width: 14px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; border: 1px solid #d6d3d1; }
   .stage { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
   .col { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px; min-height: 220px; }
   .col h3 { margin-bottom: 10px; }
@@ -79,10 +85,12 @@
 
 <div class="tabs">
 <input type="radio" name="tab" id="tab-options" checked>
+<input type="radio" name="tab" id="tab-diagram">
 <input type="radio" name="tab" id="tab-try">
 <input type="radio" name="tab" id="tab-choose">
 <div class="tabbar">
   <label for="tab-options">The two options</label>
+  <label for="tab-diagram">Diagrams</label>
   <label for="tab-try">Try it</label>
   <label for="tab-choose">If one is chosen</label>
 </div>
@@ -439,6 +447,120 @@
     <li>Shop and web content were asked about. No steps for them were agreed, so they are not in this picture.</li>
   </ul>
 </div>
+</div>
+
+<div class="panel diagram">
+<h2>Diagrams</h2>
+<p class="lead">The same three pictures: what happens today, then the two options. Names are an example. Nothing here is live.</p>
+<div class="legend">
+  <span><i class="swatch" style="background:#fff"></i>A folder</span>
+  <span><i class="swatch" style="background:#ffedd5;border-color:#fdba74"></i>Moves with the other side</span>
+  <span><i class="swatch" style="background:#dbeafe;border-color:#93c5fd"></i>Stays put</span>
+  <span><i class="swatch" style="background:#fff;border-style:dashed"></i>Does not exist</span>
+</div>
+
+<h2>Today</h2>
+<p>One direction. F&amp;O creates the item number and the folders. PIM stores that same structure. There is no arrow back.</p>
+<div class="frame">
+<svg viewBox="0 0 980 260" role="img" aria-label="Today, F and O sends into PIM and nothing returns">
+  <rect x="36" y="28" width="250" height="150" rx="12" fill="#fff7ed" stroke="#fdba74"/>
+  <text x="161" y="56" text-anchor="middle" font-size="16" font-weight="700" fill="#1c1917">F&amp;O</text>
+  <text x="161" y="80" text-anchor="middle" font-size="13" fill="#57534e">Item number</text>
+  <text x="161" y="100" text-anchor="middle" font-size="13" fill="#57534e">Folders</text>
+  <text x="161" y="120" text-anchor="middle" font-size="13" fill="#57534e">Values, names, release</text>
+  <text x="161" y="150" text-anchor="middle" font-size="12" fill="#57534e">Type → family → series</text>
+  <text x="161" y="166" text-anchor="middle" font-size="12" fill="#57534e">→ range → product group</text>
+  <line x1="300" y1="100" x2="470" y2="100" stroke="#1c1917" stroke-width="2"/>
+  <polygon points="470,94 486,100 470,106" fill="#1c1917"/>
+  <text x="386" y="88" text-anchor="middle" font-size="12" fill="#57534e">sent in</text>
+  <rect x="520" y="28" width="250" height="150" rx="12" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="645" y="56" text-anchor="middle" font-size="16" font-weight="700" fill="#1c1917">PIM</text>
+  <text x="645" y="84" text-anchor="middle" font-size="13" fill="#57534e">Stores the same folders</text>
+  <text x="645" y="104" text-anchor="middle" font-size="13" fill="#57534e">and the values that arrive</text>
+  <text x="645" y="136" text-anchor="middle" font-size="12" fill="#57534e">Also holds shop images,</text>
+  <text x="645" y="154" text-anchor="middle" font-size="12" fill="#57534e">documents, and label images</text>
+  <line x1="500" y1="214" x2="310" y2="214" stroke="#a8a29e" stroke-width="2" stroke-dasharray="6 5"/>
+  <polygon points="310,208 294,214 310,220" fill="#a8a29e"/>
+  <text x="400" y="236" text-anchor="middle" font-size="13" fill="#57534e">No call back to F&amp;O</text>
+</svg>
+</div>
+
+<h2>Rigid — one structure, drawn twice because both sides hold it</h2>
+<p>The folders are the same object on both sides. Move Carbon in PIM and the F&amp;O category moves with it. There is no link table.</p>
+<div class="frame">
+<svg viewBox="0 0 980 360" role="img" aria-label="Rigid option, the same tree on both sides">
+  <text x="180" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">PIM</text>
+  <text x="800" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">F&amp;O</text>
+  <g font-size="13" fill="#1c1917">
+    <rect x="70" y="44" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"/>
+    <text x="180" y="66" text-anchor="middle">Screws</text>
+    <rect x="70" y="90" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"/>
+    <text x="180" y="112" text-anchor="middle">Family · Example</text>
+    <rect x="70" y="136" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"/>
+    <text x="180" y="158" text-anchor="middle">Series · Pan-head</text>
+    <rect x="70" y="182" width="220" height="34" rx="8" fill="#ffedd5" stroke="#ea580c"/>
+    <text x="180" y="204" text-anchor="middle">Range · Carbon</text>
+    <rect x="70" y="228" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"/>
+    <text x="180" y="250" text-anchor="middle">Range · Stainless</text>
+    <rect x="690" y="44" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"/>
+    <text x="800" y="66" text-anchor="middle">Screws</text>
+    <rect x="690" y="90" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"/>
+    <text x="800" y="112" text-anchor="middle">Family · Example</text>
+    <rect x="690" y="136" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"/>
+    <text x="800" y="158" text-anchor="middle">Series · Pan-head</text>
+    <rect x="690" y="182" width="220" height="34" rx="8" fill="#ffedd5" stroke="#ea580c"/>
+    <text x="800" y="204" text-anchor="middle">Range · Carbon</text>
+    <rect x="690" y="228" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"/>
+    <text x="800" y="250" text-anchor="middle">Range · Stainless</text>
+  </g>
+  <line x1="300" y1="199" x2="680" y2="199" stroke="#ea580c" stroke-width="2"/>
+  <polygon points="680,193 696,199 680,205" fill="#ea580c"/>
+  <polygon points="300,193 284,199 300,205" fill="#ea580c"/>
+  <text x="490" y="188" text-anchor="middle" font-size="13" fill="#9a3412">A move changes both</text>
+  <text x="490" y="310" text-anchor="middle" font-size="13" fill="#57534e">Orders keep the category they were posted with.</text>
+  <text x="490" y="330" text-anchor="middle" font-size="13" fill="#57534e">A report on the current category loses the earlier period.</text>
+</svg>
+</div>
+
+<h2>Dynamic — two structures, joined by a row</h2>
+<p>PIM can put Carbon under a series. F&amp;O can keep Carbon beside the other categories. The line is the only thing that joins them. Move Carbon in PIM and the F&amp;O category stays.</p>
+<div class="frame">
+<svg viewBox="0 0 980 420" role="img" aria-label="Dynamic option, two trees joined by link lines">
+  <text x="150" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">PIM folders</text>
+  <text x="490" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">Link</text>
+  <text x="820" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">F&amp;O categories</text>
+  <g font-size="13" fill="#1c1917">
+    <rect x="36" y="46" width="230" height="32" rx="8" fill="#fff" stroke="#d6d3d1"/>
+    <text x="151" y="67" text-anchor="middle">Screws</text>
+    <rect x="56" y="90" width="210" height="32" rx="8" fill="#fff" stroke="#d6d3d1"/>
+    <text x="161" y="111" text-anchor="middle">Family · Example</text>
+    <rect x="76" y="134" width="190" height="32" rx="8" fill="#fff" stroke="#d6d3d1"/>
+    <text x="171" y="155" text-anchor="middle">Series · Pan-head</text>
+    <rect x="96" y="186" width="190" height="32" rx="8" fill="#ffedd5" stroke="#ea580c"/>
+    <text x="191" y="207" text-anchor="middle">Range · Carbon</text>
+    <rect x="96" y="246" width="190" height="32" rx="8" fill="#fff" stroke="#d6d3d1"/>
+    <text x="191" y="267" text-anchor="middle">Range · Stainless</text>
+    <rect x="700" y="46" width="240" height="32" rx="8" fill="#fff" stroke="#d6d3d1"/>
+    <text x="820" y="67" text-anchor="middle">Procurement · Screws</text>
+    <rect x="720" y="134" width="220" height="32" rx="8" fill="#fff" stroke="#d6d3d1"/>
+    <text x="830" y="155" text-anchor="middle">Pan-head category</text>
+    <rect x="720" y="186" width="220" height="32" rx="8" fill="#dbeafe" stroke="#2563eb"/>
+    <text x="830" y="207" text-anchor="middle">Carbon category</text>
+    <rect x="720" y="246" width="220" height="32" rx="8" fill="#fff" stroke="#d6d3d1"/>
+    <text x="830" y="267" text-anchor="middle">Stainless category</text>
+  </g>
+  <path d="M266 150 C 430 150, 520 150, 710 150" fill="none" stroke="#a8a29e" stroke-width="1.5"/>
+  <path d="M286 202 C 430 202, 560 202, 710 202" fill="none" stroke="#ea580c" stroke-width="2"/>
+  <path d="M286 262 C 430 262, 560 262, 710 262" fill="none" stroke="#a8a29e" stroke-width="1.5"/>
+  <text x="490" y="118" text-anchor="middle" font-size="12" fill="#57534e">one row per folder</text>
+  <text x="490" y="196" text-anchor="middle" font-size="12" fill="#9a3412">Carbon’s row</text>
+  <text x="490" y="330" text-anchor="middle" font-size="13" fill="#57534e">Carbon in PIM sits under Pan-head.</text>
+  <text x="490" y="350" text-anchor="middle" font-size="13" fill="#57534e">The Carbon category in F&amp;O sits beside Pan-head, not under it.</text>
+  <text x="490" y="378" text-anchor="middle" font-size="13" fill="#57534e">Remove the connection and the line goes. Both folders stay.</text>
+  <text x="490" y="404" text-anchor="middle" font-size="13" fill="#57534e">Old orders keep the category they were posted with.</text>
+</svg>
+</div>
+<p class="small">The same PIM folders could later have a second set of rows to another system. That system was named as a reason, and it was not designed, so it is not drawn.</p>
 </div>
 
 <div class="panel try">
