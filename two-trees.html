@@ -277,7 +277,7 @@
 <h2>Diagram</h2><div class="legend">
   <span><i class="swatch" style="background:#fff"></i>A folder</span>
   <span><i class="swatch" style="background:#ffedd5;border-color:#fdba74"></i>Moves with the other side</span>
-  <span><i class="swatch" style="background:#dbeafe;border-color:#93c5fd"></i>Stays put</span>
+  <span><i class="swatch" style="background:#dbeafe;border-color:#93c5fd"></i>Does not move</span>
   <span><i class="swatch" style="background:#fff;border-style:dashed"></i>Does not exist</span>
 </div>
 <h3 style="margin-top:12px">Today</h3>
@@ -336,7 +336,7 @@
 <details class="acc"><summary>Diagram</summary><div class="acc-body"><div class="legend">
   <span><i class="swatch" style="background:#fff"></i>A folder</span>
   <span><i class="swatch" style="background:#ffedd5;border-color:#fdba74"></i>Moves with the other side</span>
-  <span><i class="swatch" style="background:#dbeafe;border-color:#93c5fd"></i>Stays put</span>
+  <span><i class="swatch" style="background:#dbeafe;border-color:#93c5fd"></i>Does not move</span>
   <span><i class="swatch" style="background:#fff;border-style:dashed"></i>Does not exist</span>
 </div><h3 style="margin-top:12px">Approach 1 — the same folders, drawn on both sides</h3>
 <p>The folders are the same object on both sides. Move Carbon in PIM and the F&amp;O category moves with it. There is no link table.</p>
@@ -397,7 +397,7 @@
         </ul>
       </div>
     </div></div>
-<div class="sit"><h3>A range is moved after a year of sales</h3><p class="q">The situation walked through in the discussion: a year of sales sits on one category, then the product is moved to another.</p><div class="card rigid">
+<div class="sit"><h3>A range is moved after a year of sales</h3><p class="q">The situation described in the discussion: a year of sales sits on one category, then the product is moved to another.</p><div class="card rigid">
       
       <div class="pc">
         <b>For</b>
@@ -411,12 +411,12 @@
         </ul>
       </div>
     </div></div>
-<div class="sit"><h3>A category has to be retired</h3><p class="q">A product is released and orders already exist against the category.</p><div class="card rigid">
+<div class="sit"><h3>A category is discontinued</h3><p class="q">A product is released and orders already exist against the category.</p><div class="card rigid">
       
       <div class="pc">
         <b>For</b>
         <ul>
-          <li>Nothing extra to clean up, because there is no link.</li>
+          <li>There is no link to remove.</li>
         </ul>
         <b>Against</b>
         <ul>
@@ -460,7 +460,7 @@
       </div>
     </div></div></div></details>
 <details class="acc"><summary>What this option adds</summary><div class="acc-body"><table class="adds"><tr><td>Folders</td><td>The folders PIM already has are sent across, so F&amp;O has the same ones.</td></tr><tr><td>A move</td><td>Changes the folder in both systems. Reports that use the invoice category and reports that use the current category then disagree, as described above.</td></tr><tr><td>A removed folder</td><td>F&amp;O cannot delete a category that orders already use.</td></tr><tr><td>Where the link is kept</td><td>There is no link table.</td></tr><tr><td>Another system later</td><td>Another copy of the same folders.</td></tr></table></div></details>
-<details class="acc"><summary>Prototype — move and unlink</summary><div class="acc-body"><p>These names are an example, so the difference is easy to see. Use the buttons. Nothing here writes to F&amp;O or to PIM.</p>
+<details class="acc"><summary>Example — a move, and removing the link</summary><div class="acc-body"><p>These names are an example, so the difference is clear. Use the buttons. Nothing here writes to F&amp;O or to PIM.</p>
 <div class="stage"><div class="col"><h3>PIM folders</h3><div id="rigid-pim-tree"></div></div>
 <div class="col"><h3>F&amp;O categories</h3><div id="rigid-fo-tree"></div></div></div>
 <div id="rigid-map" style="margin-top:12px"></div>
@@ -510,7 +510,7 @@
 <details class="acc"><summary>Diagram</summary><div class="acc-body"><div class="legend">
   <span><i class="swatch" style="background:#fff"></i>A folder</span>
   <span><i class="swatch" style="background:#ffedd5;border-color:#fdba74"></i>Moves with the other side</span>
-  <span><i class="swatch" style="background:#dbeafe;border-color:#93c5fd"></i>Stays put</span>
+  <span><i class="swatch" style="background:#dbeafe;border-color:#93c5fd"></i>Does not move</span>
   <span><i class="swatch" style="background:#fff;border-style:dashed"></i>Does not exist</span>
 </div><h3 style="margin-top:12px">Approach 2 — separate folders, joined by a link</h3>
 <p>PIM can put Carbon under a series. F&amp;O can keep Carbon beside the other categories. The line is the only thing that joins them. Move Carbon in PIM and the F&amp;O category stays.</p>
@@ -546,7 +546,7 @@
   <text x="490" y="196" text-anchor="middle" font-size="12" fill="#9a3412">Carbon’s row</text>
   <text x="490" y="330" text-anchor="middle" font-size="13" fill="#57534e">Carbon in PIM sits under Pan-head.</text>
   <text x="490" y="350" text-anchor="middle" font-size="13" fill="#57534e">The Carbon category in F&amp;O sits beside Pan-head, not under it.</text>
-  <text x="490" y="378" text-anchor="middle" font-size="13" fill="#57534e">Remove the connection and the line goes. Both folders stay.</text>
+  <text x="490" y="378" text-anchor="middle" font-size="13" fill="#57534e">Remove the connection and the line is removed. Both folders stay.</text>
   <text x="490" y="404" text-anchor="middle" font-size="13" fill="#57534e">Old orders keep the category they were posted with.</text>
 </svg>
 </div><p class="small">The same PIM folders could later have a second set of rows to another system. That system was named as a reason, and it was not designed, so it is not drawn.</p></div></details>
@@ -573,7 +573,7 @@
         </ul>
       </div>
     </div></div>
-<div class="sit"><h3>A range is moved after a year of sales</h3><p class="q">The situation walked through in the discussion: a year of sales sits on one category, then the product is moved to another.</p><div class="card dynamic">
+<div class="sit"><h3>A range is moved after a year of sales</h3><p class="q">The situation described in the discussion: a year of sales sits on one category, then the product is moved to another.</p><div class="card dynamic">
       
       <div class="pc">
         <b>For</b>
@@ -588,13 +588,13 @@
         </ul>
       </div>
     </div></div>
-<div class="sit"><h3>A category has to be retired</h3><p class="q">A product is released and orders already exist against the category.</p><div class="card dynamic">
+<div class="sit"><h3>A category is discontinued</h3><p class="q">A product is released and orders already exist against the category.</p><div class="card dynamic">
       
       <div class="pc">
         <b>For</b>
         <ul>
           <li>Removing the connection removes the row only. The F&amp;O category stays, which is what F&amp;O needs when orders use it.</li>
-          <li>PIM can retire its own folder without waiting on F&amp;O.</li>
+          <li>PIM can discontinue its own folder without waiting on F&amp;O.</li>
         </ul>
         <b>Against</b>
         <ul>
@@ -638,12 +638,12 @@
         <b>Against</b>
         <ul>
           <li>The link is a thing that has to be built, kept, and owned by someone. PIM does not have it today.</li>
-          <li>Two structures mean two things to look at when something does not add up.</li>
+          <li>Two sets of folders mean two places to check when something does not match.</li>
         </ul>
       </div>
     </div></div></div></details>
 <details class="acc"><summary>What this option adds</summary><div class="acc-body"><table class="adds"><tr><td>Folders</td><td>PIM can keep its folders. F&amp;O keeps its categories. A link joins a PIM folder to an F&amp;O category. The first load can still match them one-to-one.</td></tr><tr><td>A move</td><td>Changes the PIM folder and the link. The F&amp;O category stays, so old orders keep their category.</td></tr><tr><td>A removed folder</td><td>The link can be removed. The F&amp;O category stays when orders use it.</td></tr><tr><td>Where the link is kept</td><td>The link can be a screen in PIM, or it can be kept beside PIM. That place is not chosen.</td></tr><tr><td>Another system later</td><td>The same PIM folders, with another link. Not designed.</td></tr></table></div></details>
-<details class="acc"><summary>Prototype — move and unlink</summary><div class="acc-body"><p>These names are an example, so the difference is easy to see. Use the buttons. Nothing here writes to F&amp;O or to PIM.</p>
+<details class="acc"><summary>Example — a move, and removing the link</summary><div class="acc-body"><p>These names are an example, so the difference is clear. Use the buttons. Nothing here writes to F&amp;O or to PIM.</p>
 <div class="stage"><div class="col"><h3>PIM folders</h3><div id="dynamic-pim-tree"></div></div>
 <div class="col"><h3>F&amp;O categories</h3><div id="dynamic-fo-tree"></div></div></div>
 <div id="dynamic-map" style="margin-top:12px"></div>
@@ -749,18 +749,16 @@
 <div class="walkbox" id="walkbox-rigid"><div class="steps" id="rigid-w-steps"></div>
 <h3 id="rigid-w-title" style="margin-top:14px"></h3><p id="rigid-w-text"></p>
 <div class="wgrid"><div class="wcol"><h3>PIM</h3><div id="rigid-w-pim"></div></div>
-<div class="wcol across"><h3 id="rigid-w-across-h">What crosses</h3><div id="rigid-w-across"></div></div>
+<div class="wcol across"><h3 id="rigid-w-across-h">What is sent</h3><div id="rigid-w-across"></div></div>
 <div class="wcol"><h3>F&amp;O</h3><div id="rigid-w-fo"></div></div></div>
 <div class="check" id="rigid-w-check"></div>
-<div class="proto-actions"><button type="button" id="rigid-w-back">Back</button><button type="button" id="rigid-w-next">Next</button></div>
 </div>
 <div class="walkbox active" id="walkbox-dynamic"><div class="steps" id="dynamic-w-steps"></div>
 <h3 id="dynamic-w-title" style="margin-top:14px"></h3><p id="dynamic-w-text"></p>
 <div class="wgrid"><div class="wcol"><h3>PIM</h3><div id="dynamic-w-pim"></div></div>
-<div class="wcol across"><h3 id="dynamic-w-across-h">What crosses</h3><div id="dynamic-w-across"></div></div>
+<div class="wcol across"><h3 id="dynamic-w-across-h">What is sent</h3><div id="dynamic-w-across"></div></div>
 <div class="wcol"><h3>F&amp;O</h3><div id="dynamic-w-fo"></div></div></div>
 <div class="check" id="dynamic-w-check"></div>
-<div class="proto-actions"><button type="button" id="dynamic-w-back">Back</button><button type="button" id="dynamic-w-next">Next</button></div>
 </div>
 <div style="margin-top:16px"><div class="card" style="margin-top:16px">
   <ul>
@@ -821,7 +819,7 @@
           + "<tr><td>Series · Pan-head</td><td>Pan-head category</td></tr>" + carbonRow
           + "<tr><td>Range · Stainless — under Series · Pan-head</td><td>Stainless category — under Procurement · Screws</td></tr></table></div>";
       if (mode === "rigid" && moved) result.textContent = "Approach 1: Carbon moved in PIM, and the F&O category moved with it. Old orders still show the category they were posted with.";
-      else if (mode === "dynamic" && unlinked) result.textContent = "Approach 2: the Carbon link is gone. The PIM range and the F&O category are both still there.";
+      else if (mode === "dynamic" && unlinked) result.textContent = "Approach 2: the Carbon link is removed. The PIM range and the F&O category are both still there.";
       else if (mode === "dynamic" && moved) result.textContent = "Approach 2: Carbon now sits under Series · Other in PIM. The F&O Carbon category stayed under Procurement · Screws. The link still joins them.";
       else if (mode === "rigid") result.textContent = "Approach 1: the same folders in PIM and F&O. Carbon in PIM and the Carbon category in F&O are the same folder. A move changes both.";
       else result.textContent = "Approach 2: Carbon in PIM sits under Pan-head. The F&O Carbon category sits beside Pan-head, not under it. The link joins them.";
@@ -846,7 +844,7 @@
       var rangeNote = s.material ? "Material: Carbon steel, typed here once" : "";
       if (s.moved) rangeNote = (rangeNote ? rangeNote + ". " : "") + "now under Series · Other";
       t += n("Range · Carbon", 4, s.moved ? "hit" : "", rangeNote);
-      t += n("Product group", 5, s.retired ? "off" : "", s.retired ? "unpublished" : "");
+      t += n("Product group", 5, s.retired ? "off" : "", s.retired ? "no longer shown" : "");
       if (s.placed) t += n("Product", 5, "prod", s.material ? "Material: Carbon steel, shown from the range. Diameter: 4.8 mm, on the product." : "Diameter: 4.8 mm, on the product.");
       t += n("Range · Stainless", 4);
       return t;
@@ -861,7 +859,7 @@
       } else {
         t = n("Procurement · Screws", 1) + n("Pan-head category", 2);
         t += n("Carbon category", 2, "", s.moved ? "stayed where it was" : "");
-        t += n("Product group category", 3, s.retired ? "hit" : "", s.retired ? "stays, the link row is gone" : "");
+        t += n("Product group category", 3, s.retired ? "hit" : "", s.retired ? "stays. The link row is removed." : "");
       }
       if (s.placed) {
         t += n("Product", 4, "prod", s.values ? "MATERIAL = Carbon steel. DIAMETER = 4.8 mm." : "The item number was created here.");
@@ -874,7 +872,7 @@
         s: { placed: true }, across: function () { return m("F&amp;O → PIM. No call from PIM to F&amp;O."); },
         c: "Both options start from this. The item number is still created in F&amp;O." },
       { t: "1 · A value typed once", d: "Material is typed on Range · Carbon. The product has no material of its own, so it shows the range value. Diameter stays on the product.",
-        s: { placed: true, material: true }, across: function () { return m("Nothing travels yet. The value is on the PIM folder."); },
+        s: { placed: true, material: true }, across: function () { return m("Nothing is sent yet. The value is on the PIM folder."); },
         c: "The same in both options. F&amp;O receives the value the product shows, when a return exists. It does not receive the folder itself as the value." },
       { t: "2 · The return", d: "PIM sends the agreed attributes for the product: the full set it shows, including the material it shows from the range.",
         s: { placed: true, material: true, values: true },
@@ -887,11 +885,11 @@
       { t: "3 · A range is moved", d: "After a year of sales, Range · Carbon is moved in PIM under Series · Other.",
         s: { placed: true, material: true, values: true, moved: true },
         across: function () { return mode === "rigid" ? m("The same folder moves in F&amp;O.") : m("The PIM folder moves. The link row still points at the F&amp;O Carbon category. The F&amp;O category stays."); },
-        c: function () { return mode === "rigid" ? "Orders keep the category they were posted with. A report on the current category loses the earlier period." : "The F&amp;O category stays, so the category on the order stays. The link row has to be kept right."; } },
-      { t: "4 · The folder is retired", d: "The product group is no longer wanted. Orders already use its F&O category.",
+        c: function () { return mode === "rigid" ? "Orders keep the category they were posted with. A report on the current category loses the earlier period." : "The F&amp;O category stays, so the category on the order stays. The link row has to stay correct."; } },
+      { t: "4 · The folder is discontinued", d: "The product group is no longer used. Orders already use its F&O category.",
         s: { placed: true, material: true, values: true, moved: true, retired: true },
-        across: function () { return mode === "rigid" ? m("The folder can be unpublished in PIM. F&amp;O cannot delete a category that orders use.") : m("The folder can be unpublished in PIM. The link row is removed. The F&amp;O category stays."); },
-        c: function () { return mode === "rigid" ? "Removing it in PIM does not remove it in F&amp;O." : "The F&amp;O category stays because orders use it. Someone still decides what that category is for."; } }
+        across: function () { return mode === "rigid" ? m("The folder can be taken out of use in PIM. F&amp;O cannot delete a category that orders use.") : m("The folder can be taken out of use in PIM. The link row is removed. The F&amp;O category stays."); },
+        c: function () { return mode === "rigid" ? "Removing it in PIM does not remove it in F&amp;O." : "The F&amp;O category stays because orders use it. A decision is still required on what that category is used for."; } }
     ];
     var el = function (id) { return document.getElementById(p + "-" + id); };
     function draw() {
@@ -901,15 +899,11 @@
       el("w-title").textContent = (mode === "rigid" ? "Approach 1 · " : "Approach 2 · ") + x.t;
       el("w-text").textContent = x.d;
       el("w-pim").innerHTML = pimTree(x.s);
-      el("w-across-h").textContent = mode === "dynamic" ? "What crosses · the link" : "What crosses";
+      el("w-across-h").textContent = mode === "dynamic" ? "What is sent · the link" : "What is sent";
       el("w-across").innerHTML = x.across();
       el("w-fo").innerHTML = foTree(x.s);
       el("w-check").innerHTML = "<b>This step</b>" + (typeof x.c === "function" ? x.c() : x.c);
-      el("w-back").disabled = step === 0;
-      el("w-next").disabled = step === steps.length - 1;
     }
-    el("w-back").onclick = function () { if (step > 0) { step--; draw(); } };
-    el("w-next").onclick = function () { if (step < steps.length - 1) { step++; draw(); } };
     draw();
   }
 
