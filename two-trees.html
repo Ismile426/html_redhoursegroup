@@ -58,6 +58,17 @@
   select, .inherit { font: inherit; }
   .inherit { display: grid; grid-template-columns: 180px 1fr; gap: 8px 12px; align-items: center; margin-top: 8px; }
   .locked { color: var(--muted); }
+  .vflow { display: flex; flex-direction: column; margin-top: 10px; }
+  .vstep { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; font-size: 14px; }
+  .vstep .n { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 2px; }
+  .down { text-align: center; color: #a8a29e; font-size: 17px; line-height: 1.1; padding: 3px 0; }
+  .stop { border-style: dashed; color: var(--muted); }
+  .pc { margin-top: 10px; }
+  .pc b { display: block; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 10px 0 2px; }
+  .pc ul { margin: 2px 0 0; }
+  .scen { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-top: 12px; }
+  .scen h3 { font-size: 15px; }
+  .scen .q { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
 </style>
 </head>
 <body>
@@ -87,6 +98,42 @@
   <p class="small">The folders are product type, family, series, range, and product group. PIM does not send folders or values back.</p>
 </div>
 
+<h3 style="margin-top:14px">The order it arrives in</h3>
+<div class="two">
+  <div class="card">
+    <div class="vflow">
+      <div class="vstep"><span class="n">1</span>Companies.</div>
+      <div class="down">↓</div>
+      <div class="vstep"><span class="n">2</span>Configuration, colour, size, and style options.</div>
+      <div class="down">↓</div>
+      <div class="vstep"><span class="n">3</span>The folders: product type, family, series, range, product group.</div>
+      <div class="down">↓</div>
+      <div class="vstep"><span class="n">4</span>The attribute list, and which folders each attribute belongs on.</div>
+      <div class="down">↓</div>
+      <div class="vstep"><span class="n">5</span>Products and variants. A product needs its product-group folder already there. A variant needs its product already there.</div>
+      <div class="down">↓</div>
+      <div class="vstep"><span class="n">6</span>Attribute values, on the product the row names.</div>
+      <div class="down">↓</div>
+      <div class="vstep"><span class="n">7</span>Names and descriptions per language.</div>
+      <div class="down">↓</div>
+      <div class="vstep"><span class="n">8</span>Release: which shops the variant is released to.</div>
+      <div class="down">↓</div>
+      <div class="vstep stop"><span class="n">Stop</span>Nothing goes back. There is no call from PIM to F&amp;O.</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>What this already means</h3>
+    <ul>
+      <li>The order matters. A folder has to exist before a product can be put in it, and a product has to exist before its variant.</li>
+      <li>A value lands on the product named on the row. Two products do not overwrite each other.</li>
+      <li>A folder in PIM is the folder F&amp;O sent. Renaming it in PIM does not tell F&amp;O anything.</li>
+      <li>PIM holds content of its own that never came from F&amp;O: the shop image and shop description per shop, the product-type icon, technical images, compliance documents, and label images.</li>
+      <li>F&amp;O decides which shops a variant is released to.</li>
+    </ul>
+    <p class="small">Both options below keep steps 1 to 8 for the things F&amp;O still owns. What changes is who owns the folders, and whether anything travels back.</p>
+  </div>
+</div>
+
 <h2>The two options</h2>
 <div class="two">
   <div class="card rigid">
@@ -98,6 +145,19 @@
       <div class="box"><b>F&amp;O</b><br>the same folders</div>
     </div>
     <p class="small">A rename or a move in PIM changes that folder in F&amp;O as well.</p>
+    <div class="vflow">
+      <div class="vstep"><span class="n">1</span>The folder structure is made in PIM.</div>
+      <div class="down">↓</div>
+      <div class="vstep"><span class="n">2</span>PIM sends it to F&amp;O. F&amp;O ends up with the same folders.</div>
+      <div class="down">↓</div>
+      <div class="vstep"><span class="n">3</span>F&amp;O creates the item number and sends the product to PIM.</div>
+      <div class="down">↓</div>
+      <div class="vstep"><span class="n">4</span>Values are entered in PIM, once on a folder where they are shared.</div>
+      <div class="down">↓</div>
+      <div class="vstep"><span class="n">5</span>The agreed attributes go back on the item number.</div>
+      <div class="down">↓</div>
+      <div class="vstep"><span class="n">6</span>A later move in PIM moves the folder in F&amp;O too.</div>
+    </div>
   </div>
   <div class="card dynamic">
     <h3>Dynamic — two structures and a link</h3>
@@ -120,6 +180,19 @@
       </table>
     </div>
     <p class="small">The names do not have to match. Carbon in PIM can sit under a series while the Carbon category in F&amp;O sits beside the other categories.</p>
+    <div class="vflow">
+      <div class="vstep"><span class="n">1</span>PIM has its folders. F&amp;O has its categories. The first load can match them one-to-one.</div>
+      <div class="down">↓</div>
+      <div class="vstep"><span class="n">2</span>One row per folder records which F&amp;O category it points at.</div>
+      <div class="down">↓</div>
+      <div class="vstep"><span class="n">3</span>F&amp;O creates the item number and sends the product to PIM.</div>
+      <div class="down">↓</div>
+      <div class="vstep"><span class="n">4</span>Values are entered in PIM, once on a folder where they are shared.</div>
+      <div class="down">↓</div>
+      <div class="vstep"><span class="n">5</span>The agreed attributes go back on the item number.</div>
+      <div class="down">↓</div>
+      <div class="vstep"><span class="n">6</span>A later move in PIM changes the PIM path and the row. The F&amp;O category stays where it is.</div>
+    </div>
   </div>
 </div>
 
@@ -147,6 +220,212 @@
     <h3>Dynamic</h3>
     <p>Removing the connection deletes the link row. The F&amp;O category stays when an order already uses it.</p>
   </div>
+</div>
+
+<h2>Pros and cons, in situations that were raised</h2>
+<p class="lead">Each situation below was named in the discussion. The reading is ours. Where something was left open, it says so.</p>
+
+<div class="scen">
+  <h3>Go-live, the first load</h3>
+  <p class="q">The folders exist on both sides for the first time.</p>
+  <div class="two">
+    <div class="card rigid">
+      <b>Rigid</b>
+      <div class="pc">
+        <b>For</b>
+        <ul>
+          <li>One structure to agree and one to check. Nothing can drift apart, because there is only one.</li>
+          <li>No link to populate and no link to keep.</li>
+        </ul>
+        <b>Against</b>
+        <ul>
+          <li>The structure has to be right before it is sent, because F&amp;O then uses it on orders.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card dynamic">
+      <b>Dynamic</b>
+      <div class="pc">
+        <b>For</b>
+        <ul>
+          <li>The first load can still be one-to-one, so day one looks the same as rigid.</li>
+        </ul>
+        <b>Against</b>
+        <ul>
+          <li>A row has to exist for every folder before anything depends on it. That is extra setup on day one.</li>
+          <li>Where the link is kept was not decided. It was described as a screen in PIM, and also as something kept beside PIM.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="scen">
+  <h3>A range is moved after a year of sales</h3>
+  <p class="q">The situation walked through in the discussion: a year of sales sits on one category, then the product is moved to another.</p>
+  <div class="two">
+    <div class="card rigid">
+      <b>Rigid</b>
+      <div class="pc">
+        <b>For</b>
+        <ul>
+          <li>One move, one place to do it. Both systems agree afterwards.</li>
+        </ul>
+        <b>Against</b>
+        <ul>
+          <li>The F&amp;O category moves too. A report that reads the category on the invoice shows the product in two categories. A report that reads the item’s current category loses that first year.</li>
+          <li>Purchase orders and sales orders carry the category they were posted with, and reporting is built on that.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card dynamic">
+      <b>Dynamic</b>
+      <div class="pc">
+        <b>For</b>
+        <ul>
+          <li>The F&amp;O category stays, so the category on the order is untouched and the year of history stays whole.</li>
+          <li>PIM can reorganise for how the catalogue should read, without asking what it does to F&amp;O reporting.</li>
+        </ul>
+        <b>Against</b>
+        <ul>
+          <li>Someone has to update the row. A move with no row update leaves the two sides describing different things.</li>
+          <li>Over time the two structures stop looking alike, so a question about one has to be answered through the link.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="scen">
+  <h3>A category has to be retired</h3>
+  <p class="q">A product is released and orders already exist against the category.</p>
+  <div class="two">
+    <div class="card rigid">
+      <b>Rigid</b>
+      <div class="pc">
+        <b>For</b>
+        <ul>
+          <li>Nothing extra to clean up, because there is no link.</li>
+        </ul>
+        <b>Against</b>
+        <ul>
+          <li>F&amp;O cannot delete a category that orders use. Removing it in PIM does not remove it in F&amp;O, so the two sides no longer match and that has to be handled in F&amp;O separately.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card dynamic">
+      <b>Dynamic</b>
+      <div class="pc">
+        <b>For</b>
+        <ul>
+          <li>Removing the connection removes the row only. The F&amp;O category stays, which is what F&amp;O needs when orders use it.</li>
+          <li>PIM can retire its own folder without waiting on F&amp;O.</li>
+        </ul>
+        <b>Against</b>
+        <ul>
+          <li>An F&amp;O category with no row still exists. Someone has to notice and decide what it is for.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="scen">
+  <h3>A new material value is introduced</h3>
+  <p class="q">Values entered once on a folder mean one folder per value. This was raised as a concern in the discussion.</p>
+  <div class="two">
+    <div class="card rigid">
+      <b>Rigid</b>
+      <div class="pc">
+        <b>For</b>
+        <ul>
+          <li>The new folder reaches F&amp;O through the same send as the rest.</li>
+        </ul>
+        <b>Against</b>
+        <ul>
+          <li>A new value means a new folder, and that folder lands in F&amp;O where orders may later use it.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card dynamic">
+      <b>Dynamic</b>
+      <div class="pc">
+        <b>For</b>
+        <ul>
+          <li>The new folder can be added in PIM and pointed at a category F&amp;O already has.</li>
+        </ul>
+        <b>Against</b>
+        <ul>
+          <li>A new folder needs a new row before anything uses it.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <p class="small">This concern applies to both. Sorting by value adds a folder per value, so there are more folders than today. Retiring a value means reworking that folder. A value that differs per product, such as diameter, stays on the product and does not create folders.</p>
+</div>
+
+<div class="scen">
+  <h3>Another system is added later</h3>
+  <p class="q">Named in the discussion as a reason to prefer the second option. Nothing for it was designed.</p>
+  <div class="two">
+    <div class="card rigid">
+      <b>Rigid</b>
+      <div class="pc">
+        <b>Against</b>
+        <ul>
+          <li>The second system needs its own copy of the same folders, and then both copies have to be kept.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card dynamic">
+      <b>Dynamic</b>
+      <div class="pc">
+        <b>For</b>
+        <ul>
+          <li>The same PIM folders stay, with a second set of rows for the other system.</li>
+        </ul>
+        <b>Against</b>
+        <ul>
+          <li>This was a reason given, not a plan. No second system was drawn, and the effort for one is not known.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="scen">
+  <h3>Effort to put in place</h3>
+  <p class="q">Both options need something PIM does not do today.</p>
+  <div class="two">
+    <div class="card rigid">
+      <b>Rigid</b>
+      <div class="pc">
+        <b>For</b>
+        <ul>
+          <li>The smaller change of the two. There is no link to build and no link to maintain.</li>
+        </ul>
+        <b>Against</b>
+        <ul>
+          <li>Sending the folders out of PIM is new. It does not exist today.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card dynamic">
+      <b>Dynamic</b>
+      <div class="pc">
+        <b>For</b>
+        <ul>
+          <li>Described in the discussion as more work and, in one view, safer, because of what a move does to order history.</li>
+        </ul>
+        <b>Against</b>
+        <ul>
+          <li>The link is a thing that has to be built, kept, and owned by someone. PIM does not have it today.</li>
+          <li>Two structures mean two things to look at when something does not add up.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <p class="small">For both: sending anything from PIM to F&amp;O is new, and today’s feed into PIM has to stop for the agreed attributes on a date, or a value typed in PIM and a value arriving from F&amp;O are two writers of the same field.</p>
 </div>
 
 <h2>What both options share</h2>
