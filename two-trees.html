@@ -35,12 +35,14 @@
   #tab-options:checked ~ .tabbar label[for="tab-options"],
   #tab-diagram:checked ~ .tabbar label[for="tab-diagram"],
   #tab-try:checked ~ .tabbar label[for="tab-try"],
-  #tab-choose:checked ~ .tabbar label[for="tab-choose"] { background: #1c1917; color: #fff; border-color: #1c1917; }
+  #tab-choose:checked ~ .tabbar label[for="tab-choose"],
+  #tab-walk:checked ~ .tabbar label[for="tab-walk"] { background: #1c1917; color: #fff; border-color: #1c1917; }
   .panel { display: none; }
   #tab-options:checked ~ .panel.options,
   #tab-diagram:checked ~ .panel.diagram,
   #tab-try:checked ~ .panel.try,
-  #tab-choose:checked ~ .panel.choose { display: block; }
+  #tab-choose:checked ~ .panel.choose,
+  #tab-walk:checked ~ .panel.walk { display: block; }
   .frame { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 8px 8px 4px; margin-top: 12px; }
   .frame svg { width: 100%; height: auto; display: block; }
   .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; font-size: 13px; color: var(--muted); }
@@ -75,27 +77,150 @@
   .scen { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-top: 12px; }
   .scen h3 { font-size: 15px; }
   .scen .q { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
+  #tab-walk:checked ~ .tabbar label[for="tab-walk"] { background: #1c1917; color: #fff; border-color: #1c1917; }
+  #tab-walk:checked ~ .panel.walk { display: block; }
+  .steps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .steps button { font-size: 13px; padding: 5px 10px; }
+  .wgrid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 12px; }
+  @media (max-width: 860px) { .wgrid { grid-template-columns: 1fr; } }
+  .wcol { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-height: 220px; }
+  .wcol h3 { font-size: 14px; margin-bottom: 8px; }
+  .wcol.across { background: #fafaf9; }
+  .node { display: block; margin: 4px 0; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; background: #fff; }
+  .node.l2 { margin-left: 12px } .node.l3 { margin-left: 24px } .node.l4 { margin-left: 36px } .node.l5 { margin-left: 48px }
+  .node.prod { border-style: dashed; }
+  .node.hit { border-color: #ea580c; background: #fff7ed; }
+  .node.off { opacity: .45; text-decoration: line-through; }
+  .node .v { display: block; font-size: 12px; color: var(--muted); }
+  .msg { font-size: 13px; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; margin: 6px 0; }
+  .check { margin-top: 12px; border-radius: 12px; padding: 10px 14px; font-size: 14px; background: #fff; border: 1px solid var(--line); }
+  .check b { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+
+  /* ---- branding: matches redhorse-flow-site.vercel.app ---- */
+  :root { --navy: #1b2a4a; --navy-2: #24365c; --ink: #222; --muted: #5c6470; --line: #d8dee8; --wash: #f6f8fb; --paper: #f6f8fb;
+          --fo: #2563eb; --fo-bg: #eff6ff; --pim: #c2410c; --pim-bg: #fff7ed; }
+  html, body { background: var(--wash); color: var(--ink); font: 16px/1.5 "Calibri", "Segoe UI", system-ui, sans-serif; }
+  .wrap { max-width: 1120px; padding: 28px 20px 64px; }
+  .brand-bar { background: linear-gradient(135deg, #1b2a4a 0%, #2c2050 100%); color: #fff; border-radius: 10px; padding: 28px 24px 32px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; margin-bottom: 14px; }
+  .brand-logos { display: flex; align-items: center; justify-content: center; gap: 14px; }
+  .brand-logos .logo-pill { background: #fff; border-radius: 999px; padding: 7px 18px; display: inline-flex; align-items: center; justify-content: center; height: 34px; }
+  .brand-logos .logo-pill svg { display: block; height: 24px; width: auto; }
+  .brand-logos .logo-pill img { display: block; height: 15px; width: auto; }
+  .brand-plus { color: #fff; font-size: 18px; font-weight: 700; opacity: .75; }
+  .confidential-badge { display: inline-block; background: rgba(214, 90, 70, .2); border: 1px solid rgba(214, 90, 70, .55); color: #ff9d8a; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 4px 14px; border-radius: 999px; }
+  .brand-title { margin: 4px 0 0; font-size: 30px; font-weight: 700; line-height: 1.25; color: #fff; }
+  .brand-subtitle { margin: 0; font-size: 15.5px; font-weight: 600; letter-spacing: .03em; color: #a9c9ff; text-transform: uppercase; }
+  .lead { color: var(--muted); }
+
+  /* tabs look like the flow site's buttons */
+  .tabbar { gap: 10px; margin: 16px 0 6px; padding-bottom: 12px; border-bottom: 2px solid var(--line); }
+  .tabbar label { background: #fff; color: var(--navy); border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 18px; font: 700 15px/1.3 "Calibri", "Segoe UI", system-ui, sans-serif; box-shadow: 0 1px 2px rgba(27,42,74,.06); }
+  .tabbar label:hover { border-color: var(--navy-2); }
+  #tab-options:checked ~ .tabbar label[for="tab-options"],
+  #tab-diagram:checked ~ .tabbar label[for="tab-diagram"],
+  #tab-try:checked ~ .tabbar label[for="tab-try"],
+  #tab-choose:checked ~ .tabbar label[for="tab-choose"],
+  #tab-walk:checked ~ .tabbar label[for="tab-walk"] { background: var(--navy); color: #fff; border-color: var(--navy); box-shadow: 0 3px 10px rgba(27,42,74,.25); }
+
+  /* headings and cards */
+  h2 { color: var(--navy); font-size: 22px; margin: 32px 0 12px; padding-bottom: 6px; border-bottom: 2px solid var(--line); }
+  h3 { color: var(--navy-2); }
+  .card, .scen, .col, .wcol, .frame, .result, .check, .sheet, .box, .vstep { border-color: var(--line); border-radius: 8px; }
+  .scen h3 { color: var(--navy); }
+  .rigid { background: var(--pim-bg); border: 2px solid var(--pim); }
+  .rigid > h3, .rigid > b { color: var(--pim); }
+  .dynamic { background: var(--fo-bg); border: 2px solid var(--fo); }
+  .dynamic > h3, .dynamic > b { color: var(--fo); }
+  .note { border-left: 4px solid var(--navy-2); }
+  .vstep .n { color: var(--navy-2); font-weight: 700; }
+  .down { color: #94a3b8; }
+  .sheet .bar { background: var(--navy-2); color: #fff; }
+  .sheet th, th { color: var(--navy-2); }
+  .wcol.across { background: #fff; border: 1px dashed var(--navy-2); }
+
+  /* buttons in the prototypes */
+  button { border: 1.5px solid var(--line); border-radius: 8px; color: var(--navy); font-weight: 600; }
+  button:hover { border-color: var(--navy-2); }
+  button.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+  button:disabled { opacity: .45; cursor: default; }
+  #w-rigid.on, #mode-rigid.on { background: var(--pim); border-color: var(--pim); }
+  #w-dynamic.on, #mode-dynamic.on { background: var(--fo); border-color: var(--fo); }
+  .check { border-left: 4px solid var(--navy-2); }
+  @media (max-width: 700px) { .brand-title { font-size: 24px; } }
+
+  /* ---- one option per tab ---- */
+  .panel { display: none; } .panel.active { display: block; }
+  nav.tabs2 { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 6px; padding-bottom: 12px; border-bottom: 2px solid var(--line); }
+  nav.tabs2 button { background: #fff; color: var(--navy); border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 18px; font: 700 15px/1.3 "Calibri", "Segoe UI", system-ui, sans-serif; box-shadow: 0 1px 2px rgba(27,42,74,.06); }
+  nav.tabs2 button.active { background: var(--navy); color: #fff; border-color: var(--navy); box-shadow: 0 3px 10px rgba(27,42,74,.25); }
+  nav.tabs2 button.t-rigid { border-color: var(--pim); color: var(--pim); }
+  nav.tabs2 button.t-rigid.active { background: var(--pim); color: #fff; }
+  nav.tabs2 button.t-dynamic { border-color: var(--fo); color: var(--fo); }
+  nav.tabs2 button.t-dynamic.active { background: var(--fo); color: #fff; }
+  .opthead { border-radius: 10px; padding: 16px 20px; margin: 18px 0 6px; color: #fff; }
+  .opthead h2 { color: #fff !important; border: 0; margin: 0 0 4px; padding: 0; font-size: 24px; }
+  .opthead p { margin: 0; color: rgba(255,255,255,.9); }
+  .oh-rigid { background: linear-gradient(135deg, #9a3412 0%, #c2410c 100%); }
+  .oh-dynamic { background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); }
+  .p-rigid h2 { color: var(--pim); } .p-dynamic h2 { color: var(--fo); }
+  .sit { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin-top: 12px; }
+  .sit h3 { font-size: 16px; margin: 0 0 2px; }
+  .sit .q { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
+  .sit .card { margin-top: 6px; }
+  .proto-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  table.adds td:first-child { font-weight: 700; color: var(--navy-2); width: 180px; }
+  .legend { margin-bottom: 4px; }
+  /* accordions */
+  details.acc { background: #fff; border: 1px solid var(--line); border-radius: 10px; margin: 10px 0; overflow: hidden; }
+  details.acc > summary { list-style: none; cursor: pointer; padding: 14px 18px; font: 700 18px/1.3 "Calibri", "Segoe UI", system-ui, sans-serif; display: flex; align-items: center; justify-content: space-between; }
+  details.acc > summary::-webkit-details-marker { display: none; }
+  details.acc > summary::after { content: "+"; font-size: 22px; font-weight: 400; color: var(--muted); }
+  details.acc[open] > summary::after { content: "−"; }
+  .p-rigid details.acc { border-left: 5px solid var(--pim); } .p-rigid details.acc > summary { color: var(--pim); }
+  .p-dynamic details.acc { border-left: 5px solid var(--fo); } .p-dynamic details.acc > summary { color: var(--fo); }
+  details.acc > .acc-body { padding: 0 18px 18px; border-top: 1px solid var(--line); }
+  .acc-tools { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+  .acc-tools button { font-size: 13px; padding: 5px 12px; }
+  /* follow one product: sub buttons */
+  .subtabs { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 4px; }
+  .walkbox { display: none; } .walkbox.active { display: block; }
+  #walk-rigid-btn { color: var(--pim); border-color: var(--pim); }
+  #walk-dynamic-btn { color: var(--fo); border-color: var(--fo); }
+  #walk-rigid-btn.on { background: var(--pim); border-color: var(--pim); color: #fff; }
+  #walk-dynamic-btn.on { background: var(--fo); border-color: var(--fo); color: #fff; }
 </style>
 </head>
 <body>
 <div class="wrap">
-
-<h1>Two ways to keep the catalogue</h1>
+<div class="brand-bar">
+    <div class="brand-logos">
+        <span class="logo-pill">
+          <svg viewBox="0 0 406 95" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Biztech">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M99.3676 18.263C104.371 25.9642 105.282 35.4558 102.78 45.1474C12.1069 37.5561 49.8731 11.6819 64.053 3.69059C79.0635 2.69042 92.3927 7.58123 99.3376 18.263H99.3676ZM102.37 46.7476C98.4569 59.7898 88.44 73.0119 73.8398 82.4835C50.3134 97.756 22.7343 98.2061 8.79456 84.5538C25.306 58.0095 67.0551 49.2181 102.33 46.7476H102.37ZM0.0684893 65.0106C10.2613 54.5021 24.1485 48.3748 38.7854 47.9278C38.7854 47.9278 17.9609 41.6768 30.0293 15.6425C10.3256 28.5447 -0.992249 48.2579 0.0684893 65.0106Z" fill="#35B0BF"></path>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M171.708 56.4192C171.822 59.5524 171.034 62.6525 169.436 65.3507C167.923 67.754 165.694 69.6221 163.062 70.6916C159.949 71.9201 156.621 72.5119 153.275 72.4318H131.35C130.641 72.3829 129.975 72.0794 129.473 71.5776C128.97 71.0758 128.667 70.4094 128.618 69.7014V18.173C128.615 17.8097 128.687 17.4498 128.83 17.1159C128.973 16.782 129.183 16.4812 129.448 16.2326C129.691 15.9704 129.985 15.7612 130.312 15.6183C130.639 15.4754 130.993 15.4019 131.35 15.4025H150.493C153.314 15.3568 156.128 15.6933 158.859 16.4027C160.984 16.9467 162.98 17.9052 164.733 19.2231C166.293 20.4471 167.515 22.0475 168.285 23.8739C169.116 25.8447 169.525 27.967 169.486 30.1049C169.486 36.3859 166.007 40.5566 159.049 42.617C163.252 43.3171 166.424 44.8773 168.536 47.3077C170.698 49.8442 171.83 53.0991 171.708 56.4292V56.4192ZM159.299 30.1049C159.369 28.8956 159.11 27.6899 158.55 26.6158C157.99 25.5417 157.149 24.6392 156.117 24.0039C153.709 22.5951 150.95 21.9012 148.161 22.0036H139.305V40.0065H146.73C155.11 40.0065 159.299 36.7193 159.299 30.1449V30.1049ZM161.301 56.4192C161.377 54.274 160.824 52.1532 159.71 50.3182C158.711 48.7583 157.263 47.5377 155.557 46.8177C153.782 46.0655 151.871 45.6875 149.943 45.7075H139.305V65.8408H150.313C152.221 65.8605 154.115 65.5212 155.897 64.8406C157.494 64.2285 158.871 63.152 159.85 61.7501C160.882 60.1616 161.396 58.292 161.321 56.3992L161.301 56.4192ZM191.492 23.9139C191.494 24.2678 191.423 24.6183 191.284 24.9436C191.144 25.2689 190.939 25.5619 190.681 25.8042C190.435 26.0627 190.138 26.2679 189.809 26.4072C189.481 26.5466 189.127 26.6171 188.77 26.6143H183.026C182.313 26.6042 181.633 26.313 181.134 25.8042C180.869 25.5661 180.657 25.2746 180.512 24.9488C180.367 24.6231 180.293 24.2704 180.294 23.9139V18.183C180.293 17.8196 180.366 17.4598 180.507 17.1248C180.648 16.7898 180.854 16.4865 181.114 16.2326C181.359 15.971 181.655 15.7624 181.984 15.6196C182.313 15.4768 182.667 15.4029 183.026 15.4025H188.68C189.05 15.3985 189.418 15.4681 189.762 15.6071C190.105 15.7462 190.418 15.952 190.681 16.2126C190.954 16.468 191.169 16.7785 191.312 17.1234C191.455 17.4683 191.523 17.8397 191.512 18.213V23.9439L191.492 23.9139ZM190.891 69.7014C190.891 70.4187 190.609 71.1072 190.105 71.6181C189.602 72.129 188.917 72.4213 188.199 72.4318H183.636C183.28 72.4261 182.928 72.3478 182.603 72.2016C182.278 72.0554 181.986 71.8445 181.745 71.5817C181.485 71.3419 181.277 71.0512 181.134 70.7278C180.991 70.4043 180.916 70.055 180.914 69.7014V37.5961C180.915 37.2344 180.988 36.8765 181.129 36.5434C181.27 36.2102 181.476 35.9085 181.735 35.6558C181.971 35.3828 182.263 35.1637 182.591 35.0136C182.919 34.8634 183.275 34.7857 183.636 34.7857H188.249C188.609 34.7799 188.965 34.851 189.295 34.9942C189.625 35.1374 189.92 35.3493 190.161 35.6158C190.418 35.8799 190.62 36.1931 190.754 36.5367C190.888 36.8804 190.952 37.2474 190.941 37.6161V69.7214L190.891 69.7014ZM228.547 69.7014C228.552 70.0607 228.484 70.4172 228.346 70.7491C228.209 71.081 228.005 71.3813 227.747 71.6317C227.505 71.8879 227.214 72.0919 226.89 72.2313C226.566 72.3706 226.218 72.4422 225.866 72.4419H200.738C200.383 72.4348 200.034 72.3558 199.71 72.2097C199.387 72.0635 199.096 71.8533 198.857 71.5917C198.595 71.3524 198.386 71.0621 198.241 70.7386C198.097 70.4152 198.02 70.0656 198.016 69.7114V68.5112C198.064 67.8793 198.301 67.2765 198.697 66.7809L217.53 40.2066H215.338L211.045 40.2666C209.044 40.2666 207.123 40.3366 205.301 40.3766C203.48 40.4166 202.299 40.3766 201.909 40.3766C201.555 40.376 201.205 40.304 200.88 40.1647C200.555 40.0255 200.262 39.822 200.018 39.5665C199.752 39.333 199.539 39.0453 199.394 38.7226C199.249 38.3999 199.175 38.0499 199.177 37.6962V37.5261C199.178 37.1644 199.251 36.8065 199.392 36.4734C199.533 36.1402 199.739 35.8385 199.998 35.5858C200.236 35.3135 200.53 35.0951 200.86 34.9451C201.189 34.7951 201.547 34.7169 201.909 34.7157H225.755C226.117 34.7116 226.475 34.7875 226.804 34.938C227.132 35.0884 227.424 35.3096 227.657 35.5858C228.157 36.1082 228.437 36.8031 228.437 37.5261V38.3363C228.436 38.9543 228.24 39.5562 227.877 40.0565L209.204 66.4609C210.925 66.4009 213.467 66.3309 216.839 66.2708C220.212 66.2108 223.234 66.1708 225.916 66.1708C226.273 66.1652 226.627 66.2355 226.954 66.3768C227.282 66.5182 227.576 66.7275 227.817 66.991C228.072 67.2567 228.273 67.5701 228.407 67.9134C228.541 68.2566 228.605 68.6229 228.597 68.9913V69.6314L228.547 69.7014ZM258.919 68.4912C258.91 68.6826 258.862 68.8701 258.777 69.0421C258.693 69.2141 258.574 69.3671 258.428 69.4914C257.345 70.2122 256.2 70.8347 255.006 71.3517C253.59 71.9773 252.12 72.4695 250.613 72.8219C249.081 73.1849 247.513 73.3729 245.94 73.382C243.078 73.382 241.026 72.5019 239.765 70.7316C238.504 68.9613 237.874 66.3208 237.874 62.8303V40.5266H235.462C235.11 40.5288 234.76 40.458 234.437 40.3185C234.113 40.1791 233.821 39.9741 233.581 39.7165C233.31 39.4605 233.098 39.1494 232.958 38.8043C232.818 38.4592 232.754 38.0881 232.77 37.7162V37.5461C232.771 36.8231 233.051 36.1282 233.551 35.6058C233.787 35.3305 234.08 35.1099 234.41 34.9596C234.74 34.8093 235.099 34.7329 235.462 34.7357H238.034V26.7344C238.031 26.3721 238.103 26.0132 238.244 25.6796C238.385 25.3459 238.593 25.0446 238.855 24.794C239.099 24.5324 239.395 24.3238 239.724 24.181C240.053 24.0382 240.407 23.9643 240.766 23.9639H244.769C245.133 23.9564 245.494 24.0266 245.829 24.1698C246.164 24.3129 246.464 24.5257 246.71 24.794C246.966 25.0475 247.168 25.35 247.304 25.6835C247.44 26.0169 247.507 26.3744 247.501 26.7344V34.7357H254.816C255.173 34.732 255.528 34.804 255.855 34.9471C256.183 35.0902 256.477 35.3011 256.717 35.5658C256.975 35.8299 257.177 36.1431 257.311 36.4867C257.445 36.8304 257.508 37.1974 257.498 37.5661V37.7362C257.512 38.1079 257.447 38.4784 257.307 38.8232C257.167 39.168 256.956 39.4793 256.687 39.7365C256.187 40.2258 255.515 40.4988 254.816 40.4966H247.581V61.35C247.511 62.7888 247.728 64.2271 248.221 65.5807C248.397 66.0304 248.713 66.4118 249.122 66.6692C249.53 66.9266 250.011 67.0463 250.493 67.011C251.604 67.0031 252.7 66.754 253.705 66.2808C254.679 65.8575 255.532 65.1974 256.187 64.3605C256.392 64.1222 256.683 63.9747 256.997 63.9505C257.317 63.9505 257.608 64.2005 257.838 64.6806L258.889 68.2512C258.914 68.2807 258.935 68.3145 258.949 68.3512C258.953 68.3944 258.953 68.438 258.949 68.4812L258.919 68.4912ZM297.255 51.7385C297.266 52.108 297.201 52.4758 297.065 52.8197C296.929 53.1635 296.725 53.4762 296.465 53.7388C296.221 54.0107 295.921 54.2273 295.586 54.3739C295.251 54.5206 294.889 54.5939 294.523 54.5889H273.389C273.502 59.1297 274.366 62.3969 275.98 64.3905C277.602 66.3909 279.983 67.391 283.185 67.391C285.118 67.3596 287.033 67.022 288.859 66.3909C291.076 65.6476 293.071 64.3616 294.663 62.6502C294.761 62.5477 294.879 62.4671 295.01 62.4136C295.141 62.3602 295.282 62.3352 295.424 62.3402C295.964 62.3402 296.275 62.6703 296.425 63.3404L296.865 68.3412V68.5712C296.885 68.7455 296.844 68.9214 296.749 69.0691C296.655 69.2168 296.512 69.3271 296.345 69.3814C294.473 70.5604 292.484 71.5425 290.41 72.3118C288.09 73.083 285.65 73.4352 283.205 73.352C276.347 73.352 271.424 71.485 268.435 67.7511C265.446 64.0171 263.945 59.193 263.932 53.2787C263.834 49.9073 264.388 46.5488 265.563 43.3871C266.461 41.0283 267.921 38.9238 269.816 37.2561C271.478 35.8549 273.424 34.8311 275.52 34.2556C277.591 33.6897 279.728 33.4037 281.875 33.4055C285.997 33.4055 289.206 34.2889 291.501 36.0559C293.677 37.6722 295.294 39.9276 296.124 42.5069C296.934 45.0419 297.342 47.6874 297.335 50.3482V51.7585L297.255 51.7385ZM289.21 50.1582C289.08 46.3776 288.469 43.6071 287.408 41.8868C286.348 40.1666 284.496 39.2864 281.905 39.2864C276.694 39.2864 273.929 42.9103 273.609 50.1582H289.21ZM333.771 68.7312C333.763 68.8644 333.723 68.9935 333.653 69.1071C333.583 69.2206 333.486 69.3149 333.37 69.3814C329.671 72.0232 325.228 73.424 320.682 73.382C314.21 73.382 309.597 71.6284 306.842 68.1211C304.087 64.6139 302.706 59.7598 302.699 53.5588C302.699 48.678 303.436 44.7406 304.911 41.7468C306.19 38.9542 308.396 36.6894 311.155 35.3358C314.146 33.989 317.402 33.3294 320.682 33.4055C322.87 33.3359 325.058 33.5818 327.176 34.1356C329.188 34.8561 331.103 35.8201 332.88 37.006C333.12 37.1661 333.24 37.5761 333.24 38.2462L332.32 43.5071C332.21 44.0772 331.949 44.3472 331.509 44.3472C331.352 44.3567 331.195 44.329 331.051 44.2665C330.906 44.2039 330.779 44.1082 330.678 43.9872C329.446 42.6736 328.006 41.572 326.416 40.7267C324.573 40.0215 322.602 39.7114 320.631 39.8165C319.701 39.7477 318.766 39.874 317.887 40.1875C317.008 40.501 316.205 40.9946 315.528 41.6368C314.325 42.9625 313.544 44.6165 313.286 46.3876C312.912 48.7524 312.738 51.1446 312.766 53.5388C312.766 58.5396 313.396 62.0001 314.667 63.9505C315.323 64.9206 316.224 65.7 317.278 66.2095C318.333 66.7189 319.504 66.9402 320.672 66.8509C322.74 66.876 324.79 66.4629 326.688 65.6389C328.585 64.8149 330.286 63.5986 331.679 62.0702C331.88 61.9022 332.139 61.8196 332.4 61.8401C332.644 61.8404 332.878 61.9375 333.05 62.1102C333.207 62.2766 333.303 62.492 333.32 62.7203L333.721 68.4912V68.7412L333.771 68.7312ZM373.648 69.6214C373.656 69.9914 373.589 70.3592 373.451 70.7028C373.314 71.0465 373.109 71.359 372.848 71.6217C372.605 71.8896 372.308 72.1037 371.977 72.2501C371.646 72.3965 371.288 72.4721 370.926 72.4719H366.053C365.699 72.4739 365.349 72.3999 365.026 72.255C364.703 72.11 364.415 71.8975 364.182 71.6317C363.919 71.3701 363.711 71.0581 363.572 70.7143C363.433 70.3706 363.364 70.0022 363.371 69.6314V44.6273C363.371 42.707 363.041 41.4068 362.371 40.7667C361.465 40.0177 360.299 39.658 359.128 39.7665C357.493 39.7209 355.898 40.276 354.645 41.3268C353.443 42.3504 352.509 43.6515 351.923 45.1174C351.357 46.4266 351.048 47.8323 351.013 49.2581V69.6214C351.019 69.9913 350.952 70.3587 350.814 70.7022C350.677 71.0457 350.472 71.3583 350.212 71.6217C349.97 71.8903 349.673 72.1042 349.342 72.2491C349.011 72.394 348.652 72.4665 348.291 72.4619H343.427C343.072 72.4596 342.721 72.3827 342.396 72.2363C342.072 72.0899 341.783 71.8771 341.546 71.6117C341.284 71.3495 341.077 71.0373 340.938 70.6937C340.799 70.3501 340.73 69.9821 340.735 69.6114V18.253C340.738 17.5068 341.028 16.7904 341.546 16.2526C341.776 15.9778 342.064 15.7566 342.389 15.6045C342.714 15.4525 343.069 15.3733 343.427 15.3725H348.131C348.488 15.3746 348.84 15.4513 349.166 15.5977C349.492 15.7441 349.783 15.957 350.022 16.2226C350.54 16.7591 350.828 17.4772 350.823 18.223V41.4168C352.059 39.2392 353.719 37.3314 355.706 35.8058C357.777 34.4362 360.23 33.7602 362.711 33.8755C366.984 33.8755 369.876 34.8757 371.357 36.806C372.945 39.08 373.73 41.8178 373.588 44.5873L373.648 69.6214Z" fill="#373435"></path>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M390.75 13.6822H393.522C394.094 13.6173 394.67 13.7709 395.133 14.1123C395.479 14.6156 395.635 15.2252 395.574 15.8326V17.0928C395.583 17.4854 395.623 17.8767 395.694 18.263C395.734 18.443 395.794 18.6831 395.874 18.9831H398.996V18.6431C398.86 18.5584 398.743 18.4461 398.654 18.3134C398.564 18.1807 398.503 18.0306 398.476 17.8729C398.414 17.4558 398.391 17.034 398.406 16.6127V15.7026C398.45 14.9778 398.316 14.2532 398.015 13.5922C397.71 13.0916 397.239 12.7132 396.684 12.522C397.37 12.3077 397.945 11.8339 398.286 11.2018C398.599 10.6205 398.768 9.97195 398.776 9.31152C398.783 8.8224 398.695 8.33658 398.516 7.88129C398.352 7.4672 398.122 7.08221 397.835 6.7411C397.496 6.33192 397.064 6.0096 396.574 5.80095C395.888 5.55524 395.162 5.43661 394.433 5.45089H387.958V19.0031H390.72V13.7022L390.75 13.6822ZM390.75 7.80127H393.883C394.329 7.77478 394.776 7.85715 395.183 8.04131C395.457 8.21375 395.676 8.46059 395.814 8.75288C395.952 9.04518 396.004 9.3708 395.964 9.69158C395.999 9.9974 395.941 10.3066 395.798 10.5794C395.656 10.8521 395.435 11.0759 395.163 11.2218C394.729 11.3841 394.266 11.4556 393.802 11.4319H390.8L390.75 7.80127Z" fill="#5E5E5E"></path>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M393.502 24.484C395.926 24.488 398.296 23.7733 400.313 22.4306C402.329 21.0878 403.902 19.1773 404.833 16.9407C405.763 14.7041 406.008 12.242 405.538 9.86598C405.067 7.48995 403.902 5.30676 402.19 3.59269C400.478 1.87861 398.296 0.710684 395.919 0.2367C393.543 -0.237284 391.079 0.00397747 388.84 0.929955C386.6 1.85593 384.686 3.42501 383.339 5.43863C381.993 7.45225 381.274 9.8199 381.274 12.242C381.276 15.488 382.568 18.6002 384.864 20.8955C387.161 23.1907 390.274 24.4814 393.522 24.484H393.502ZM393.502 1.76028C395.579 1.7583 397.61 2.3722 399.338 3.52428C401.066 4.67637 402.413 6.31485 403.209 8.23237C404.004 10.1499 404.213 12.2602 403.808 14.2964C403.404 16.3325 402.404 18.2029 400.935 19.6708C399.466 21.1387 397.595 22.1381 395.558 22.5426C393.52 22.9471 391.409 22.7385 389.49 21.9432C387.572 21.1478 385.933 19.8015 384.78 18.0746C383.627 16.3478 383.013 14.3179 383.015 12.242C383.018 9.46288 384.123 6.79836 386.089 4.83323C388.056 2.8681 390.722 1.76293 393.502 1.76028Z" fill="#5E5E5E"></path>
+          </svg>
+        </span>
+        <span class="brand-plus">+</span>
+        <span class="logo-pill">
+          <img src="data:image/png;base64,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" alt="Red Horse">
+        </span>
+      </div>
+    <span class="confidential-badge">Confidential</span>
+    <h1 class="brand-title">Two ways to keep the catalogue</h1>
+    <p class="brand-subtitle">Red Horse integration · PIM and F&amp;O folders</p>
+  </div>
 <p class="lead">From the 1 October discussion. One option keeps a single folder structure in both systems. The other keeps a structure in PIM and a structure in F&amp;O, with a link between them. Neither has been chosen. Nothing on this page is live.</p>
+<nav class="tabs2">
+  <button type="button" class="active" data-tab="today">Today</button>
+  <button type="button" class="t-rigid" data-tab="rigid">Rigid — one structure</button>
+  <button type="button" class="t-dynamic" data-tab="dynamic">Dynamic — two structures and a link</button>
+  <button type="button" data-tab="compare">Side by side</button>
+  <button type="button" data-tab="walk">Follow one product</button>
+</nav>
 
-<div class="tabs">
-<input type="radio" name="tab" id="tab-options" checked>
-<input type="radio" name="tab" id="tab-diagram">
-<input type="radio" name="tab" id="tab-try">
-<input type="radio" name="tab" id="tab-choose">
-<div class="tabbar">
-  <label for="tab-options">The two options</label>
-  <label for="tab-diagram">Diagrams</label>
-  <label for="tab-try">Try it</label>
-  <label for="tab-choose">If one is chosen</label>
-</div>
-
-<div class="panel options">
+<div class="panel active" id="today">
 <h2>What happens today</h2>
 <div class="card">
   <div class="row">
@@ -105,7 +230,6 @@
   </div>
   <p class="small">The folders are product type, family, series, range, and product group. PIM does not send folders or values back.</p>
 </div>
-
 <h3 style="margin-top:14px">The order it arrives in</h3>
 <div class="two">
   <div class="card">
@@ -141,12 +265,45 @@
     <p class="small">Both options below keep steps 1 to 8 for the things F&amp;O still owns. What changes is who owns the folders, and whether anything travels back.</p>
   </div>
 </div>
+<h2>Diagram</h2><div class="legend">
+  <span><i class="swatch" style="background:#fff"></i>A folder</span>
+  <span><i class="swatch" style="background:#ffedd5;border-color:#fdba74"></i>Moves with the other side</span>
+  <span><i class="swatch" style="background:#dbeafe;border-color:#93c5fd"></i>Stays put</span>
+  <span><i class="swatch" style="background:#fff;border-style:dashed"></i>Does not exist</span>
+</div>
+<h3 style="margin-top:12px">Today</h3>
+<p>One direction. F&amp;O creates the item number and the folders. PIM stores that same structure. There is no arrow back.</p>
+<div class="frame">
+<svg viewBox="0 0 980 260" role="img" aria-label="Today, F and O sends into PIM and nothing returns">
+  <rect x="36" y="28" width="250" height="150" rx="12" fill="#fff7ed" stroke="#fdba74"></rect>
+  <text x="161" y="56" text-anchor="middle" font-size="16" font-weight="700" fill="#1c1917">F&amp;O</text>
+  <text x="161" y="80" text-anchor="middle" font-size="13" fill="#57534e">Item number</text>
+  <text x="161" y="100" text-anchor="middle" font-size="13" fill="#57534e">Folders</text>
+  <text x="161" y="120" text-anchor="middle" font-size="13" fill="#57534e">Values, names, release</text>
+  <text x="161" y="150" text-anchor="middle" font-size="12" fill="#57534e">Type → family → series</text>
+  <text x="161" y="166" text-anchor="middle" font-size="12" fill="#57534e">→ range → product group</text>
+  <line x1="300" y1="100" x2="470" y2="100" stroke="#1c1917" stroke-width="2"></line>
+  <polygon points="470,94 486,100 470,106" fill="#1c1917"></polygon>
+  <text x="386" y="88" text-anchor="middle" font-size="12" fill="#57534e">sent in</text>
+  <rect x="520" y="28" width="250" height="150" rx="12" fill="#eff6ff" stroke="#93c5fd"></rect>
+  <text x="645" y="56" text-anchor="middle" font-size="16" font-weight="700" fill="#1c1917">PIM</text>
+  <text x="645" y="84" text-anchor="middle" font-size="13" fill="#57534e">Stores the same folders</text>
+  <text x="645" y="104" text-anchor="middle" font-size="13" fill="#57534e">and the values that arrive</text>
+  <text x="645" y="136" text-anchor="middle" font-size="12" fill="#57534e">Also holds shop images,</text>
+  <text x="645" y="154" text-anchor="middle" font-size="12" fill="#57534e">documents, and label images</text>
+  <line x1="500" y1="214" x2="310" y2="214" stroke="#a8a29e" stroke-width="2" stroke-dasharray="6 5"></line>
+  <polygon points="310,208 294,214 310,220" fill="#a8a29e"></polygon>
+  <text x="400" y="236" text-anchor="middle" font-size="13" fill="#57534e">No call back to F&amp;O</text>
+</svg>
+</div>
+</div>
 
-<h2>The two options</h2>
-<div class="two">
-  <div class="card rigid">
-    <h3>Rigid — one structure</h3>
-    <p>The folders are kept in PIM and sent to F&amp;O. F&amp;O receives the same folders. There is no separate link table.</p>
+<div class="panel p-rigid" id="rigid">
+<div class="opthead oh-rigid"><h2>Rigid — one structure</h2><p>The folders are kept in PIM and sent to F&O. F&O receives the same folders. There is no separate link table.</p></div>
+<div class="acc-tools"><button type="button" data-acc="open">Open all</button><button type="button" data-acc="close">Close all</button></div>
+<details class="acc"><summary>How it works</summary><div class="acc-body"><div class="card rigid">
+    
+    
     <div class="row">
       <div class="box"><b>PIM</b><br>Screws → Family → Series → Range → Product group</div>
       <div class="arr">→</div>
@@ -166,10 +323,149 @@
       <div class="down">↓</div>
       <div class="vstep"><span class="n">6</span>A later move in PIM moves the folder in F&amp;O too.</div>
     </div>
-  </div>
-  <div class="card dynamic">
-    <h3>Dynamic — two structures and a link</h3>
-    <p>PIM keeps its own folders. F&amp;O keeps its own categories. One row links a PIM folder to an F&amp;O category. A change on one side does not rewrite the other.</p>
+  </div></div></details>
+<details class="acc"><summary>Diagram</summary><div class="acc-body"><div class="legend">
+  <span><i class="swatch" style="background:#fff"></i>A folder</span>
+  <span><i class="swatch" style="background:#ffedd5;border-color:#fdba74"></i>Moves with the other side</span>
+  <span><i class="swatch" style="background:#dbeafe;border-color:#93c5fd"></i>Stays put</span>
+  <span><i class="swatch" style="background:#fff;border-style:dashed"></i>Does not exist</span>
+</div><h3 style="margin-top:12px">Rigid — one structure, drawn twice because both sides hold it</h3>
+<p>The folders are the same object on both sides. Move Carbon in PIM and the F&amp;O category moves with it. There is no link table.</p>
+<div class="frame">
+<svg viewBox="0 0 980 360" role="img" aria-label="Rigid option, the same tree on both sides">
+  <text x="180" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">PIM</text>
+  <text x="800" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">F&amp;O</text>
+  <g font-size="13" fill="#1c1917">
+    <rect x="70" y="44" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"></rect>
+    <text x="180" y="66" text-anchor="middle">Screws</text>
+    <rect x="70" y="90" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"></rect>
+    <text x="180" y="112" text-anchor="middle">Family · Example</text>
+    <rect x="70" y="136" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"></rect>
+    <text x="180" y="158" text-anchor="middle">Series · Pan-head</text>
+    <rect x="70" y="182" width="220" height="34" rx="8" fill="#ffedd5" stroke="#ea580c"></rect>
+    <text x="180" y="204" text-anchor="middle">Range · Carbon</text>
+    <rect x="70" y="228" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"></rect>
+    <text x="180" y="250" text-anchor="middle">Range · Stainless</text>
+    <rect x="690" y="44" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"></rect>
+    <text x="800" y="66" text-anchor="middle">Screws</text>
+    <rect x="690" y="90" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"></rect>
+    <text x="800" y="112" text-anchor="middle">Family · Example</text>
+    <rect x="690" y="136" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"></rect>
+    <text x="800" y="158" text-anchor="middle">Series · Pan-head</text>
+    <rect x="690" y="182" width="220" height="34" rx="8" fill="#ffedd5" stroke="#ea580c"></rect>
+    <text x="800" y="204" text-anchor="middle">Range · Carbon</text>
+    <rect x="690" y="228" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"></rect>
+    <text x="800" y="250" text-anchor="middle">Range · Stainless</text>
+  </g>
+  <line x1="300" y1="199" x2="680" y2="199" stroke="#ea580c" stroke-width="2"></line>
+  <polygon points="680,193 696,199 680,205" fill="#ea580c"></polygon>
+  <polygon points="300,193 284,199 300,205" fill="#ea580c"></polygon>
+  <text x="490" y="188" text-anchor="middle" font-size="13" fill="#9a3412">A move changes both</text>
+  <text x="490" y="310" text-anchor="middle" font-size="13" fill="#57534e">Orders keep the category they were posted with.</text>
+  <text x="490" y="330" text-anchor="middle" font-size="13" fill="#57534e">A report on the current category loses the earlier period.</text>
+</svg>
+</div></div></details>
+<details class="acc"><summary>A move</summary><div class="acc-body"><div class="card rigid">
+    
+    <p>The folder moves in PIM, and the same folder moves in F&amp;O.</p>
+    <p>Orders keep the category they were posted with. A report on the invoice still shows the old category. A report on the item’s current category shows only the new one, so the earlier period drops off that category.</p>
+  </div></div></details>
+<details class="acc"><summary>A delete</summary><div class="acc-body"><div class="card rigid">
+    
+    <p>Once a product is released and orders exist, F&amp;O cannot delete that category. Removing it in PIM does not remove it in F&amp;O.</p>
+  </div></div></details>
+<details class="acc"><summary>Pros and cons, in situations that were raised</summary><div class="acc-body"><p class="lead">Each situation below was named in the discussion. The reading is ours. Where something was left open, it says so.</p><div class="sit"><h3>Go-live, the first load</h3><p class="q">The folders exist on both sides for the first time.</p><div class="card rigid">
+      
+      <div class="pc">
+        <b>For</b>
+        <ul>
+          <li>One structure to agree and one to check. Nothing can drift apart, because there is only one.</li>
+          <li>No link to populate and no link to keep.</li>
+        </ul>
+        <b>Against</b>
+        <ul>
+          <li>The structure has to be right before it is sent, because F&amp;O then uses it on orders.</li>
+        </ul>
+      </div>
+    </div></div>
+<div class="sit"><h3>A range is moved after a year of sales</h3><p class="q">The situation walked through in the discussion: a year of sales sits on one category, then the product is moved to another.</p><div class="card rigid">
+      
+      <div class="pc">
+        <b>For</b>
+        <ul>
+          <li>One move, one place to do it. Both systems agree afterwards.</li>
+        </ul>
+        <b>Against</b>
+        <ul>
+          <li>The F&amp;O category moves too. A report that reads the category on the invoice shows the product in two categories. A report that reads the item’s current category loses that first year.</li>
+          <li>Purchase orders and sales orders carry the category they were posted with, and reporting is built on that.</li>
+        </ul>
+      </div>
+    </div></div>
+<div class="sit"><h3>A category has to be retired</h3><p class="q">A product is released and orders already exist against the category.</p><div class="card rigid">
+      
+      <div class="pc">
+        <b>For</b>
+        <ul>
+          <li>Nothing extra to clean up, because there is no link.</li>
+        </ul>
+        <b>Against</b>
+        <ul>
+          <li>F&amp;O cannot delete a category that orders use. Removing it in PIM does not remove it in F&amp;O, so the two sides no longer match and that has to be handled in F&amp;O separately.</li>
+        </ul>
+      </div>
+    </div></div>
+<div class="sit"><h3>A new material value is introduced</h3><p class="q">Values entered once on a folder mean one folder per value. This was raised as a concern in the discussion.</p><div class="card rigid">
+      
+      <div class="pc">
+        <b>For</b>
+        <ul>
+          <li>The new folder reaches F&amp;O through the same send as the rest.</li>
+        </ul>
+        <b>Against</b>
+        <ul>
+          <li>A new value means a new folder, and that folder lands in F&amp;O where orders may later use it.</li>
+        </ul>
+      </div>
+    </div></div>
+<div class="sit"><h3>Another system is added later</h3><p class="q">Named in the discussion as a reason to prefer the second option. Nothing for it was designed.</p><div class="card rigid">
+      
+      <div class="pc">
+        <b>Against</b>
+        <ul>
+          <li>The second system needs its own copy of the same folders, and then both copies have to be kept.</li>
+        </ul>
+      </div>
+    </div></div>
+<div class="sit"><h3>Effort to put in place</h3><p class="q">Both options need something PIM does not do today.</p><div class="card rigid">
+      
+      <div class="pc">
+        <b>For</b>
+        <ul>
+          <li>The smaller change of the two. There is no link to build and no link to maintain.</li>
+        </ul>
+        <b>Against</b>
+        <ul>
+          <li>Sending the folders out of PIM is new. It does not exist today.</li>
+        </ul>
+      </div>
+    </div></div></div></details>
+<details class="acc"><summary>What this option adds</summary><div class="acc-body"><table class="adds"><tr><td>Folders</td><td>The folders PIM already has are sent across, so F&amp;O has the same ones.</td></tr><tr><td>A move</td><td>Changes the folder in both systems. Reports that use the invoice category and reports that use the current category then disagree, as described above.</td></tr><tr><td>A removed folder</td><td>F&amp;O cannot delete a category that orders already use.</td></tr><tr><td>Where the link is kept</td><td>There is no link table.</td></tr><tr><td>Another system later</td><td>Another copy of the same folders.</td></tr></table></div></details>
+<details class="acc"><summary>Prototype — move and unlink</summary><div class="acc-body"><p>These names are an example, so the difference is easy to see. Use the buttons. Nothing here writes to F&amp;O or to PIM.</p>
+<div class="stage"><div class="col"><h3>PIM folders</h3><div id="rigid-pim-tree"></div></div>
+<div class="col"><h3>F&amp;O categories</h3><div id="rigid-fo-tree"></div></div></div>
+<div id="rigid-map" style="margin-top:12px"></div>
+<div class="proto-actions"><button type="button" id="rigid-do-move">Move Carbon in PIM</button>
+<button type="button" id="rigid-do-unlink">Remove the Carbon connection</button>
+<button type="button" id="rigid-do-reset">Reset</button></div>
+<div class="result" id="rigid-proto-result"></div></div></details>
+</div>
+<div class="panel p-dynamic" id="dynamic">
+<div class="opthead oh-dynamic"><h2>Dynamic — two structures and a link</h2><p>PIM keeps its own folders. F&O keeps its own categories. One row links a PIM folder to an F&O category. A change on one side does not rewrite the other.</p></div>
+<div class="acc-tools"><button type="button" data-acc="open">Open all</button><button type="button" data-acc="close">Close all</button></div>
+<details class="acc"><summary>How it works</summary><div class="acc-body"><div class="card dynamic">
+    
+    
     <div class="row">
       <div class="box"><b>PIM</b><br>its own folders</div>
       <div class="arr">↕</div>
@@ -181,11 +477,11 @@
     <div class="sheet" style="margin-top:12px">
       <div class="bar">Link table · one row per folder</div>
       <table>
-        <tr><th>PIM folder</th><th>F&amp;O category</th></tr>
+        <tbody><tr><th>PIM folder</th><th>F&amp;O category</th></tr>
         <tr><td>Series · Pan-head</td><td>Pan-head category</td></tr>
         <tr><td>Range · Carbon</td><td>Carbon category</td></tr>
         <tr><td>Range · Stainless</td><td>Stainless category</td></tr>
-      </table>
+      </tbody></table>
     </div>
     <p class="small">The names do not have to match. Carbon in PIM can sit under a series while the Carbon category in F&amp;O sits beside the other categories.</p>
     <div class="vflow">
@@ -201,58 +497,61 @@
       <div class="down">↓</div>
       <div class="vstep"><span class="n">6</span>A later move in PIM changes the PIM path and the row. The F&amp;O category stays where it is.</div>
     </div>
-  </div>
-</div>
-
-<h2>A move</h2>
-<div class="two">
-  <div class="card rigid">
-    <h3>Rigid</h3>
-    <p>The folder moves in PIM, and the same folder moves in F&amp;O.</p>
-    <p>Orders keep the category they were posted with. A report on the invoice still shows the old category. A report on the item’s current category shows only the new one, so the earlier period drops off that category.</p>
-  </div>
-  <div class="card dynamic">
-    <h3>Dynamic</h3>
+  </div></div></details>
+<details class="acc"><summary>Diagram</summary><div class="acc-body"><div class="legend">
+  <span><i class="swatch" style="background:#fff"></i>A folder</span>
+  <span><i class="swatch" style="background:#ffedd5;border-color:#fdba74"></i>Moves with the other side</span>
+  <span><i class="swatch" style="background:#dbeafe;border-color:#93c5fd"></i>Stays put</span>
+  <span><i class="swatch" style="background:#fff;border-style:dashed"></i>Does not exist</span>
+</div><h3 style="margin-top:12px">Dynamic — two structures, joined by a row</h3>
+<p>PIM can put Carbon under a series. F&amp;O can keep Carbon beside the other categories. The line is the only thing that joins them. Move Carbon in PIM and the F&amp;O category stays.</p>
+<div class="frame">
+<svg viewBox="0 0 980 420" role="img" aria-label="Dynamic option, two trees joined by link lines">
+  <text x="150" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">PIM folders</text>
+  <text x="490" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">Link</text>
+  <text x="820" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">F&amp;O categories</text>
+  <g font-size="13" fill="#1c1917">
+    <rect x="36" y="46" width="230" height="32" rx="8" fill="#fff" stroke="#d6d3d1"></rect>
+    <text x="151" y="67" text-anchor="middle">Screws</text>
+    <rect x="56" y="90" width="210" height="32" rx="8" fill="#fff" stroke="#d6d3d1"></rect>
+    <text x="161" y="111" text-anchor="middle">Family · Example</text>
+    <rect x="76" y="134" width="190" height="32" rx="8" fill="#fff" stroke="#d6d3d1"></rect>
+    <text x="171" y="155" text-anchor="middle">Series · Pan-head</text>
+    <rect x="96" y="186" width="190" height="32" rx="8" fill="#ffedd5" stroke="#ea580c"></rect>
+    <text x="191" y="207" text-anchor="middle">Range · Carbon</text>
+    <rect x="96" y="246" width="190" height="32" rx="8" fill="#fff" stroke="#d6d3d1"></rect>
+    <text x="191" y="267" text-anchor="middle">Range · Stainless</text>
+    <rect x="700" y="46" width="240" height="32" rx="8" fill="#fff" stroke="#d6d3d1"></rect>
+    <text x="820" y="67" text-anchor="middle">Procurement · Screws</text>
+    <rect x="720" y="134" width="220" height="32" rx="8" fill="#fff" stroke="#d6d3d1"></rect>
+    <text x="830" y="155" text-anchor="middle">Pan-head category</text>
+    <rect x="720" y="186" width="220" height="32" rx="8" fill="#dbeafe" stroke="#2563eb"></rect>
+    <text x="830" y="207" text-anchor="middle">Carbon category</text>
+    <rect x="720" y="246" width="220" height="32" rx="8" fill="#fff" stroke="#d6d3d1"></rect>
+    <text x="830" y="267" text-anchor="middle">Stainless category</text>
+  </g>
+  <path d="M266 150 C 430 150, 520 150, 710 150" fill="none" stroke="#a8a29e" stroke-width="1.5"></path>
+  <path d="M286 202 C 430 202, 560 202, 710 202" fill="none" stroke="#ea580c" stroke-width="2"></path>
+  <path d="M286 262 C 430 262, 560 262, 710 262" fill="none" stroke="#a8a29e" stroke-width="1.5"></path>
+  <text x="490" y="118" text-anchor="middle" font-size="12" fill="#57534e">one row per folder</text>
+  <text x="490" y="196" text-anchor="middle" font-size="12" fill="#9a3412">Carbon’s row</text>
+  <text x="490" y="330" text-anchor="middle" font-size="13" fill="#57534e">Carbon in PIM sits under Pan-head.</text>
+  <text x="490" y="350" text-anchor="middle" font-size="13" fill="#57534e">The Carbon category in F&amp;O sits beside Pan-head, not under it.</text>
+  <text x="490" y="378" text-anchor="middle" font-size="13" fill="#57534e">Remove the connection and the line goes. Both folders stay.</text>
+  <text x="490" y="404" text-anchor="middle" font-size="13" fill="#57534e">Old orders keep the category they were posted with.</text>
+</svg>
+</div><p class="small">The same PIM folders could later have a second set of rows to another system. That system was named as a reason, and it was not designed, so it is not drawn.</p></div></details>
+<details class="acc"><summary>A move</summary><div class="acc-body"><div class="card dynamic">
+    
     <p>The PIM folder can move. The F&amp;O category stays. The link row is what changes.</p>
     <p>The invoice still keeps the category it was posted with. The link does not rewrite that history. It only says which F&amp;O category the PIM folder points at now.</p>
-  </div>
-</div>
-
-<h2>A delete</h2>
-<div class="two">
-  <div class="card rigid">
-    <h3>Rigid</h3>
-    <p>Once a product is released and orders exist, F&amp;O cannot delete that category. Removing it in PIM does not remove it in F&amp;O.</p>
-  </div>
-  <div class="card dynamic">
-    <h3>Dynamic</h3>
+  </div></div></details>
+<details class="acc"><summary>A delete</summary><div class="acc-body"><div class="card dynamic">
+    
     <p>Removing the connection deletes the link row. The F&amp;O category stays when an order already uses it.</p>
-  </div>
-</div>
-
-<h2>Pros and cons, in situations that were raised</h2>
-<p class="lead">Each situation below was named in the discussion. The reading is ours. Where something was left open, it says so.</p>
-
-<div class="scen">
-  <h3>Go-live, the first load</h3>
-  <p class="q">The folders exist on both sides for the first time.</p>
-  <div class="two">
-    <div class="card rigid">
-      <b>Rigid</b>
-      <div class="pc">
-        <b>For</b>
-        <ul>
-          <li>One structure to agree and one to check. Nothing can drift apart, because there is only one.</li>
-          <li>No link to populate and no link to keep.</li>
-        </ul>
-        <b>Against</b>
-        <ul>
-          <li>The structure has to be right before it is sent, because F&amp;O then uses it on orders.</li>
-        </ul>
-      </div>
-    </div>
-    <div class="card dynamic">
-      <b>Dynamic</b>
+  </div></div></details>
+<details class="acc"><summary>Pros and cons, in situations that were raised</summary><div class="acc-body"><p class="lead">Each situation below was named in the discussion. The reading is ours. Where something was left open, it says so.</p><div class="sit"><h3>Go-live, the first load</h3><p class="q">The folders exist on both sides for the first time.</p><div class="card dynamic">
+      
       <div class="pc">
         <b>For</b>
         <ul>
@@ -264,30 +563,9 @@
           <li>Where the link is kept was not decided. It was described as a screen in PIM, and also as something kept beside PIM.</li>
         </ul>
       </div>
-    </div>
-  </div>
-</div>
-
-<div class="scen">
-  <h3>A range is moved after a year of sales</h3>
-  <p class="q">The situation walked through in the discussion: a year of sales sits on one category, then the product is moved to another.</p>
-  <div class="two">
-    <div class="card rigid">
-      <b>Rigid</b>
-      <div class="pc">
-        <b>For</b>
-        <ul>
-          <li>One move, one place to do it. Both systems agree afterwards.</li>
-        </ul>
-        <b>Against</b>
-        <ul>
-          <li>The F&amp;O category moves too. A report that reads the category on the invoice shows the product in two categories. A report that reads the item’s current category loses that first year.</li>
-          <li>Purchase orders and sales orders carry the category they were posted with, and reporting is built on that.</li>
-        </ul>
-      </div>
-    </div>
-    <div class="card dynamic">
-      <b>Dynamic</b>
+    </div></div>
+<div class="sit"><h3>A range is moved after a year of sales</h3><p class="q">The situation walked through in the discussion: a year of sales sits on one category, then the product is moved to another.</p><div class="card dynamic">
+      
       <div class="pc">
         <b>For</b>
         <ul>
@@ -300,29 +578,9 @@
           <li>Over time the two structures stop looking alike, so a question about one has to be answered through the link.</li>
         </ul>
       </div>
-    </div>
-  </div>
-</div>
-
-<div class="scen">
-  <h3>A category has to be retired</h3>
-  <p class="q">A product is released and orders already exist against the category.</p>
-  <div class="two">
-    <div class="card rigid">
-      <b>Rigid</b>
-      <div class="pc">
-        <b>For</b>
-        <ul>
-          <li>Nothing extra to clean up, because there is no link.</li>
-        </ul>
-        <b>Against</b>
-        <ul>
-          <li>F&amp;O cannot delete a category that orders use. Removing it in PIM does not remove it in F&amp;O, so the two sides no longer match and that has to be handled in F&amp;O separately.</li>
-        </ul>
-      </div>
-    </div>
-    <div class="card dynamic">
-      <b>Dynamic</b>
+    </div></div>
+<div class="sit"><h3>A category has to be retired</h3><p class="q">A product is released and orders already exist against the category.</p><div class="card dynamic">
+      
       <div class="pc">
         <b>For</b>
         <ul>
@@ -334,29 +592,9 @@
           <li>An F&amp;O category with no row still exists. Someone has to notice and decide what it is for.</li>
         </ul>
       </div>
-    </div>
-  </div>
-</div>
-
-<div class="scen">
-  <h3>A new material value is introduced</h3>
-  <p class="q">Values entered once on a folder mean one folder per value. This was raised as a concern in the discussion.</p>
-  <div class="two">
-    <div class="card rigid">
-      <b>Rigid</b>
-      <div class="pc">
-        <b>For</b>
-        <ul>
-          <li>The new folder reaches F&amp;O through the same send as the rest.</li>
-        </ul>
-        <b>Against</b>
-        <ul>
-          <li>A new value means a new folder, and that folder lands in F&amp;O where orders may later use it.</li>
-        </ul>
-      </div>
-    </div>
-    <div class="card dynamic">
-      <b>Dynamic</b>
+    </div></div>
+<div class="sit"><h3>A new material value is introduced</h3><p class="q">Values entered once on a folder mean one folder per value. This was raised as a concern in the discussion.</p><div class="card dynamic">
+      
       <div class="pc">
         <b>For</b>
         <ul>
@@ -367,26 +605,9 @@
           <li>A new folder needs a new row before anything uses it.</li>
         </ul>
       </div>
-    </div>
-  </div>
-  <p class="small">This concern applies to both. Sorting by value adds a folder per value, so there are more folders than today. Retiring a value means reworking that folder. A value that differs per product, such as diameter, stays on the product and does not create folders.</p>
-</div>
-
-<div class="scen">
-  <h3>Another system is added later</h3>
-  <p class="q">Named in the discussion as a reason to prefer the second option. Nothing for it was designed.</p>
-  <div class="two">
-    <div class="card rigid">
-      <b>Rigid</b>
-      <div class="pc">
-        <b>Against</b>
-        <ul>
-          <li>The second system needs its own copy of the same folders, and then both copies have to be kept.</li>
-        </ul>
-      </div>
-    </div>
-    <div class="card dynamic">
-      <b>Dynamic</b>
+    </div></div>
+<div class="sit"><h3>Another system is added later</h3><p class="q">Named in the discussion as a reason to prefer the second option. Nothing for it was designed.</p><div class="card dynamic">
+      
       <div class="pc">
         <b>For</b>
         <ul>
@@ -397,29 +618,9 @@
           <li>This was a reason given, not a plan. No second system was drawn, and the effort for one is not known.</li>
         </ul>
       </div>
-    </div>
-  </div>
-</div>
-
-<div class="scen">
-  <h3>Effort to put in place</h3>
-  <p class="q">Both options need something PIM does not do today.</p>
-  <div class="two">
-    <div class="card rigid">
-      <b>Rigid</b>
-      <div class="pc">
-        <b>For</b>
-        <ul>
-          <li>The smaller change of the two. There is no link to build and no link to maintain.</li>
-        </ul>
-        <b>Against</b>
-        <ul>
-          <li>Sending the folders out of PIM is new. It does not exist today.</li>
-        </ul>
-      </div>
-    </div>
-    <div class="card dynamic">
-      <b>Dynamic</b>
+    </div></div>
+<div class="sit"><h3>Effort to put in place</h3><p class="q">Both options need something PIM does not do today.</p><div class="card dynamic">
+      
       <div class="pc">
         <b>For</b>
         <ul>
@@ -431,213 +632,21 @@
           <li>Two structures mean two things to look at when something does not add up.</li>
         </ul>
       </div>
-    </div>
-  </div>
-  <p class="small">For both: sending anything from PIM to F&amp;O is new, and today’s feed into PIM has to stop for the agreed attributes on a date, or a value typed in PIM and a value arriving from F&amp;O are two writers of the same field.</p>
+    </div></div></div></details>
+<details class="acc"><summary>What this option adds</summary><div class="acc-body"><table class="adds"><tr><td>Folders</td><td>PIM can keep its folders. F&amp;O keeps its categories. A link joins a PIM folder to an F&amp;O category. The first load can still match them one-to-one.</td></tr><tr><td>A move</td><td>Changes the PIM folder and the link. The F&amp;O category stays, so old orders keep their category.</td></tr><tr><td>A removed folder</td><td>The link can be removed. The F&amp;O category stays when orders use it.</td></tr><tr><td>Where the link is kept</td><td>The link can be a screen in PIM, or it can be kept beside PIM. That place is not chosen.</td></tr><tr><td>Another system later</td><td>The same PIM folders, with another link. Not designed.</td></tr></table></div></details>
+<details class="acc"><summary>Prototype — move and unlink</summary><div class="acc-body"><p>These names are an example, so the difference is easy to see. Use the buttons. Nothing here writes to F&amp;O or to PIM.</p>
+<div class="stage"><div class="col"><h3>PIM folders</h3><div id="dynamic-pim-tree"></div></div>
+<div class="col"><h3>F&amp;O categories</h3><div id="dynamic-fo-tree"></div></div></div>
+<div id="dynamic-map" style="margin-top:12px"></div>
+<div class="proto-actions"><button type="button" id="dynamic-do-move">Move Carbon in PIM</button>
+<button type="button" id="dynamic-do-unlink">Remove the Carbon connection</button>
+<button type="button" id="dynamic-do-reset">Reset</button></div>
+<div class="result" id="dynamic-proto-result"></div></div></details>
 </div>
 
-<h2>What both options share</h2>
-<div class="card">
-  <ul>
-    <li>The item number is created in F&amp;O.</li>
-    <li>A value can be entered once on a folder in PIM. The products under that folder show it. The example from the discussion was material on a series. Sent back, F&amp;O receives the attribute and the value on the item number.</li>
-    <li>That return was described without category attributes and without product-group attributes. The list of attributes to send was not closed.</li>
-    <li>A value that changes per product, such as diameter, stays on the product.</li>
-    <li>The product holds the allowed configuration, colour, size, and style. The variant holds one choice from each list.</li>
-    <li>Shop and web content were asked about. No steps for them were agreed, so they are not in this picture.</li>
-  </ul>
-</div>
-</div>
-
-<div class="panel diagram">
-<h2>Diagrams</h2>
-<p class="lead">The same three pictures: what happens today, then the two options. Names are an example. Nothing here is live.</p>
-<div class="legend">
-  <span><i class="swatch" style="background:#fff"></i>A folder</span>
-  <span><i class="swatch" style="background:#ffedd5;border-color:#fdba74"></i>Moves with the other side</span>
-  <span><i class="swatch" style="background:#dbeafe;border-color:#93c5fd"></i>Stays put</span>
-  <span><i class="swatch" style="background:#fff;border-style:dashed"></i>Does not exist</span>
-</div>
-
-<h2>Today</h2>
-<p>One direction. F&amp;O creates the item number and the folders. PIM stores that same structure. There is no arrow back.</p>
-<div class="frame">
-<svg viewBox="0 0 980 260" role="img" aria-label="Today, F and O sends into PIM and nothing returns">
-  <rect x="36" y="28" width="250" height="150" rx="12" fill="#fff7ed" stroke="#fdba74"/>
-  <text x="161" y="56" text-anchor="middle" font-size="16" font-weight="700" fill="#1c1917">F&amp;O</text>
-  <text x="161" y="80" text-anchor="middle" font-size="13" fill="#57534e">Item number</text>
-  <text x="161" y="100" text-anchor="middle" font-size="13" fill="#57534e">Folders</text>
-  <text x="161" y="120" text-anchor="middle" font-size="13" fill="#57534e">Values, names, release</text>
-  <text x="161" y="150" text-anchor="middle" font-size="12" fill="#57534e">Type → family → series</text>
-  <text x="161" y="166" text-anchor="middle" font-size="12" fill="#57534e">→ range → product group</text>
-  <line x1="300" y1="100" x2="470" y2="100" stroke="#1c1917" stroke-width="2"/>
-  <polygon points="470,94 486,100 470,106" fill="#1c1917"/>
-  <text x="386" y="88" text-anchor="middle" font-size="12" fill="#57534e">sent in</text>
-  <rect x="520" y="28" width="250" height="150" rx="12" fill="#eff6ff" stroke="#93c5fd"/>
-  <text x="645" y="56" text-anchor="middle" font-size="16" font-weight="700" fill="#1c1917">PIM</text>
-  <text x="645" y="84" text-anchor="middle" font-size="13" fill="#57534e">Stores the same folders</text>
-  <text x="645" y="104" text-anchor="middle" font-size="13" fill="#57534e">and the values that arrive</text>
-  <text x="645" y="136" text-anchor="middle" font-size="12" fill="#57534e">Also holds shop images,</text>
-  <text x="645" y="154" text-anchor="middle" font-size="12" fill="#57534e">documents, and label images</text>
-  <line x1="500" y1="214" x2="310" y2="214" stroke="#a8a29e" stroke-width="2" stroke-dasharray="6 5"/>
-  <polygon points="310,208 294,214 310,220" fill="#a8a29e"/>
-  <text x="400" y="236" text-anchor="middle" font-size="13" fill="#57534e">No call back to F&amp;O</text>
-</svg>
-</div>
-
-<h2>Rigid — one structure, drawn twice because both sides hold it</h2>
-<p>The folders are the same object on both sides. Move Carbon in PIM and the F&amp;O category moves with it. There is no link table.</p>
-<div class="frame">
-<svg viewBox="0 0 980 360" role="img" aria-label="Rigid option, the same tree on both sides">
-  <text x="180" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">PIM</text>
-  <text x="800" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">F&amp;O</text>
-  <g font-size="13" fill="#1c1917">
-    <rect x="70" y="44" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"/>
-    <text x="180" y="66" text-anchor="middle">Screws</text>
-    <rect x="70" y="90" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"/>
-    <text x="180" y="112" text-anchor="middle">Family · Example</text>
-    <rect x="70" y="136" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"/>
-    <text x="180" y="158" text-anchor="middle">Series · Pan-head</text>
-    <rect x="70" y="182" width="220" height="34" rx="8" fill="#ffedd5" stroke="#ea580c"/>
-    <text x="180" y="204" text-anchor="middle">Range · Carbon</text>
-    <rect x="70" y="228" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"/>
-    <text x="180" y="250" text-anchor="middle">Range · Stainless</text>
-    <rect x="690" y="44" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"/>
-    <text x="800" y="66" text-anchor="middle">Screws</text>
-    <rect x="690" y="90" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"/>
-    <text x="800" y="112" text-anchor="middle">Family · Example</text>
-    <rect x="690" y="136" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"/>
-    <text x="800" y="158" text-anchor="middle">Series · Pan-head</text>
-    <rect x="690" y="182" width="220" height="34" rx="8" fill="#ffedd5" stroke="#ea580c"/>
-    <text x="800" y="204" text-anchor="middle">Range · Carbon</text>
-    <rect x="690" y="228" width="220" height="34" rx="8" fill="#fff" stroke="#d6d3d1"/>
-    <text x="800" y="250" text-anchor="middle">Range · Stainless</text>
-  </g>
-  <line x1="300" y1="199" x2="680" y2="199" stroke="#ea580c" stroke-width="2"/>
-  <polygon points="680,193 696,199 680,205" fill="#ea580c"/>
-  <polygon points="300,193 284,199 300,205" fill="#ea580c"/>
-  <text x="490" y="188" text-anchor="middle" font-size="13" fill="#9a3412">A move changes both</text>
-  <text x="490" y="310" text-anchor="middle" font-size="13" fill="#57534e">Orders keep the category they were posted with.</text>
-  <text x="490" y="330" text-anchor="middle" font-size="13" fill="#57534e">A report on the current category loses the earlier period.</text>
-</svg>
-</div>
-
-<h2>Dynamic — two structures, joined by a row</h2>
-<p>PIM can put Carbon under a series. F&amp;O can keep Carbon beside the other categories. The line is the only thing that joins them. Move Carbon in PIM and the F&amp;O category stays.</p>
-<div class="frame">
-<svg viewBox="0 0 980 420" role="img" aria-label="Dynamic option, two trees joined by link lines">
-  <text x="150" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">PIM folders</text>
-  <text x="490" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">Link</text>
-  <text x="820" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1917">F&amp;O categories</text>
-  <g font-size="13" fill="#1c1917">
-    <rect x="36" y="46" width="230" height="32" rx="8" fill="#fff" stroke="#d6d3d1"/>
-    <text x="151" y="67" text-anchor="middle">Screws</text>
-    <rect x="56" y="90" width="210" height="32" rx="8" fill="#fff" stroke="#d6d3d1"/>
-    <text x="161" y="111" text-anchor="middle">Family · Example</text>
-    <rect x="76" y="134" width="190" height="32" rx="8" fill="#fff" stroke="#d6d3d1"/>
-    <text x="171" y="155" text-anchor="middle">Series · Pan-head</text>
-    <rect x="96" y="186" width="190" height="32" rx="8" fill="#ffedd5" stroke="#ea580c"/>
-    <text x="191" y="207" text-anchor="middle">Range · Carbon</text>
-    <rect x="96" y="246" width="190" height="32" rx="8" fill="#fff" stroke="#d6d3d1"/>
-    <text x="191" y="267" text-anchor="middle">Range · Stainless</text>
-    <rect x="700" y="46" width="240" height="32" rx="8" fill="#fff" stroke="#d6d3d1"/>
-    <text x="820" y="67" text-anchor="middle">Procurement · Screws</text>
-    <rect x="720" y="134" width="220" height="32" rx="8" fill="#fff" stroke="#d6d3d1"/>
-    <text x="830" y="155" text-anchor="middle">Pan-head category</text>
-    <rect x="720" y="186" width="220" height="32" rx="8" fill="#dbeafe" stroke="#2563eb"/>
-    <text x="830" y="207" text-anchor="middle">Carbon category</text>
-    <rect x="720" y="246" width="220" height="32" rx="8" fill="#fff" stroke="#d6d3d1"/>
-    <text x="830" y="267" text-anchor="middle">Stainless category</text>
-  </g>
-  <path d="M266 150 C 430 150, 520 150, 710 150" fill="none" stroke="#a8a29e" stroke-width="1.5"/>
-  <path d="M286 202 C 430 202, 560 202, 710 202" fill="none" stroke="#ea580c" stroke-width="2"/>
-  <path d="M286 262 C 430 262, 560 262, 710 262" fill="none" stroke="#a8a29e" stroke-width="1.5"/>
-  <text x="490" y="118" text-anchor="middle" font-size="12" fill="#57534e">one row per folder</text>
-  <text x="490" y="196" text-anchor="middle" font-size="12" fill="#9a3412">Carbon’s row</text>
-  <text x="490" y="330" text-anchor="middle" font-size="13" fill="#57534e">Carbon in PIM sits under Pan-head.</text>
-  <text x="490" y="350" text-anchor="middle" font-size="13" fill="#57534e">The Carbon category in F&amp;O sits beside Pan-head, not under it.</text>
-  <text x="490" y="378" text-anchor="middle" font-size="13" fill="#57534e">Remove the connection and the line goes. Both folders stay.</text>
-  <text x="490" y="404" text-anchor="middle" font-size="13" fill="#57534e">Old orders keep the category they were posted with.</text>
-</svg>
-</div>
-<p class="small">The same PIM folders could later have a second set of rows to another system. That system was named as a reason, and it was not designed, so it is not drawn.</p>
-</div>
-
-<div class="panel try">
-<h2>Prototype — move and unlink</h2>
-<p>These names are an example, so the difference is easy to see. Use the buttons. Nothing here writes to F&amp;O or to PIM.</p>
-<div class="actions">
-  <button type="button" id="mode-rigid">Rigid</button>
-  <button type="button" id="mode-dynamic" class="on">Dynamic</button>
-</div>
-<div class="stage">
-  <div class="col">
-    <h3>PIM folders</h3>
-    <div id="pim-tree"></div>
-  </div>
-  <div class="col">
-    <h3>F&amp;O categories</h3>
-    <div id="fo-tree"></div>
-  </div>
-</div>
-<div id="map" style="margin-top:12px"></div>
-<div class="actions">
-  <button type="button" id="do-move">Move Carbon in PIM</button>
-  <button type="button" id="do-unlink">Remove the Carbon connection</button>
-  <button type="button" id="do-reset">Reset</button>
-</div>
-<div class="result" id="proto-result">Dynamic is selected. Carbon in PIM sits under Pan-head. The F&amp;O Carbon category sits beside Pan-head, not under it. The link joins them.</div>
-
-<h2>Prototype — a value entered once</h2>
-<p>Enter the material on the series. The products below have no material of their own, so they show the series value. Diameter stays on each product.</p>
-<div class="card">
-  <div class="inherit">
-    <b>Series · Pan-head</b>
-    <label>Material
-      <select id="material">
-        <option>Carbon steel</option>
-        <option>Stainless steel</option>
-      </select>
-    </label>
-    <b>Product · 4.8 mm</b>
-    <div>Material <span class="locked" id="mat-a">Carbon steel</span> · shown from the series<br>Diameter <b>4.8 mm</b> · stored on this product</div>
-    <b>Product · 5.5 mm</b>
-    <div>Material <span class="locked" id="mat-b">Carbon steel</span> · shown from the series<br>Diameter <b>5.5 mm</b> · stored on this product</div>
-    <b>Variant</b>
-    <div>Shows the product’s material and diameter. Holds one configuration, for example Black, loose. The product holds the full allowed list.</div>
-  </div>
-</div>
-<p class="small">If a value is sent back, F&amp;O receives the value the product shows, on the item number. F&amp;O does not repeat the folder structure for that value.</p>
-</div>
-
-<div class="panel choose">
-<h2>What PIM already keeps</h2>
-<div class="card">
-  <ul>
-    <li>A folder tree: product type, family, series, range, product group.</li>
-    <li>A value entered on a folder, shown on the products underneath when those products have no value of their own.</li>
-    <li>Variants under the product.</li>
-    <li>Measures such as diameter and length.</li>
-    <li>A list of allowed configuration, colour, size, and style on the product, and one choice on the variant.</li>
-    <li>A rename or a move keeps the same folder. The path on screen changes.</li>
-  </ul>
-  <p class="small">This is enough for the value example above. Choosing rigid or dynamic does not change where that value is typed.</p>
-</div>
-
-<h2>What is new, for either option</h2>
-<div class="card">
-  <ul>
-    <li>A send from PIM back to F&amp;O. That send does not exist today.</li>
-    <li>The agreed list of attributes to send. Only that list goes back.</li>
-    <li>The value sent is the one the product shows, including a value it shows from a folder above. Variants are not the place F&amp;O stores attribute values.</li>
-    <li>The current feed from F&amp;O into PIM has to stop for those attributes on an agreed date. Until then the feed and a value typed in PIM are two writers of the same field.</li>
-    <li>A new attribute is added when it is agreed. It does not appear in the return by itself.</li>
-  </ul>
-</div>
-
-<h2>What each option adds</h2>
-<table>
-  <tr><th></th><th>Rigid</th><th>Dynamic</th></tr>
+<div class="panel" id="compare">
+<h2>What each option adds</h2><table>
+  <tbody><tr><th></th><th>Rigid</th><th>Dynamic</th></tr>
   <tr>
     <td>Folders</td>
     <td>The folders PIM already has are sent across, so F&amp;O has the same ones.</td>
@@ -663,100 +672,259 @@
     <td>Another copy of the same folders.</td>
     <td>The same PIM folders, with another link. Not designed.</td>
   </tr>
-</table>
-
-<div class="card note" style="margin-top:14px">
-  <p><b>Reading of the fit.</b> Entering a value once, and letting the products below show it, fits PIM as it is. It does not require either option. Rigid is the smaller change to the folders, and it is the one that moves F&amp;O categories when someone moves a folder in PIM. Dynamic leaves those categories in place and adds the link, which is the extra work. PIM can maintain the folders and the values for either choice. It does not maintain F&amp;O’s order history.</p>
+</tbody></table>
+<h2>What both options share</h2><div class="card">
+  <ul>
+    <li>The item number is created in F&amp;O.</li>
+    <li>A value can be entered once on a folder in PIM. The products under that folder show it. Material is entered on the range. Sent back, F&amp;O receives the attribute and the value on the item number.</li>
+    <li>That return was described without category attributes and without product-group attributes. The list of attributes to send was not closed.</li>
+    <li>A value that changes per product, such as diameter, stays on the product.</li>
+    <li>The product holds the allowed configuration, colour, size, and style. The variant holds one choice from each list.</li>
+    <li>Shop and web content were asked about. No steps for them were agreed, so they are not in this picture.</li>
+  </ul>
 </div>
+<h2>What PIM already keeps</h2><div class="card">
+  <ul>
+    <li>A folder tree: product type, family, series, range, product group.</li>
+    <li>A value entered on a folder, shown on the products underneath when those products have no value of their own.</li>
+    <li>Variants under the product.</li>
+    <li>Measures such as diameter and length.</li>
+    <li>A list of allowed configuration, colour, size, and style on the product, and one choice on the variant.</li>
+    <li>A rename or a move keeps the same folder. The path on screen changes.</li>
+  </ul>
+  <p class="small">This is enough for the value example above. Choosing rigid or dynamic does not change where that value is typed.</p>
+</div>
+<h2>What is new, for either option</h2><div class="card">
+  <ul>
+    <li>A send from PIM back to F&amp;O. That send does not exist today.</li>
+    <li>The agreed list of attributes to send. Only that list goes back.</li>
+    <li>The value sent is the one the product shows, including a value it shows from a folder above. Variants are not the place F&amp;O stores attribute values.</li>
+    <li>The current feed from F&amp;O into PIM has to stop for those attributes on an agreed date. Until then the feed and a value typed in PIM are two writers of the same field.</li>
+    <li>A new attribute is added when it is agreed. It does not appear in the return by itself.</li>
+  </ul>
+</div>
+<h2>Notes that apply to both</h2><div class="card"><p class="small">This concern applies to both. Sorting by value adds a folder per value, so there are more folders than today. Retiring a value means reworking that folder. A value that differs per product, such as diameter, stays on the product and does not create folders.</p>
+<p class="small">For both: sending anything from PIM to F&amp;O is new, and today’s feed into PIM has to stop for the agreed attributes on a date, or a value typed in PIM and a value arriving from F&amp;O are two writers of the same field.</p></div>
+<h2>Prototype — a value entered once</h2>
+<p>Enter the material on the range. The products below have no material of their own, so they show the range value. Diameter stays on each product.</p>
+<div class="card">
+  <div class="inherit">
+    <b>Range · Carbon</b>
+    <label>Material
+      <select id="material">
+        <option>Carbon steel</option>
+        <option>Stainless steel</option>
+      </select>
+    </label>
+    <b>Product · 4.8 mm</b>
+    <div>Material <span class="locked" id="mat-a">Carbon steel</span> · shown from the range<br>Diameter <b>4.8 mm</b> · stored on this product</div>
+    <b>Product · 5.5 mm</b>
+    <div>Material <span class="locked" id="mat-b">Carbon steel</span> · shown from the range<br>Diameter <b>5.5 mm</b> · stored on this product</div>
+    <b>Variant</b>
+    <div>Shows the product’s material and diameter. Holds one configuration, for example Black, loose. The product holds the full allowed list.</div>
+  </div>
+</div>
+<p class="small">If a value is sent back, F&amp;O receives the value the product shows, on the item number. F&amp;O does not repeat the folder structure for that value.</p>
+<div style="margin-top:14px"><div class="card note" style="margin-top:14px">
+  <p><b>Reading of the fit.</b> Entering a value once, and letting the products below show it, fits PIM as it is. It does not require either option. Rigid is the smaller change to the folders, and it is the one that moves F&amp;O categories when someone moves a folder in PIM. Dynamic leaves those categories in place and adds the link, which is the extra work. PIM can maintain the folders and the values for either choice. It does not maintain F&amp;O’s order history.</p>
+</div></div>
 <p class="small">Example only. Not a live catalogue, and not a decision.</p>
 </div>
-</div>
-</div>
 
+<div class="panel" id="walk">
+<h2>Follow one product</h2><p class="lead">The same example folders as the rest of this page. Pick an option, then step through. A category assignment sent back from PIM, a product arriving with no folder, and a value shared by every company are not in this walk. Those were not agreed.</p>
+<div class="subtabs">
+  <button type="button" id="walk-rigid-btn">Rigid — one structure</button>
+  <button type="button" id="walk-dynamic-btn" class="on">Dynamic — two structures and a link</button>
+</div>
+<div class="walkbox" id="walkbox-rigid"><div class="steps" id="rigid-w-steps"></div>
+<h3 id="rigid-w-title" style="margin-top:14px"></h3><p id="rigid-w-text"></p>
+<div class="wgrid"><div class="wcol"><h3>PIM</h3><div id="rigid-w-pim"></div></div>
+<div class="wcol across"><h3 id="rigid-w-across-h">What crosses</h3><div id="rigid-w-across"></div></div>
+<div class="wcol"><h3>F&amp;O</h3><div id="rigid-w-fo"></div></div></div>
+<div class="check" id="rigid-w-check"></div>
+<div class="proto-actions"><button type="button" id="rigid-w-back">Back</button><button type="button" id="rigid-w-next">Next</button></div>
+</div>
+<div class="walkbox active" id="walkbox-dynamic"><div class="steps" id="dynamic-w-steps"></div>
+<h3 id="dynamic-w-title" style="margin-top:14px"></h3><p id="dynamic-w-text"></p>
+<div class="wgrid"><div class="wcol"><h3>PIM</h3><div id="dynamic-w-pim"></div></div>
+<div class="wcol across"><h3 id="dynamic-w-across-h">What crosses</h3><div id="dynamic-w-across"></div></div>
+<div class="wcol"><h3>F&amp;O</h3><div id="dynamic-w-fo"></div></div></div>
+<div class="check" id="dynamic-w-check"></div>
+<div class="proto-actions"><button type="button" id="dynamic-w-back">Back</button><button type="button" id="dynamic-w-next">Next</button></div>
+</div>
+<div style="margin-top:16px"><div class="card" style="margin-top:16px">
+  <ul>
+    <li>The item number is created in F&amp;O. A new product needs its product-group folder already there.</li>
+    <li>The return, when it exists, is the agreed attributes on the product. The variant screen in F&amp;O holds no attribute values.</li>
+    <li>One value per attribute. A value with several choices stays in PIM.</li>
+    <li>A category that orders already use cannot be deleted.</li>
+    <li>The proof before any return call: a product row that leaves the listed codes out, and the values already stored in PIM stay as they are.</li>
+  </ul>
+</div></div><p class="small">Example only. Not a live catalogue, and not a decision.</p>
+</div>
+</div>
 <script>
 (function () {
-  var mode = "dynamic";
-  var moved = false;
-  var unlinked = false;
-  var pim = document.getElementById("pim-tree");
-  var fo = document.getElementById("fo-tree");
-  var map = document.getElementById("map");
-  var result = document.getElementById("proto-result");
+  // tabs
+  document.querySelectorAll('nav.tabs2 button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('nav.tabs2 button').forEach(function (x) { x.classList.toggle('active', x === b); });
+      document.querySelectorAll('.panel').forEach(function (p) { p.classList.toggle('active', p.id === b.dataset.tab); });
+      window.scrollTo(0, 0);
+    });
+  });
 
-  function pill(text, cls) {
-    return '<span class="pill ' + (cls || "") + '">' + text + "</span>";
-  }
-
-  function draw() {
-    var pimParent = moved ? "Series · Other" : "Series · Pan-head";
-    var foParent = mode === "rigid" && moved ? "Moved with PIM" : "Procurement · Screws";
-    pim.innerHTML =
-      pill("Screws") +
-      pill("Family · Example") +
-      pill("Series · Pan-head") +
-      (moved ? pill("Series · Other", "moved") : "") +
-      pill("Range · Carbon — under " + pimParent, moved ? "moved" : "") +
-      pill("Range · Stainless — under Series · Pan-head");
-    fo.innerHTML =
-      pill("Procurement · Screws") +
-      pill("Pan-head category") +
-      pill("Carbon category — under " + foParent, mode === "rigid" && moved ? "moved" : "") +
-      pill("Stainless category — under Procurement · Screws");
-    var carbonPim = "Range · Carbon — under " + pimParent;
-    var carbonFo = "Carbon category — under " + foParent;
-    var carbonRow = unlinked && mode === "dynamic"
-      ? "<tr class=\"off\"><td>" + carbonPim + "</td><td>" + carbonFo + "</td></tr>"
-      : "<tr><td class=\"" + (moved ? "hit" : "") + "\">" + carbonPim + "</td><td class=\"" + (mode === "rigid" && moved ? "hit" : "") + "\">" + carbonFo + "</td></tr>";
-    map.innerHTML = mode === "rigid"
-      ? "<div class=\"sheet\"><div class=\"bar\">No link table · the same folders on both sides</div><table><tr><th>PIM folder</th><th>F&amp;O category</th></tr>"
-        + "<tr><td>Series · Pan-head</td><td>Series · Pan-head</td></tr>"
-        + carbonRow
-        + "<tr><td>Range · Stainless</td><td>Range · Stainless</td></tr></table></div>"
-      : "<div class=\"sheet\"><div class=\"bar\">Link table · one row per folder</div><table><tr><th>PIM folder</th><th>F&amp;O category</th></tr>"
-        + "<tr><td>Series · Pan-head</td><td>Pan-head category</td></tr>"
-        + carbonRow
-        + "<tr><td>Range · Stainless — under Series · Pan-head</td><td>Stainless category — under Procurement · Screws</td></tr></table></div>";
-    if (mode === "rigid" && moved) {
-      result.textContent = "Rigid: Carbon moved in PIM, and the F&O category moved with it. Old orders still show the category they were posted with.";
-    } else if (mode === "dynamic" && unlinked) {
-      result.textContent = "Dynamic: the Carbon link is gone. The PIM range and the F&O category are both still there.";
-    } else if (mode === "dynamic" && moved) {
-      result.textContent = "Dynamic: Carbon now sits under Series · Other in PIM. The F&O Carbon category stayed under Procurement · Screws. The link still joins them.";
-    } else if (mode === "rigid") {
-      result.textContent = "Rigid: one structure. Carbon in PIM and the Carbon category in F&O are the same folder. A move changes both.";
-    } else {
-      result.textContent = "Dynamic: Carbon in PIM sits under Pan-head. The F&O Carbon category sits beside Pan-head, not under it. The link joins them.";
-    }
-  }
-
-  document.getElementById("mode-rigid").onclick = function () {
-    mode = "rigid";
-    this.classList.add("on");
-    document.getElementById("mode-dynamic").classList.remove("on");
-    draw();
-  };
-  document.getElementById("mode-dynamic").onclick = function () {
-    mode = "dynamic";
-    this.classList.add("on");
-    document.getElementById("mode-rigid").classList.remove("on");
-    draw();
-  };
-  document.getElementById("do-move").onclick = function () { moved = !moved; draw(); };
-  document.getElementById("do-unlink").onclick = function () {
-    if (mode === "rigid") {
-      result.textContent = "Rigid has no separate link to remove. The folder exists on both sides. F&O cannot delete a category that orders already use.";
-      return;
-    }
-    unlinked = !unlinked;
-    draw();
-  };
-  document.getElementById("do-reset").onclick = function () { moved = false; unlinked = false; draw(); };
-  document.getElementById("material").onchange = function () {
+  // value entered once (shared)
+  var mat = document.getElementById("material");
+  if (mat) mat.onchange = function () {
     document.getElementById("mat-a").textContent = this.value;
     document.getElementById("mat-b").textContent = this.value;
   };
-  draw();
+
+  function pill(text, cls) { return '<span class="pill ' + (cls || "") + '">' + text + "</span>"; }
+
+  // move and unlink prototype, one fixed option per tab
+  function proto(p, mode) {
+    var moved = false, unlinked = false;
+    var pim = document.getElementById(p + "-pim-tree"), fo = document.getElementById(p + "-fo-tree");
+    var map = document.getElementById(p + "-map"), result = document.getElementById(p + "-proto-result");
+    function draw() {
+      var pimParent = moved ? "Series · Other" : "Series · Pan-head";
+      var foParent = mode === "rigid" && moved ? "Moved with PIM" : "Procurement · Screws";
+      pim.innerHTML = pill("Screws") + pill("Family · Example") + pill("Series · Pan-head") +
+        (moved ? pill("Series · Other", "moved") : "") +
+        pill("Range · Carbon — under " + pimParent, moved ? "moved" : "") +
+        pill("Range · Stainless — under Series · Pan-head");
+      fo.innerHTML = pill("Procurement · Screws") + pill("Pan-head category") +
+        pill("Carbon category — under " + foParent, mode === "rigid" && moved ? "moved" : "") +
+        pill("Stainless category — under Procurement · Screws");
+      var carbonPim = "Range · Carbon — under " + pimParent;
+      var carbonFo = "Carbon category — under " + foParent;
+      var carbonRow = unlinked && mode === "dynamic"
+        ? "<tr class=\"off\"><td>" + carbonPim + "</td><td>" + carbonFo + "</td></tr>"
+        : "<tr><td class=\"" + (moved ? "hit" : "") + "\">" + carbonPim + "</td><td class=\"" + (mode === "rigid" && moved ? "hit" : "") + "\">" + carbonFo + "</td></tr>";
+      map.innerHTML = mode === "rigid"
+        ? "<div class=\"sheet\"><div class=\"bar\">No link table · the same folders on both sides</div><table><tr><th>PIM folder</th><th>F&amp;O category</th></tr>"
+          + "<tr><td>Series · Pan-head</td><td>Series · Pan-head</td></tr>" + carbonRow
+          + "<tr><td>Range · Stainless</td><td>Range · Stainless</td></tr></table></div>"
+        : "<div class=\"sheet\"><div class=\"bar\">Link table · one row per folder</div><table><tr><th>PIM folder</th><th>F&amp;O category</th></tr>"
+          + "<tr><td>Series · Pan-head</td><td>Pan-head category</td></tr>" + carbonRow
+          + "<tr><td>Range · Stainless — under Series · Pan-head</td><td>Stainless category — under Procurement · Screws</td></tr></table></div>";
+      if (mode === "rigid" && moved) result.textContent = "Rigid: Carbon moved in PIM, and the F&O category moved with it. Old orders still show the category they were posted with.";
+      else if (mode === "dynamic" && unlinked) result.textContent = "Dynamic: the Carbon link is gone. The PIM range and the F&O category are both still there.";
+      else if (mode === "dynamic" && moved) result.textContent = "Dynamic: Carbon now sits under Series · Other in PIM. The F&O Carbon category stayed under Procurement · Screws. The link still joins them.";
+      else if (mode === "rigid") result.textContent = "Rigid: one structure. Carbon in PIM and the Carbon category in F&O are the same folder. A move changes both.";
+      else result.textContent = "Dynamic: Carbon in PIM sits under Pan-head. The F&O Carbon category sits beside Pan-head, not under it. The link joins them.";
+    }
+    document.getElementById(p + "-do-move").onclick = function () { moved = !moved; draw(); };
+    document.getElementById(p + "-do-unlink").onclick = function () {
+      if (mode === "rigid") { result.textContent = "Rigid has no separate link to remove. The folder exists on both sides. F&O cannot delete a category that orders already use."; return; }
+      unlinked = !unlinked; draw();
+    };
+    document.getElementById(p + "-do-reset").onclick = function () { moved = false; unlinked = false; draw(); };
+    draw();
+  }
+
+  // follow one product, one fixed option per tab (texts as in the corrected page)
+  function walk(p, mode) {
+    var step = 0;
+    function n(text, lvl, cls, v) { return '<span class="node l' + lvl + ' ' + (cls || "") + '">' + text + (v ? '<span class="v">' + v + '</span>' : "") + '</span>'; }
+    function m(html) { return '<div class="msg">' + html + '</div>'; }
+    function pimTree(s) {
+      var t = n("Screws", 1) + n("Family · Example", 2) + n("Series · Pan-head", 3);
+      if (s.moved) t += n("Series · Other", 3, "hit");
+      var rangeNote = s.material ? "Material: Carbon steel, typed here once" : "";
+      if (s.moved) rangeNote = (rangeNote ? rangeNote + ". " : "") + "now under Series · Other";
+      t += n("Range · Carbon", 4, s.moved ? "hit" : "", rangeNote);
+      t += n("Product group", 5, s.retired ? "off" : "", s.retired ? "unpublished" : "");
+      if (s.placed) t += n("Product", 5, "prod", s.material ? "Material: Carbon steel, shown from the range. Diameter: 4.8 mm, on the product." : "Diameter: 4.8 mm, on the product.");
+      t += n("Range · Stainless", 4);
+      return t;
+    }
+    function foTree(s) {
+      var t;
+      if (mode === "rigid") {
+        t = n("Screws", 1) + n("Family · Example", 2) + n("Series · Pan-head", 3);
+        if (s.moved) t += n("Series · Other", 3, "hit");
+        t += n("Range · Carbon", 4, s.moved ? "hit" : "", s.moved ? "moved with PIM" : "");
+        t += n("Product group", 5, s.retired ? "hit" : "", s.retired ? "orders already use it, so it stays" : "");
+      } else {
+        t = n("Procurement · Screws", 1) + n("Pan-head category", 2);
+        t += n("Carbon category", 2, "", s.moved ? "stayed where it was" : "");
+        t += n("Product group category", 3, s.retired ? "hit" : "", s.retired ? "stays, the link row is gone" : "");
+      }
+      if (s.placed) {
+        t += n("Product", 4, "prod", s.values ? "MATERIAL = Carbon steel. DIAMETER = 4.8 mm." : "The item number was created here.");
+        t += n("Variant", 5, "prod", "No attribute values on the variant screen.");
+      }
+      return t;
+    }
+    var steps = [
+      { t: "Today", d: "F&O sends the folders and the product. A new product needs its product-group folder already there. Nothing goes back.",
+        s: { placed: true }, across: function () { return m("F&amp;O → PIM. No call from PIM to F&amp;O."); },
+        c: "Both options start from this. The item number is still created in F&amp;O." },
+      { t: "1 · A value typed once", d: "Material is typed on Range · Carbon. The product has no material of its own, so it shows the range value. Diameter stays on the product.",
+        s: { placed: true, material: true }, across: function () { return m("Nothing travels yet. The value is on the PIM folder."); },
+        c: "The same in both options. F&amp;O receives the value the product shows, when a return exists. It does not receive the folder itself as the value." },
+      { t: "2 · The return", d: "PIM sends the agreed attributes for the product: the full set it shows, including the material it shows from the range.",
+        s: { placed: true, material: true, values: true },
+        across: function () {
+          return m("PIM → F&amp;O, on the product: MATERIAL = Carbon steel, DIAMETER = 4.8 mm.") +
+            m("An attribute with no shown value is left out. That omission removes it on the F&amp;O side. The variant is not sent attribute values.") +
+            m("Until the switch date, the feed into PIM leaves those codes out. No empty value and no delete flag.");
+        },
+        c: "This send does not exist today. The attribute list is not named yet. How F&amp;O attaches the attribute was said both ways and is still open." },
+      { t: "3 · A range is moved", d: "After a year of sales, Range · Carbon is moved in PIM under Series · Other.",
+        s: { placed: true, material: true, values: true, moved: true },
+        across: function () { return mode === "rigid" ? m("The same folder moves in F&amp;O.") : m("The PIM folder moves. The link row still points at the F&amp;O Carbon category. The F&amp;O category stays."); },
+        c: function () { return mode === "rigid" ? "Orders keep the category they were posted with. A report on the current category loses the earlier period." : "The F&amp;O category stays, so the category on the order stays. The link row has to be kept right."; } },
+      { t: "4 · The folder is retired", d: "The product group is no longer wanted. Orders already use its F&O category.",
+        s: { placed: true, material: true, values: true, moved: true, retired: true },
+        across: function () { return mode === "rigid" ? m("The folder can be unpublished in PIM. F&amp;O cannot delete a category that orders use.") : m("The folder can be unpublished in PIM. The link row is removed. The F&amp;O category stays."); },
+        c: function () { return mode === "rigid" ? "Removing it in PIM does not remove it in F&amp;O." : "The F&amp;O category stays because orders use it. Someone still decides what that category is for."; } }
+    ];
+    var el = function (id) { return document.getElementById(p + "-" + id); };
+    function draw() {
+      var x = steps[step];
+      el("w-steps").innerHTML = steps.map(function (y, i) { return '<button type="button" data-i="' + i + '" class="' + (i === step ? "on" : "") + '">' + y.t + '</button>'; }).join("");
+      Array.prototype.forEach.call(el("w-steps").querySelectorAll("button"), function (bt) { bt.onclick = function () { step = +this.getAttribute("data-i"); draw(); }; });
+      el("w-title").textContent = (mode === "rigid" ? "Rigid · " : "Dynamic · ") + x.t;
+      el("w-text").textContent = x.d;
+      el("w-pim").innerHTML = pimTree(x.s);
+      el("w-across-h").textContent = mode === "dynamic" ? "What crosses · the link" : "What crosses";
+      el("w-across").innerHTML = x.across();
+      el("w-fo").innerHTML = foTree(x.s);
+      el("w-check").innerHTML = "<b>This step</b>" + (typeof x.c === "function" ? x.c() : x.c);
+      el("w-back").disabled = step === 0;
+      el("w-next").disabled = step === steps.length - 1;
+    }
+    el("w-back").onclick = function () { if (step > 0) { step--; draw(); } };
+    el("w-next").onclick = function () { if (step < steps.length - 1) { step++; draw(); } };
+    draw();
+  }
+
+  // open all / close all accordions in a tab
+  document.querySelectorAll('.acc-tools button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var open = b.dataset.acc === 'open';
+      b.closest('.panel').querySelectorAll('details.acc').forEach(function (d) { d.open = open; });
+    });
+  });
+  // follow one product: two sub buttons
+  function showWalk(m) {
+    document.getElementById('walk-rigid-btn').classList.toggle('on', m === 'rigid');
+    document.getElementById('walk-dynamic-btn').classList.toggle('on', m === 'dynamic');
+    document.getElementById('walkbox-rigid').classList.toggle('active', m === 'rigid');
+    document.getElementById('walkbox-dynamic').classList.toggle('active', m === 'dynamic');
+  }
+  document.getElementById('walk-rigid-btn').onclick = function () { showWalk('rigid'); };
+  document.getElementById('walk-dynamic-btn').onclick = function () { showWalk('dynamic'); };
+
+  proto("rigid", "rigid"); proto("dynamic", "dynamic");
+  walk("rigid", "rigid"); walk("dynamic", "dynamic");
 })();
+
 </script>
 </body>
 </html>
