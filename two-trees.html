@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Two trees — rigid and dynamic</title>
+<title>Two ways to keep the catalogue</title>
 <style>
   :root { --ink:#1c1917; --muted:#57534e; --line:#e7e5e4; --paper:#fafaf9; }
   * { box-sizing: border-box; }
@@ -13,128 +13,97 @@
   h2 { font-size: 18px; margin: 28px 0 8px; }
   h3 { font-size: 16px; margin: 0 0 8px; }
   p { margin: 0 0 8px; }
-  .lead { color: var(--muted); max-width: 70ch; }
+  .lead { color: var(--muted); max-width: 78ch; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  @media (max-width: 860px) { .two { grid-template-columns: 1fr; } }
+  @media (max-width: 860px) { .two, .stage { grid-template-columns: 1fr; } }
   .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
   .rigid { background: #fff7ed; border-color: #fdba74; }
   .dynamic { background: #eff6ff; border-color: #93c5fd; }
-  .warn { background: #fff1f2; border-left: 4px solid #9f1239; }
+  .note { background: #fff; border-left: 4px solid #a8a29e; }
   .small { color: var(--muted); font-size: 13px; }
   ul { margin: 8px 0 0; padding-left: 18px; }
   li { margin: 5px 0; }
   .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
   .box { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-width: 120px; }
   .arr { color: #a8a29e; font-size: 20px; }
-  .tree { margin: 10px 0 0; padding-left: 0; list-style: none; }
-  .tree ul { list-style: none; margin: 0; padding-left: 16px; border-left: 1px solid #d6d3d1; }
-  .tree li { margin: 4px 0; }
-  .node { display: inline-block; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 3px 8px; font-size: 13px; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
   th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
-  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12.5px; background: #f5f5f4; padding: 1px 5px; border-radius: 4px; }
   .tabs > input { position: absolute; opacity: 0; pointer-events: none; }
-  .tabbar { display: flex; gap: 8px; margin: 18px 0 8px; }
+  .tabbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 8px; }
   .tabbar label { cursor: pointer; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 14px; }
-  #tab-trees:checked ~ .tabbar label[for="tab-trees"],
-  #tab-fit:checked ~ .tabbar label[for="tab-fit"] { background: #1c1917; color: #fff; border-color: #1c1917; }
+  #tab-options:checked ~ .tabbar label[for="tab-options"],
+  #tab-try:checked ~ .tabbar label[for="tab-try"],
+  #tab-choose:checked ~ .tabbar label[for="tab-choose"] { background: #1c1917; color: #fff; border-color: #1c1917; }
   .panel { display: none; }
-  #tab-trees:checked ~ .panel.trees,
-  #tab-fit:checked ~ .panel.fit { display: block; }
-  .ok { background: #f0fdf4; border-color: #86efac; }
-  .gap { background: #fff7ed; border-color: #fdba74; }
+  #tab-options:checked ~ .panel.options,
+  #tab-try:checked ~ .panel.try,
+  #tab-choose:checked ~ .panel.choose { display: block; }
+  .stage { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .col { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px; min-height: 220px; }
+  .col h3 { margin-bottom: 10px; }
+  .pill { display: block; margin: 6px 0 6px 12px; background: #fafaf9; border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; font-size: 13px; }
+  .pill.moved { border-color: #ea580c; background: #fff7ed; }
+  .pill.gone { opacity: .35; text-decoration: line-through; }
+  button { font: inherit; cursor: pointer; border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 7px 12px; }
+  button.on { background: #1c1917; color: #fff; border-color: #1c1917; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .result { margin-top: 12px; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  select, .inherit { font: inherit; }
+  .inherit { display: grid; grid-template-columns: 180px 1fr; gap: 8px 12px; align-items: center; margin-top: 8px; }
+  .locked { color: var(--muted); }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<h1>The two trees</h1>
-<p class="lead">1 October. Jay named two options. Kalle called the first rigid and the second dynamic, and asked to see them side by side. Rolly said the second is more work and, in his view, safer. No option was chosen. Neither is built.</p>
-<div class="tabs">
-<input type="radio" name="tab" id="tab-trees" checked>
-<input type="radio" name="tab" id="tab-fit">
-<div class="tabbar">
-  <label for="tab-trees">The two trees</label>
-  <label for="tab-fit">Which fits</label>
-</div>
-<div class="panel trees">
+<h1>Two ways to keep the catalogue</h1>
+<p class="lead">From the 1 October discussion. One option keeps a single folder structure in both systems. The other keeps a structure in PIM and a structure in F&amp;O, with a link between them. Neither has been chosen. Nothing on this page is live.</p>
 
-<h2>What exists today</h2>
+<div class="tabs">
+<input type="radio" name="tab" id="tab-options" checked>
+<input type="radio" name="tab" id="tab-try">
+<input type="radio" name="tab" id="tab-choose">
+<div class="tabbar">
+  <label for="tab-options">The two options</label>
+  <label for="tab-try">Try it</label>
+  <label for="tab-choose">If one is chosen</label>
+</div>
+
+<div class="panel options">
+<h2>What happens today</h2>
 <div class="card">
   <div class="row">
-    <div class="box"><b>F&amp;O</b><br>one catalogue tree</div>
+    <div class="box"><b>F&amp;O</b><br>creates the item number and the folders</div>
     <div class="arr">→</div>
-    <div class="box"><b>PIM</b><br>the same folders, under /ErpSyncLive</div>
+    <div class="box"><b>PIM</b><br>stores the same folders and the values that arrive</div>
   </div>
-  <p class="small">One direction. PIM does not send folders or values back. The five levels already in that tree are type, family, series, range, and product group.</p>
+  <p class="small">The folders are product type, family, series, range, and product group. PIM does not send folders or values back.</p>
 </div>
 
 <h2>The two options</h2>
 <div class="two">
   <div class="card rigid">
-    <h3>Rigid — one skeleton</h3>
-    <p>A hierarchy is made in PIM and pushed to F&amp;O. F&amp;O receives that same hierarchy. Rolly: with no mapping table, the push is one-to-one.</p>
+    <h3>Rigid — one structure</h3>
+    <p>The folders are kept in PIM and sent to F&amp;O. F&amp;O receives the same folders. There is no separate link table.</p>
     <div class="row">
-      <div>
-        <ul class="tree">
-          <li><span class="node">PIM · Screws</span>
-            <ul>
-              <li><span class="node">Family</span>
-                <ul>
-                  <li><span class="node">Series</span>
-                    <ul>
-                      <li><span class="node">Range</span>
-                        <ul><li><span class="node">Product group</span></li></ul>
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </div>
+      <div class="box"><b>PIM</b><br>Screws → Family → Series → Range → Product group</div>
       <div class="arr">→</div>
-      <div>
-        <ul class="tree">
-          <li><span class="node">F&amp;O · Screws</span>
-            <ul>
-              <li><span class="node">Family</span>
-                <ul>
-                  <li><span class="node">Series</span>
-                    <ul>
-                      <li><span class="node">Range</span>
-                        <ul><li><span class="node">Product group</span></li></ul>
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </div>
+      <div class="box"><b>F&amp;O</b><br>the same folders</div>
     </div>
-    <p class="small">Same folders on both sides. A rename or a move in PIM rewrites the F&amp;O folder.</p>
+    <p class="small">A rename or a move in PIM changes that folder in F&amp;O as well.</p>
   </div>
-
   <div class="card dynamic">
-    <h3>Dynamic — two hierarchies and a map</h3>
-    <p>PIM keeps its own folders. F&amp;O keeps its own categories. A map links one PIM folder to one F&amp;O category. Jay said that map could be a screen in PIM. A change on one side does not rewrite the other.</p>
+    <h3>Dynamic — two structures and a link</h3>
+    <p>PIM keeps its own folders. F&amp;O keeps its own categories. One row links a PIM folder to an F&amp;O category. A change on one side does not rewrite the other.</p>
     <div class="row">
-      <div class="box"><b>PIM</b><br>its own hierarchy</div>
+      <div class="box"><b>PIM</b><br>its own folders</div>
       <div class="arr">↕</div>
-      <div class="box"><b>Map</b><br>one row per folder</div>
+      <div class="box"><b>Link</b><br>one row per folder</div>
       <div class="arr">↕</div>
-      <div class="box"><b>F&amp;O</b><br>its own hierarchy</div>
+      <div class="box"><b>F&amp;O</b><br>its own categories</div>
     </div>
-    <table>
-      <tr><th>PIM folder</th><th>F&amp;O category</th></tr>
-      <tr><td>The PIM series</td><td>The F&amp;O category it is linked to</td></tr>
-      <tr><td>The PIM range</td><td>A different F&amp;O category, if that is the link</td></tr>
-    </table>
-    <p class="small">Rolly: even with a map, the start is one-to-one. Later moves are the maintenance. Jay: this also fits another ERP. No AX flow was drawn.</p>
+    <p class="small">The start can still be one-to-one. Later moves are maintained on the link. The same PIM folders could later link to another system. That second system is not drawn here.</p>
   </div>
 </div>
 
@@ -142,13 +111,13 @@
 <div class="two">
   <div class="card rigid">
     <h3>Rigid</h3>
-    <p>The folder moves in PIM. The same folder moves in F&amp;O, because there is only one tree.</p>
-    <p>Rolly: purchase orders and sales orders store the category node the product was connected to. A report that uses the tag on the invoice still shows the old node. A report that uses the item’s current node shows only the new one, and the earlier year drops off that node.</p>
+    <p>The folder moves in PIM, and the same folder moves in F&amp;O.</p>
+    <p>Orders keep the category they were posted with. A report on the invoice still shows the old category. A report on the item’s current category shows only the new one, so the earlier period drops off that category.</p>
   </div>
   <div class="card dynamic">
     <h3>Dynamic</h3>
-    <p>The PIM folder can move without rewriting the F&amp;O category. The map row is what changes.</p>
-    <p>The order tag is still Rolly’s concern. The map does not rewrite history on the invoice. It only says which F&amp;O category the PIM folder points at now.</p>
+    <p>The PIM folder can move. The F&amp;O category stays. The link row is what changes.</p>
+    <p>The invoice still keeps the category it was posted with. The link does not rewrite that history. It only says which F&amp;O category the PIM folder points at now.</p>
   </div>
 </div>
 
@@ -156,145 +125,217 @@
 <div class="two">
   <div class="card rigid">
     <h3>Rigid</h3>
-    <p>Rolly: once a product is released and transactions exist, F&amp;O cannot undo or delete that node. Deleting it in PIM does not delete it in F&amp;O.</p>
+    <p>Once a product is released and orders exist, F&amp;O cannot delete that category. Removing it in PIM does not remove it in F&amp;O.</p>
   </div>
   <div class="card dynamic">
     <h3>Dynamic</h3>
-    <p>Jay: a delete removes the mapping. The F&amp;O category stays when an order already uses it. Rolly’s delete block still applies on the F&amp;O side.</p>
+    <p>Removing the connection deletes the link row. The F&amp;O category stays when an order already uses it.</p>
   </div>
 </div>
 
-<h2>What both options still share</h2>
+<h2>What both options share</h2>
 <div class="card">
   <ul>
-    <li>The item number is created in F&amp;O. F&amp;O stays the counter.</li>
-    <li>Kalle’s example of enrichment: material set once on a series in PIM, and the products under it show that value. Pushed back, F&amp;O would get the attribute and the value on the item number. He said that return would not include category attributes or product-group attributes.</li>
-    <li>Which attributes are “the ones we deem important” was not listed.</li>
-    <li>Whether F&amp;O keeps attribute groups, or receives the value directly on the item, was said both ways and was not closed.</li>
-    <li>CMS and eCom were asked for in Kalle’s email. No step for either was spoken, so they are not drawn.</li>
+    <li>The item number is created in F&amp;O.</li>
+    <li>A value can be entered once on a folder in PIM. The products under that folder show it. The example from the discussion was material on a series. Sent back, F&amp;O receives the attribute and the value on the item number.</li>
+    <li>That return was described without category attributes and without product-group attributes. The list of attributes to send was not closed.</li>
+    <li>A value that changes per product, such as diameter, stays on the product.</li>
+    <li>The product holds the allowed configuration, colour, size, and style. The variant holds one choice from each list.</li>
+    <li>Shop and web content were asked about. No steps for them were agreed, so they are not in this picture.</li>
+  </ul>
+</div>
+</div>
+
+<div class="panel try">
+<h2>Prototype — move and unlink</h2>
+<p>These names are an example, so the difference is easy to see. Use the buttons. Nothing here writes to F&amp;O or to PIM.</p>
+<div class="actions">
+  <button type="button" id="mode-rigid">Rigid</button>
+  <button type="button" id="mode-dynamic" class="on">Dynamic</button>
+</div>
+<div class="stage">
+  <div class="col">
+    <h3>PIM folders</h3>
+    <div id="pim-tree"></div>
+  </div>
+  <div class="col">
+    <h3>Link</h3>
+    <div id="map"></div>
+  </div>
+  <div class="col">
+    <h3>F&amp;O categories</h3>
+    <div id="fo-tree"></div>
+  </div>
+</div>
+<div class="actions">
+  <button type="button" id="do-move">Move Carbon in PIM</button>
+  <button type="button" id="do-unlink">Remove the Carbon connection</button>
+  <button type="button" id="do-reset">Reset</button>
+</div>
+<div class="result" id="proto-result">Dynamic is selected. Carbon in PIM sits under Pan-head. The F&amp;O Carbon category sits beside Pan-head, not under it. The link joins them.</div>
+
+<h2>Prototype — a value entered once</h2>
+<p>Enter the material on the series. The products below have no material of their own, so they show the series value. Diameter stays on each product.</p>
+<div class="card">
+  <div class="inherit">
+    <b>Series · Pan-head</b>
+    <label>Material
+      <select id="material">
+        <option>Carbon steel</option>
+        <option>Stainless steel</option>
+      </select>
+    </label>
+    <b>Product · 4.8 mm</b>
+    <div>Material <span class="locked" id="mat-a">Carbon steel</span> · shown from the series<br>Diameter <b>4.8 mm</b> · stored on this product</div>
+    <b>Product · 5.5 mm</b>
+    <div>Material <span class="locked" id="mat-b">Carbon steel</span> · shown from the series<br>Diameter <b>5.5 mm</b> · stored on this product</div>
+    <b>Variant</b>
+    <div>Shows the product’s material and diameter. Holds one configuration, for example Black, loose. The product holds the full allowed list.</div>
+  </div>
+</div>
+<p class="small">If a value is sent back, F&amp;O receives the value the product shows, on the item number. F&amp;O does not repeat the folder structure for that value.</p>
+</div>
+
+<div class="panel choose">
+<h2>What PIM already keeps</h2>
+<div class="card">
+  <ul>
+    <li>A folder tree: product type, family, series, range, product group.</li>
+    <li>A value entered on a folder, shown on the products underneath when those products have no value of their own.</li>
+    <li>Variants under the product.</li>
+    <li>Measures such as diameter and length.</li>
+    <li>A list of allowed configuration, colour, size, and style on the product, and one choice on the variant.</li>
+    <li>A rename or a move keeps the same folder. The path on screen changes.</li>
+  </ul>
+  <p class="small">This is enough for the value example above. Choosing rigid or dynamic does not change where that value is typed.</p>
+</div>
+
+<h2>What is new, for either option</h2>
+<div class="card">
+  <ul>
+    <li>A send from PIM back to F&amp;O. That send does not exist today.</li>
+    <li>The agreed list of attributes to send. Only that list goes back.</li>
+    <li>The value sent is the one the product shows, including a value it shows from a folder above. Variants are not the place F&amp;O stores attribute values.</li>
+    <li>The current feed from F&amp;O into PIM has to stop for those attributes on an agreed date. Until then the feed and a value typed in PIM are two writers of the same field.</li>
+    <li>A new attribute is added when it is agreed. It does not appear in the return by itself.</li>
   </ul>
 </div>
 
-<h2>Not this picture</h2>
-<div class="card warn">
-  <p><b>/InheritDemo</b> on TEST is a folder inside PIM. Head type sits on the series, material on the range, diameter on the product group, length on the master, and the levels below show those values. The master holds several dimension options. The variant holds one.</p>
-  <p>That is Kalle’s inheritance example. It is one tree, it is not sent to F&amp;O, and it is neither the rigid option nor the dynamic option.</p>
-</div>
-
-<p class="small">Local briefing of what was said on 1 October. Not a build. Not the feed contract.</p>
-</div>
-
-<div class="panel fit">
-<h2>Checked against what is already in Pimcore</h2>
-<div class="card">
-  <ul>
-    <li>The live catalogue is one tree under <code>/ErpSyncLive</code>. F&amp;O sends it. The folder code stored on each node is the F&amp;O record number.</li>
-    <li>Screws and washers are two classes, <code>PtScrew</code> and <code>PtWasher</code>. Both allow inheritance and variants. That is standard Pimcore. An empty field on a child shows the parent’s value.</li>
-    <li>Each field has one owning level. Head type is on the series. Material is on the range. Diameter is on the product group. Length is on the master. The master holds several allowed dimension values. The variant holds one.</li>
-    <li><code>/InheritDemo</code> uses those same classes. It proved the inheritance. It did not add a second tree, a map, or a send back to F&amp;O.</li>
-    <li>The feed writes a value onto the object named in the row. It does not turn folder inheritance on. The folder-default switch stays off.</li>
-  </ul>
-</div>
-
-<h2>Where inheritance sits</h2>
-<div class="card ok">
-  <p>Inheritance fits the classes that exist. It does not choose rigid or dynamic. F&amp;O does not inherit, so a value set on a series in PIM still has to be sent as that value on the item number. <code>/InheritDemo</code> is that picture, inside one PIM tree.</p>
-</div>
-
-<h2>Which approach fits</h2>
+<h2>What each option adds</h2>
 <table>
   <tr><th></th><th>Rigid</th><th>Dynamic</th></tr>
   <tr>
-    <td>The tree already in <code>/ErpSyncLive</code></td>
-    <td>Closer. That tree is already one hierarchy, keyed by the F&amp;O record number. A push sends the same folders.</td>
-    <td>Farther. A second shape, plus a map, does not exist. The first load can still be one-to-one, which Rolly said.</td>
+    <td>Folders</td>
+    <td>The folders PIM already has are sent across, so F&amp;O has the same ones.</td>
+    <td>PIM can keep its folders. F&amp;O keeps its categories. A link joins a PIM folder to an F&amp;O category. The first load can still match them one-to-one.</td>
   </tr>
   <tr>
-    <td>The inherit demo</td>
-    <td>Fits. Values stay on the owning level. Children show them. The send flattens the shown value onto the master.</td>
-    <td>Fits the same way. The map does not change where a value is typed.</td>
+    <td>A move</td>
+    <td>Changes the folder in both systems. Reports that use the invoice category and reports that use the current category then disagree, as described above.</td>
+    <td>Changes the PIM folder and the link. The F&amp;O category stays, so old orders keep their category.</td>
   </tr>
   <tr>
-    <td>Orders tagged with a category</td>
-    <td>Weaker. A move in PIM rewrites the F&amp;O folder. Rolly said F&amp;O cannot delete a node after transactions, and a later move splits the reports.</td>
-    <td>Closer to what they argued. The PIM folder can move. The map row changes. The F&amp;O category on the old orders stays.</td>
+    <td>A removed folder</td>
+    <td>F&amp;O cannot delete a category that orders already use.</td>
+    <td>The link can be removed. The F&amp;O category stays when orders use it.</td>
   </tr>
   <tr>
-    <td>A later second ERP, which Jay mentioned</td>
-    <td>Another one-to-one push, one skeleton per ERP.</td>
-    <td>The same PIM tree, another map. That was Jay’s reason for this option. No AX flow was drawn.</td>
+    <td>Where the link is kept</td>
+    <td>There is no link table.</td>
+    <td>The link can be a screen in PIM, or it can be kept beside PIM. That place is not chosen.</td>
+  </tr>
+  <tr>
+    <td>Another system later</td>
+    <td>Another copy of the same folders.</td>
+    <td>The same PIM folders, with another link. Not designed.</td>
   </tr>
 </table>
 
-<h2>Pimcore standards</h2>
-<div class="two">
-  <div class="card ok">
-    <h3>Already standard, already in the classes</h3>
-    <ul>
-      <li>A folder tree, parent and child.</li>
-      <li>Inheritance when the child field is empty.</li>
-      <li>Variants under a master.</li>
-      <li>A classification store for the measures.</li>
-      <li>Relations: one value, or a list of allowed values.</li>
-      <li>The object id stays the same after a rename or a move. The path changes.</li>
-      <li>Publish and unpublish. Versions of the object.</li>
-    </ul>
-  </div>
-  <div class="card gap">
-    <h3>Not a Pimcore feature</h3>
-    <ul>
-      <li>A connector that writes folders and values into F&amp;O.</li>
-      <li>A map between a PIM folder and an F&amp;O category.</li>
-      <li>A “send to F&amp;O” flag on an attribute.</li>
-      <li>A call to Azure on save, or on a schedule. A scheduled command is normal PHP. The F&amp;O call is not.</li>
-      <li>F&amp;O’s rule that a category on an order cannot be deleted.</li>
-    </ul>
-  </div>
+<div class="card note" style="margin-top:14px">
+  <p><b>Reading of the fit.</b> Entering a value once, and letting the products below show it, fits PIM as it is. It does not require either option. Rigid is the smaller change to the folders, and it is the one that moves F&amp;O categories when someone moves a folder in PIM. Dynamic leaves those categories in place and adds the link, which is the extra work. PIM can maintain the folders and the values for either choice. It does not maintain F&amp;O’s order history.</p>
 </div>
-<p class="small">One tree plus inheritance is the versatile Pimcore part, and both options can sit on it. Dynamic adds a map. That map is the piece Pimcore does not already maintain. Jay said it could be a screen in PIM. Adil later proposed it lives in his Function App. If the map stays in the Function App, Pimcore’s job is still one tree, inheritance, and a send of the shown values.</p>
-
-<h2>If one option is chosen, what the current Pimcore can maintain</h2>
-<div class="two">
-  <div class="card rigid">
-    <h3>Rigid</h3>
-    <ul>
-      <li>Keep <code>PtScrew</code> and <code>PtWasher</code>, the five levels, and inheritance. No new class for the tree.</li>
-      <li>Add a scheduled send of those folders, then the value the master shows.</li>
-      <li>The first send can use the F&amp;O record number already stored on the folder.</li>
-      <li>Pimcore can maintain the folders, the inherited values, the dimension lists, and the variants. That is what the admin already does.</li>
-      <li>Pimcore cannot maintain the order tag or the delete block. A move here becomes a move in F&amp;O.</li>
-      <li>His current <code>/tree</code> and <code>/product-attributes</code> feeds must stop on an agreed date. Until then they overwrite a value typed in PIM.</li>
-    </ul>
-  </div>
-  <div class="card dynamic">
-    <h3>Dynamic</h3>
-    <ul>
-      <li>The same classes and the same inheritance stay. <code>/InheritDemo</code> is still the shape of the values.</li>
-      <li>The map is new. It is not a field today. A link object can be built, or the map stays in the Function App.</li>
-      <li>A different PIM shape would be another root of the same class. Pimcore can hold that. The feed must not write it.</li>
-      <li>Someone has to maintain which PIM folder points at which F&amp;O category. Pimcore has objects and relations for that only after the link is built. It has no mapping screen now.</li>
-      <li>The value send is the same as rigid: the value the master shows, on the item number.</li>
-      <li>The same feed-stop rule applies. Two writers on one value will fight.</li>
-    </ul>
-  </div>
+<p class="small">Example only. Not a live catalogue, and not a decision.</p>
+</div>
+</div>
 </div>
 
-<h2>What stays hand-built either way</h2>
-<div class="card warn">
-  <ul>
-    <li>A new attribute still needs a field and an alias before it appears, and before it can go back to F&amp;O.</li>
-    <li>en-US wording on a pick-list is not copied into the imperial box. That gap is on the way in. It is not solved by either tree.</li>
-    <li>Danish and Swedish product names are not a return call. He marked that as not in v1.</li>
-    <li>There is no record of what was last sent, so a removed value cannot yet go back as deleted on that one attribute.</li>
-  </ul>
-</div>
+<script>
+(function () {
+  var mode = "dynamic";
+  var moved = false;
+  var unlinked = false;
+  var pim = document.getElementById("pim-tree");
+  var fo = document.getElementById("fo-tree");
+  var map = document.getElementById("map");
+  var result = document.getElementById("proto-result");
 
-<div class="card">
-  <p><b>Judgment.</b> Inheritance fits now, on the classes that exist, and it does not require either option. Rigid is the smaller change inside Pimcore and the worse fit to the order problem Rolly described. Dynamic matches that problem, and it is more work because of the map, not because Pimcore cannot inherit. If the map stays in the Function App, Pimcore maintains one tree and the inherited values for either choice. It does not maintain F&amp;O.</p>
-</div>
-<p class="small">Fit check against the classes and <code>/InheritDemo</code>. Not a decision from the 1 October call.</p>
-</div>
-</div>
-</div>
+  function pill(text, cls) {
+    return '<span class="pill ' + (cls || "") + '">' + text + "</span>";
+  }
+
+  function draw() {
+    var pimParent = moved ? "Series · Other" : "Series · Pan-head";
+    var foParent = mode === "rigid" && moved ? "Moved with PIM" : "Procurement · Screws";
+    pim.innerHTML =
+      pill("Screws") +
+      pill("Family · Example") +
+      pill("Series · Pan-head") +
+      (moved ? pill("Series · Other", "moved") : "") +
+      pill("Range · Carbon — under " + pimParent, moved ? "moved" : "") +
+      pill("Range · Stainless — under Series · Pan-head");
+    fo.innerHTML =
+      pill("Procurement · Screws") +
+      pill("Pan-head category") +
+      pill("Carbon category — under " + foParent, mode === "rigid" && moved ? "moved" : "") +
+      pill("Stainless category — under Procurement · Screws");
+    var carbon = unlinked && mode === "dynamic"
+      ? pill("Carbon — link removed", "gone")
+      : pill("Carbon in PIM ↔ Carbon category in F&amp;O");
+    map.innerHTML =
+      (mode === "rigid"
+        ? pill("No link table. The folders are the same object on both sides.")
+        : pill("Pan-head in PIM ↔ Pan-head category") + carbon + pill("Stainless in PIM ↔ Stainless category"));
+    if (mode === "rigid" && moved) {
+      result.textContent = "Rigid: Carbon moved in PIM, and the F&O category moved with it. Old orders still show the category they were posted with.";
+    } else if (mode === "dynamic" && unlinked) {
+      result.textContent = "Dynamic: the Carbon link is gone. The PIM range and the F&O category are both still there.";
+    } else if (mode === "dynamic" && moved) {
+      result.textContent = "Dynamic: Carbon now sits under Series · Other in PIM. The F&O Carbon category stayed under Procurement · Screws. The link still joins them.";
+    } else if (mode === "rigid") {
+      result.textContent = "Rigid: one structure. Carbon in PIM and the Carbon category in F&O are the same folder. A move changes both.";
+    } else {
+      result.textContent = "Dynamic: Carbon in PIM sits under Pan-head. The F&O Carbon category sits beside Pan-head, not under it. The link joins them.";
+    }
+  }
+
+  document.getElementById("mode-rigid").onclick = function () {
+    mode = "rigid";
+    this.classList.add("on");
+    document.getElementById("mode-dynamic").classList.remove("on");
+    draw();
+  };
+  document.getElementById("mode-dynamic").onclick = function () {
+    mode = "dynamic";
+    this.classList.add("on");
+    document.getElementById("mode-rigid").classList.remove("on");
+    draw();
+  };
+  document.getElementById("do-move").onclick = function () { moved = !moved; draw(); };
+  document.getElementById("do-unlink").onclick = function () {
+    if (mode === "rigid") {
+      result.textContent = "Rigid has no separate link to remove. The folder exists on both sides. F&O cannot delete a category that orders already use.";
+      return;
+    }
+    unlinked = !unlinked;
+    draw();
+  };
+  document.getElementById("do-reset").onclick = function () { moved = false; unlinked = false; draw(); };
+  document.getElementById("material").onchange = function () {
+    document.getElementById("mat-a").textContent = this.value;
+    document.getElementById("mat-b").textContent = this.value;
+  };
+  draw();
+})();
+</script>
 </body>
 </html>
