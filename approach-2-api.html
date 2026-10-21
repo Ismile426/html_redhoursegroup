@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Approach 2 — API payload</title>
+<style>
+  :root { --ink:#1f2328; --muted:#57606a; --line:#d0d7de; --red:#b22222; --ok:#1a7f37; --wait:#9a6700; --post:#1a7f37; --get:#0969da; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; color: var(--ink); line-height: 1.55; background: #f6f8fa; }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 20px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 6px; }
+  h2 { font-size: 17px; margin: 22px 0 10px; }
+  h3 { font-size: 14px; color: #8b1a1a; margin: 18px 0 8px; }
+  p { margin: 0 0 10px; }
+  code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 13px; }
+  pre { background: #1f2328; color: #e6edf3; border-radius: 6px; padding: 12px; font-size: 12.5px; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; background: #fff; }
+  th, td { border: 1px solid var(--line); padding: 7px 9px; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; }
+  .ok { border-left: 4px solid var(--ok); background: #f2fbf4; padding: 10px 14px; margin: 12px 0; }
+  .ask { border-left: 4px solid var(--wait); background: #fff8e8; padding: 10px 14px; margin: 12px 0; }
+  .box { border-left: 4px solid var(--red); background: #fff5f5; padding: 10px 14px; margin: 12px 0; }
+  .small { color: var(--muted); font-size: 12.5px; }
+  .panel { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 18px 18px 24px; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 0; position: sticky; top: 0; z-index: 5; background: #f6f8fa; padding: 10px 0 12px; border-bottom: 1px solid var(--line); }
+  .tabs button { border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 7px 11px; cursor: pointer; font: inherit; font-size: 13px; }
+  .tabs button .verb { font-size: 10px; font-weight: 700; letter-spacing: .04em; margin-right: 6px; color: var(--post); }
+  .tabs button.on { background: #b22222; color: #fff; border-color: #b22222; }
+  .tabs button.on .verb { color: #fff; }
+  .tab { display: none; }
+  .tab.on { display: block; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; margin-right: 6px; vertical-align: middle; }
+  .badge.live { background: #dafbe1; color: var(--ok); }
+  .badge.keep { background: #dafbe1; color: var(--ok); }
+  .badge.fix { background: #fff8c5; color: var(--wait); }
+  .badge.drop { background: #ffebe9; color: #cf222e; }
+  ul { margin: 8px 0 12px; padding-left: 20px; }
+  td.keep { background: #f2fbf4; }
+  td.fix { background: #fff8e8; }
+  td.drop { background: #fff5f5; }
+  ul.rows li { margin-bottom: 4px; }
+  a { color: #0969da; }
+  @media (max-width: 640px) { .tabs button { flex: 1 1 46%; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Approach 2 — API payload</h1>
+<p class="small">21 October 2026. Same calls as <a href="fo-api.html">the current payload page</a>. No call is removed. Plain language: <a href="approach-2.html">Approach 2</a>.</p>
+
+<div class="box"><b>Do not send the new fields yet.</b> <code>parentKey</code> omitted on a new master, <code>productType</code> on that create, and <code>lifecycleState</code> are not on TEST. The three return calls are not built.</div>
+<div class="ok"><b>Unchanged and already in use:</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/dimensions</code> · <code>/tree</code> · <code>/attribute-definitions</code> · <code>/product-attributes</code> · <code>/product-translations</code>. <code>/product-master</code> and <code>/product-release</code> stay as they are until the new fields are on TEST.</div>
+<div class="ask"><code>X-API-Key</code> on every call. Wrapper <code>{ "batchId", "items": [] }</code>. Max <b>500</b> rows or <b>2 MB</b> → HTTP 413, nothing in that batch is applied. Unknown extra keys are ignored.</div>
+
+<nav class="tabs" id="tabs" aria-label="Approach 2 endpoints">
+  <button type="button" data-tab="vs" class="on">Verdict</button>
+  <button type="button" data-tab="products"><span class="verb">POST</span>/product-master</button>
+  <button type="button" data-tab="released"><span class="verb">POST</span>/product-release</button>
+  <button type="button" data-tab="attributes"><span class="verb">POST</span>/product-attributes</button>
+  <button type="button" data-tab="tree"><span class="verb">POST</span>/tree</button>
+  <button type="button" data-tab="link">Link</button>
+  <button type="button" data-tab="back">Return calls</button>
+  <button type="button" data-tab="reply">Reply shape</button>
+</nav>
+
+<div class="tab on panel" id="tab-vs">
+  <h2>Verdict per call</h2>
+  <table>
+    <tr><th>Call</th><th>Verdict</th><th>Approach 2</th></tr>
+    <tr><td><code>/companies</code></td><td class="keep"><span class="badge keep">NO CHANGE</span></td><td>Same as <a href="fo-api.html#companies">today</a>.</td></tr>
+    <tr><td><code>/dimensions</code></td><td class="keep"><span class="badge keep">NO CHANGE</span></td><td>Keep the current send. Do not widen it.</td></tr>
+    <tr><td><code>/tree</code></td><td class="keep"><span class="badge keep">NO CHANGE</span></td><td>Keep sending Screws only. Same <code>categoryKey</code> updates the same folder. <code>isActive</code> is accepted and not stored. This call does not write the link.</td></tr>
+    <tr><td><code>/attribute-definitions</code></td><td class="keep"><span class="badge keep">NO CHANGE</span></td><td>Keep sending. PIM does not create attributes in F&amp;O.</td></tr>
+    <tr><td><code>/product-master</code></td><td class="fix"><span class="badge fix">NOT ON TEST</span></td><td>A new master may omit <code>parentKey</code>. Then <code>productType</code> <code>"06"</code> or <code>"09"</code> is required. See the products tab.</td></tr>
+    <tr><td><code>/product-attributes</code></td><td class="keep"><span class="badge keep">NO CHANGE</span></td><td>Same call. A value for a product still in the holding folder is ignored and not kept.</td></tr>
+    <tr><td><code>/product-translations</code></td><td class="keep"><span class="badge keep">NO CHANGE</span></td><td>Same as <a href="fo-api.html#product-translations">today</a>.</td></tr>
+    <tr><td><code>/product-release</code></td><td class="fix"><span class="badge fix">NOT ON TEST</span></td><td>Optional <code>lifecycleState</code> on <code>released: true</code>. Stored as sent. It does not turn the shop off.</td></tr>
+    <tr><td>Attribute set-up, placement, attribute values back to F&amp;O</td><td class="drop"><span class="badge drop">NOT BUILT</span></td><td>PIM will call the Function App. No date. No agreed attribute list.</td></tr>
+  </table>
+</div>
+
+<div class="tab panel" id="tab-products">
+  <h2><span class="badge fix">NOT ON TEST</span> <code>POST /api/v1/product-master</code></h2>
+  <p>Every field on the <a href="fo-api.html#products">current product page</a> still applies. A master that has a <code>parentKey</code> is unchanged: the folder decides screw or washer, and you may leave <code>productType</code> out. That is how the Screws feed works today.</p>
+  <div class="ask"><b>The only new case</b> is a master with no folder yet. Omit <code>parentKey</code>. Send <code>productType</code> <code>"06"</code> or <code>"09"</code>. It is stored in a holding folder that is not mapped. Do not default a missing type to a screw.</div>
+  <table>
+    <tr><th>Field</th><th>On</th><th>Required</th><th>Rule</th></tr>
+    <tr><td><code>code</code></td><td>master</td><td>Yes</td><td>Match key. Same as today.</td></tr>
+    <tr><td><code>layer</code></td><td>master</td><td>Yes</td><td><code>"master"</code></td></tr>
+    <tr><td><code>parentKey</code></td><td>master</td><td>No</td><td>Level-5 folder <code>categoryKey</code> when you have one. Omit it and a <b>new</b> master goes to the holding folder. Omit it on a master that already exists and the master stays where it is. Sending a <code>parentKey</code> is a move, and the folder must be the same type.</td></tr>
+    <tr><td><code>productType</code></td><td>master</td><td>Only when <code>parentKey</code> is omitted on create</td><td><code>"06"</code> screw or <code>"09"</code> washer. <code>"SCREW"</code> and <code>"WASHER"</code> mean the same two types, as on <code>/tree</code>. Any other value fails the row. The master is not created. On a later row, the same type changes nothing. A different type is rejected. The master stays where it is. Variants do not send this field.</td></tr>
+    <tr><td><code>name</code> and the allowed lists</td><td>master</td><td>No</td><td>Same as today.</td></tr>
+    <tr><td><code>itemNumber</code> <code>masterItemNumber</code></td><td>variant</td><td>Yes on create</td><td>Same as today. A variant follows its master’s type. It does not send <code>productType</code> or <code>parentKey</code>.</td></tr>
+    <tr><td><code>isDeleted</code></td><td>both</td><td>No</td><td>Unpublish that object only. A master does not unpublish its variants.</td></tr>
+  </table>
+  <h3>Example — one master with no folder, one master on a folder</h3>
+<pre>{
+  "batchId": "a2-master-001",
+  "items": [
+    { "code": "88001", "layer": "master", "productType": "06",
+      "name": "Unplaced screw" },
+    { "code": "88002", "layer": "master", "productType": "09",
+      "name": "Unplaced washer" },
+    { "code": "40100", "layer": "master", "parentKey": "5637150105",
+      "name": "Hex head roofing screw 6.5 x 100" },
+    { "itemNumber": "88001", "masterItemNumber": "88001", "layer": "variant",
+      "name": "Unplaced screw" }
+  ]
+}</pre>
+  <ul class="rows">
+    <li><code>88001</code> has no <code>parentKey</code> and <code>productType</code> <code>"06"</code>. New master, holding folder, screw.</li>
+    <li><code>88002</code> is the same with <code>"09"</code>. Washer. It is not turned into a screw.</li>
+    <li><code>40100</code> still has a <code>parentKey</code>. No <code>productType</code> is required. The folder decides the type, as today.</li>
+    <li>The variant uses <code>masterItemNumber</code>. It is created under that master, including a master that is still in the holding folder.</li>
+    <li>A later row for <code>88001</code> with no <code>parentKey</code> updates it in place. It does not move.</li>
+  </ul>
+  <h3>When something is off</h3>
+  <table>
+    <tr><th>You send</th><th>What happens</th></tr>
+    <tr><td>New master, no <code>parentKey</code>, no <code>productType</code></td><td>Row fails, <code>VALIDATION</code>, not retryable. Nothing is created. Error: <code>productType 06 (screw) or 09 (washer) is required to create a master with no parentKey</code>.</td></tr>
+    <tr><td>New master, no <code>parentKey</code>, <code>productType</code> <code>"99"</code></td><td>Row fails, <code>VALIDATION</code>, not retryable. Error: <code>productType 99 is not 06 (screw) or 09 (washer)</code>.</td></tr>
+    <tr><td><code>productType</code> <code>"09"</code> on a screw, or <code>"06"</code> on a washer</td><td>Row fails, <code>CONFLICT</code>, not retryable. The master is not converted and not moved.</td></tr>
+    <tr><td><code>parentKey</code> of a folder that is not a level-5 product group</td><td>Same as today. Row fails, <code>VALIDATION</code>.</td></tr>
+    <tr><td><code>parentKey</code> we have not seen</td><td>Same as today. <code>NOT_FOUND</code>, retryable. Send <code>/tree</code> first.</td></tr>
+  </table>
+</div>
+
+<div class="tab panel" id="tab-released">
+  <h2><span class="badge fix">NOT ON TEST</span> <code>POST /api/v1/product-release</code></h2>
+  <p>Same as <a href="fo-api.html#released">today</a>: one row per variant and company. <code>released: true</code> adds the company. <code>RH</code>, <code>RHU</code>, <code>ASW</code>, and <code>SPI</code> also turn that shop on. <code>released: false</code> removes the company and that shop. The product stays.</p>
+  <div class="ask"><code>lifecycleState</code> is stored per company on the variant. It does not turn the shop off. The shop still follows <code>released</code>. Do not send it until this field is on TEST.</div>
+  <table>
+    <tr><th>Field</th><th>Required</th><th>Rule</th></tr>
+    <tr><td><code>itemNumber</code></td><td>Yes</td><td>The variant number. A master number is not accepted until a variant with that number exists.</td></tr>
+    <tr><td><code>companyCode</code></td><td>Yes</td><td>A company already sent on <code>/companies</code>.</td></tr>
+    <tr><td><code>released</code></td><td>Yes</td><td><code>true</code> or <code>false</code>. Same as today.</td></tr>
+    <tr><td><code>lifecycleState</code></td><td>No</td><td>On <code>released: true</code>: <code>"1"</code>, <code>"2"</code>, <code>"3"</code>, or JSON <code>null</code>. Stored as sent for that company. <code>null</code> clears the stored state and leaves the shop as <code>released</code> set it. Omit the field and the stored state is left as it is. On <code>released: false</code>, leave the field out. That company’s stored state is removed with the company. Any other value fails the row and writes nothing.</td></tr>
+  </table>
+  <h3>Example</h3>
+<pre>{
+  "batchId": "a2-release-001",
+  "items": [
+    { "itemNumber": "88001", "companyCode": "RH",  "released": true,  "lifecycleState": "3" },
+    { "itemNumber": "88001", "companyCode": "ASW", "released": true,  "lifecycleState": null },
+    { "itemNumber": "88001", "companyCode": "RH",  "released": false }
+  ]
+}</pre>
+  <ul class="rows">
+    <li><code>"3"</code> is stored for RH. The RH shop still turns on, because <code>released</code> is <code>true</code>.</li>
+    <li><code>null</code> is stored for ASW. The ASW shop still turns on.</li>
+    <li>The same row again, with the same state, comes back <code>unchanged</code>.</li>
+    <li><code>released: false</code> for RH removes RH and its shop, and removes the stored <code>"3"</code>. ASW is left as it was.</li>
+    <li><code>"lifecycleState": "nope"</code> fails that row with <code>VALIDATION</code>. The shop and the stored state are not changed.</li>
+  </ul>
+  <p class="small">A product in the holding folder is included. <code>released: true</code> for RH, RHU, ASW, or SPI still turns that shop on there. PIM does not feed Magento. <code>"3"</code> does not mean the shop is off.</p>
+</div>
+
+<div class="tab panel" id="tab-attributes">
+  <h2><span class="badge live">NO CHANGE</span> <code>POST /api/v1/product-attributes</code></h2>
+  <p>Same body as <a href="fo-api.html#product-attributes">today</a>. Send it after <code>/product-master</code>.</p>
+  <div class="ask">A value sent while the product is in the holding folder is ignored and not kept. The reply names the code and says it is not placed on a folder of this item. Send the values again after a person has placed the product under a folder that has that attribute group.</div>
+  <p>This call keeps running until the switch date. That date is not set. On that date the agreed attributes are left out of the row. They are not sent empty. There is no agreed list yet.</p>
+</div>
+
+<div class="tab panel" id="tab-tree">
+  <h2><span class="badge live">NO CHANGE</span> <code>POST /api/v1/tree</code></h2>
+  <p>Same body as <a href="fo-api.html#tree">today</a>. Keep sending Screws only, until PIM says the pick list is stored separately. After that, send the F&amp;O categories that will be mapped, with the active flag.</p>
+  <table>
+    <tr><th>Field</th><th>Approach 2</th></tr>
+    <tr><td><code>categoryKey</code></td><td>Still the match key. The same key updates the same folder. It does not create a second one. Do not change it after create.</td></tr>
+    <tr><td><code>isActive</code></td><td>Accepted and not stored. PIM cannot refuse a placement because a category is inactive.</td></tr>
+    <tr><td>The link</td><td>This call does not write it. The link is an existing <code>categoryKey</code> stored on a PIM folder by a person. See the link tab.</td></tr>
+  </table>
+</div>
+
+<div class="tab panel" id="tab-link">
+  <h2>Link — not a call</h2>
+  <p>There is no payload for the link. F&amp;O does not send it, and the Function App does not keep a second map.</p>
+  <ul>
+    <li>One PIM folder stores one category id. The id is the same <code>categoryKey</code> text as <code>/tree</code>.</li>
+    <li>Several folders may store the same id.</li>
+    <li>Empty means that folder is not mapped. A child folder does not take its parent’s id.</li>
+    <li>The id used for a product is the id on the folder the master sits in. PIM does not walk up to a parent.</li>
+    <li>A rename or a move of the PIM folder does not change the id, and it does not rename or move the F&amp;O category.</li>
+    <li>The holding folder is not mapped. No placement is sent for a product that is still there.</li>
+  </ul>
+  <p class="small">The field is on the folder in PIM. It is not on TEST.</p>
+</div>
+
+<div class="tab panel" id="tab-back">
+  <h2><span class="badge drop">NOT BUILT</span> PIM → F&amp;O</h2>
+  <p>PIM calls the Function App directly. These calls do not go through the Data Lake. Nothing here has a body you can send, and there is no date.</p>
+  <table>
+    <tr><th>Order</th><th>Call</th><th>What PIM sends</th></tr>
+    <tr><td>1</td><td>Attribute set-up</td><td>The agreed attributes only, and which category uses them. The category id is the same <code>categoryKey</code> as <code>/tree</code>.</td></tr>
+    <tr><td>2</td><td>Placement</td><td>The master item number and that category id. Sent only when the mapped category changes. Two folders that share one id do not cause a send. Variants are not rows. They follow the master.</td></tr>
+    <tr><td>3</td><td>Attribute values</td><td>The full set the master shows, including a value it shows from a folder above. A missing value in that full set is removed in F&amp;O. A master that does not yet have the full set is left out. Variant values are not sent.</td></tr>
+  </table>
+  <p>PIM does not send its folders, its tree, or a category create, rename, inactivate, or delete. No return call starts until the attribute list exists and one writer per value has been proven on TEST.</p>
+</div>
+
+<div class="tab panel" id="tab-reply">
+  <h2>Reply shape — same as today</h2>
+  <p>HTTP <b>200</b> means the batch was read. A failed row is inside <code>results</code> and <code>errors</code>. <b>400</b> nothing applied. <b>413</b> the batch is too big. <b>401</b> bad key.</p>
+  <table>
+    <tr><th>Field</th><th>Meaning</th></tr>
+    <tr><td><code>ok</code></td><td><code>true</code> only when <code>failed</code> is 0.</td></tr>
+    <tr><td><code>results[].action</code></td><td><code>created</code> · <code>updated</code> · <code>unpublished</code> · <code>released</code> · <code>unreleased</code> · <code>unchanged</code> · <code>failed</code></td></tr>
+    <tr><td><code>results[].code</code></td><td>On a failure: <code>VALIDATION</code>, <code>CONFLICT</code>, or <code>NOT_FOUND</code>.</td></tr>
+    <tr><td><code>retryable</code></td><td><code>true</code> only when sending the same row later can succeed. A bad <code>productType</code> or a type change is not retryable.</td></tr>
+  </table>
+<pre>{
+  "ok": false,
+  "processed": 1,
+  "failed": 1,
+  "results": [
+    { "key": "88001", "layer": "master", "action": "created" },
+    { "key": "88009", "action": "failed", "code": "VALIDATION", "retryable": false,
+      "error": "productType 06 (screw) or 09 (washer) is required to create a master with no parentKey" }
+  ],
+  "errors": [
+    { "key": "88009", "code": "VALIDATION", "retryable": false,
+      "error": "productType 06 (screw) or 09 (washer) is required to create a master with no parentKey" }
+  ]
+}</pre>
+  <p class="small">Decide a retry from <code>code</code> and <code>retryable</code>, not from the sentence in <code>error</code>.</p>
+</div>
+
+</div>
+<script>
+(function () {
+  var buttons = document.querySelectorAll("#tabs button");
+  var tabs = document.querySelectorAll(".tab");
+  function show(id) {
+    buttons.forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-tab") === id); });
+    tabs.forEach(function (t) { t.classList.toggle("on", t.id === "tab-" + id); });
+    if (history.replaceState) history.replaceState(null, "", "#" + id);
+  }
+  buttons.forEach(function (b) {
+    b.addEventListener("click", function () { show(b.getAttribute("data-tab")); });
+  });
+  var hash = (location.hash || "#vs").replace("#", "");
+  if (hash === "product-master") hash = "products";
+  if (hash === "product-release") hash = "released";
+  if (hash === "product-attributes") hash = "attributes";
+  if (!document.getElementById("tab-" + hash)) hash = "vs";
+  show(hash);
+})();
+</script>
+</body>
+</html>
