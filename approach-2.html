@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Approach 2 — F&amp;O calls</title>
+<style>
+  :root { --ink:#1c1917; --muted:#57534e; --line:#e7e5e4; --paper:#fafaf9; --blue:#2563eb; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; color: var(--ink); background: var(--paper); line-height: 1.5; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 28px 18px 72px; }
+  h1 { font-size: 26px; margin: 0 0 8px; }
+  h2 { font-size: 18px; margin: 28px 0 8px; }
+  p { margin: 0 0 8px; }
+  .lead { color: var(--muted); max-width: 75ch; }
+  .note { background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--blue); border-radius: 10px; padding: 12px 14px; margin-top: 14px; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 8px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 14px; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); background: #fff; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12.5px; background: #f5f5f4; padding: 1px 5px; border-radius: 4px; }
+  .tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; border-radius: 999px; padding: 2px 8px; }
+  .keep { background: #ecfdf5; color: #166534; }
+  .later { background: #fff7ed; color: #9a3412; }
+  .new { background: #eff6ff; color: #1d4ed8; }
+  ul { margin: 8px 0 0; padding-left: 18px; }
+  li { margin: 4px 0; }
+  .small { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Approach 2 — what F&amp;O sends</h1>
+  <p class="lead">Chosen by Red Horse. F&amp;O and PIM each keep their own folders. A link in PIM joins one PIM folder to one F&amp;O category. Products are still created in F&amp;O. Nothing on this page is a new live call.</p>
+  <div class="note">
+    <b>No existing call is removed.</b> The eight calls below stay. Two fields are agreed and are not on TEST yet. The three calls from PIM back to F&amp;O are not built.
+  </div>
+
+  <h2>Calls that stay</h2>
+  <table>
+    <tr><th>Call</th><th>Status</th><th>What F&amp;O does</th></tr>
+    <tr>
+      <td><code>/companies</code></td>
+      <td><span class="tag keep">No change</span></td>
+      <td>Company code and name. Shop companies remain RH, RHU, ASW, SPI.</td>
+    </tr>
+    <tr>
+      <td><code>/dimensions</code></td>
+      <td><span class="tag keep">No change</span></td>
+      <td>Allowed configuration, colour, size, and style for ticked masters. Do not add other dimensions.</td>
+    </tr>
+    <tr>
+      <td><code>/tree</code></td>
+      <td><span class="tag keep">Keep sending</span></td>
+      <td>Screws categories only, as today: record id, parent, name. Do not stop this call. It still builds the PIM folders until the link list is stored separately. We will say when that split is on TEST.</td>
+    </tr>
+    <tr>
+      <td><code>/attribute-definitions</code></td>
+      <td><span class="tag keep">No change</span></td>
+      <td>Keep sending every definition, including option codes and the en-US option text. PIM does not take over the pick-lists.</td>
+    </tr>
+    <tr>
+      <td><code>/product-attributes</code></td>
+      <td><span class="tag keep">Keep until the switch date</span></td>
+      <td>Still sent. On the switch date, the agreed attributes are left out of the row and are never sent empty. That date is not set. A value is stored only when the product sits under a folder that has that attribute group.</td>
+    </tr>
+    <tr>
+      <td><code>/product-translations</code></td>
+      <td><span class="tag keep">No change</span></td>
+      <td>Name and description per language, as today.</td>
+    </tr>
+    <tr>
+      <td><code>/product-master</code></td>
+      <td><span class="tag later">One change, not on TEST</span></td>
+      <td>Today a new master still needs <code>parentKey</code>. When TEST is ready: no <code>parentKey</code> puts a new master in a holding folder. See below.</td>
+    </tr>
+    <tr>
+      <td><code>/product-release</code></td>
+      <td><span class="tag later">One field, not on TEST</span></td>
+      <td>Today: item number, company, <code>released</code> true or false. <code>lifecycleState</code> is not stored yet. Do not send it until we say so.</td>
+    </tr>
+  </table>
+
+  <h2>Not on TEST yet</h2>
+  <table>
+    <tr><th>Call</th><th>Agreed rule</th></tr>
+    <tr>
+      <td><code>/product-master</code></td>
+      <td>
+        <ul>
+          <li>A new master with no <code>parentKey</code> is stored in an unmapped holding folder.</li>
+          <li><code>productType</code> is required on that create, on the master only: <code>"06"</code> or <code>"09"</code>. Not on variants.</li>
+          <li>Any other value, or a missing type, is skipped. The product is not created. It is not defaulted to a screw.</li>
+          <li>A later row with no <code>parentKey</code> leaves the product in the folder a person moved it to.</li>
+          <li>The same type on an update changes nothing. A different type is rejected. Placement does not convert a screw into a washer.</li>
+        </ul>
+      </td>
+    </tr>
+    <tr>
+      <td><code>/product-release</code></td>
+      <td>
+        <ul>
+          <li>On <code>released: true</code>, store <code>lifecycleState</code> as <code>"1"</code>, <code>"2"</code>, <code>"3"</code>, or <code>null</code>.</li>
+          <li>On <code>released: false</code>, leave the field out.</li>
+          <li>The code is stored as sent. It does not turn the shop off. The shop still follows <code>released</code>.</li>
+        </ul>
+      </td>
+    </tr>
+  </table>
+  <p class="small">Do not start a full reload for these fields. We will say when each one is on TEST.</p>
+
+  <h2>What the holding folder does not do</h2>
+  <ul>
+    <li>It is not mapped to an F&amp;O category. No placement is sent back for a product that is still there.</li>
+    <li>Attribute values sent while the product is still there are ignored. Send them after a person has placed the product under a folder that has the attribute group.</li>
+    <li><code>released: true</code> for RH, RHU, ASW, or SPI still turns that shop on in PIM, including in the holding folder. PIM does not feed Magento.</li>
+  </ul>
+
+  <h2>New calls — not built</h2>
+  <p>PIM will call the Function App directly. These calls do not go through the Data Lake. Nothing here is live.</p>
+  <table>
+    <tr><th>Order</th><th>Call</th><th>What PIM sends</th></tr>
+    <tr>
+      <td>1</td>
+      <td>Attribute set-up</td>
+      <td>The agreed attributes only, and which F&amp;O category uses them. The category id is the same <code>categoryKey</code> as <code>/tree</code>.</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Placement</td>
+      <td>The master item number and that F&amp;O category id. Sent only when the mapped category changes. Variants are not sent; they follow the master in F&amp;O.</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Attribute values</td>
+      <td>The full set the master shows, including a value it shows from a folder above. A missing value is removed in F&amp;O. A product that does not yet have the full set is left out.</td>
+    </tr>
+  </table>
+  <p class="small">PIM does not send its folders, its tree, variant attribute values, or new item numbers. The Function App does not keep a second map. It uses the category id in the body. No return call starts until one writer per value is proven on TEST.</p>
+
+  <h2>Link</h2>
+  <ul>
+    <li>The link lives in PIM. One PIM folder, one F&amp;O category id. Several PIM folders may share one id.</li>
+    <li>A rename or a move of the PIM folder does not change the link. The link changes only when that folder should point at a different F&amp;O category.</li>
+    <li>A product move is sent back only when the new folder maps to a different F&amp;O category.</li>
+  </ul>
+
+  <p class="small" style="margin-top:28px">Reference for F&amp;O. October 2026. Approach 2 is chosen. The new fields and the return calls are not on TEST.</p>
+</div>
+</body>
+</html>
