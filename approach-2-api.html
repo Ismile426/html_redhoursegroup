@@ -205,7 +205,8 @@
 
 <div class="tab panel" id="tab-back">
   <h2><span class="badge fix">HELD, NOT POSTED</span> PIM → F&amp;O</h2>
-  <p>One held row is one HTTP POST when the base URL, the header name, and the key are all set. The body is that row. <code>Content-Type</code> is <code>application/json</code>. The key travels in the one header you name. Timeout is 20 seconds. HTTP 2xx marks the row sent, and the body of that reply is not read. Any other status leaves the row held and the next flush posts it again. There is no retry limit. Rows go out in the order they were stored. A failed row does not stop the later rows. Nothing below has been posted.</p>
+  <p>One held row is one HTTP POST when the base URL, the header name, and the key are all set. The body is that row. <code>Content-Type</code> is <code>application/json</code>. The key travels in the one header you name. Each post also sends <code>X-Outbox-Id</code> and <code>X-Saved-At</code>. Timeout is 20 seconds. HTTP 2xx marks the row sent, and the body of that reply is not read. Any other status leaves the row held. A 401 stops that flush. There is no schedule. Nothing below has been posted.</p>
+  <div class="ask">A folder rename, move, unpublish, or publish is not one of these posts. Read it with <code>GET /api/v1/fo-tree-links?page=1</code> and the same <code>X-API-Key</code>. One row per catalogue folder, 500 to a page, including a folder with no id. The same <code>folderId</code> after a move is how a folder change is seen. <code>POST /api/v1/fo-category-key</code> writes the id back onto that folder.</div>
   <table>
     <tr><th>Call</th><th>When it is stored</th><th>Body</th></tr>
     <tr><td><code>POST {base}/fo-tree-links</code></td><td>A person sets or changes <code>foCategoryKey</code> on a product group.</td><td><code>{"categoryKey","pimPath","layer":"productGroup"}</code></td></tr>
