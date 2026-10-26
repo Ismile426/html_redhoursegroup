@@ -224,7 +224,7 @@
     <tr><td><code>POST {base}/fo-product-attributes</code></td><td>The same save as the set-up row, when the product has an item number. A normal variant sends nothing, because its parent is the master and that field is empty.</td><td><code>{"itemNumber","categoryKey","attributes":[{"code","value"}]}</code></td></tr>
     <tr><td><code>POST {base}/fo-product-placement</code></td><td>A person moves a master onto a different id, or places a waiting card into a folder that already has an id.</td><td><code>{"itemNumber","categoryKey"}</code></td></tr>
   </table>
-  <p>A clear is not sent. Values set before the folder had an id are not replayed when the id is typed later. Measure codes such as <code>RH_DRIVE</code>, <code>DIAMETER</code>, and <code>LENGTH MM</code> are not sent. PIM does not send a folder create, rename, move, unpublish, or a new category id written back onto the folder. No outbox id and no stored time are posted.</p>
+  <p>The four posts above do not send a clear. Values set before the folder had an id are not replayed when the id is typed later. Those posts do not include measure codes such as <code>RH_DRIVE</code>, <code>DIAMETER</code>, and <code>LENGTH MM</code>. The three GETs above do include those codes. PIM does not post a folder create, rename, move, or unpublish. Each post, when the return URL is set, sends <code>X-Outbox-Id</code> and <code>X-Saved-At</code>. No post has gone to F&amp;O, because that URL is empty.</p>
 </div>
 
 <div class="tab panel" id="tab-reply">
