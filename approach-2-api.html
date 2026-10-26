@@ -48,10 +48,11 @@
 <div class="wrap">
 
 <h1>Approach 2 — API payload</h1>
-<p class="small">21 October 2026. Same calls as <a href="fo-api.html">the current payload page</a>. No call is removed. Plain language: <a href="approach-2.html">Approach 2</a>.</p>
+<p class="small">26 October 2026. This page is the Approach 2 contract in the repository. Field-level page for the calls already in use: <a href="fo-api.html">current payload</a>.</p>
 
-<div class="box"><b>Do not send the new fields yet.</b> <code>parentKey</code> omitted on a new master, <code>productType</code> on that create, and <code>lifecycleState</code> are not on TEST. The three return calls are not built.</div>
-<div class="ok"><b>Unchanged and already in use:</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/dimensions</code> · <code>/tree</code> · <code>/attribute-definitions</code> · <code>/product-attributes</code> · <code>/product-translations</code>. <code>/product-master</code> and <code>/product-release</code> stay as they are until the new fields are on TEST.</div>
+<div class="box"><b>TEST is switch 0.</b> The code is on TEST <code>10.100.16.4:82</code>. <code>FO_APPROACH_2</code> is <code>0</code>, so <code>parentKey</code> is still the folder code and point (a) does not run. <code>/tree</code> still creates a screw or washer folder after storing the card. Do not send the wide category list until the switch is 1. A new master with <code>parentKey</code> omitted is a waiting card on TEST today, and a variant, translation, value, or release of that card is held.</div>
+<div class="ask"><b>Return rows are held, not posted.</b> The return URL, the header name, and the key are empty. <code>app:fo-return-flush</code> sends nothing. There is no schedule.</div>
+<div class="ok"><b>Unchanged body:</b> <code>/auth</code> · <code>/ping</code> · <code>/companies</code> · <code>/dimensions</code> · <code>/attribute-definitions</code>. Keep sending attribute definitions before values.</div>
 <div class="ask"><code>X-API-Key</code> on every call. Wrapper <code>{ "batchId", "items": [] }</code>. Max <b>500</b> rows or <b>2 MB</b> → HTTP 413, nothing in that batch is applied. Unknown extra keys are ignored.</div>
 
 <nav class="tabs" id="tabs" aria-label="Approach 2 endpoints">
@@ -71,161 +72,177 @@
     <tr><th>Call</th><th>Verdict</th><th>Approach 2</th></tr>
     <tr><td><code>/companies</code></td><td class="keep"><span class="badge keep">NO CHANGE</span></td><td>Same as <a href="fo-api.html#companies">today</a>.</td></tr>
     <tr><td><code>/dimensions</code></td><td class="keep"><span class="badge keep">NO CHANGE</span></td><td>Keep the current send. Do not widen it.</td></tr>
-    <tr><td><code>/tree</code></td><td class="keep"><span class="badge keep">NO CHANGE</span></td><td>Keep sending Screws only. Same <code>categoryKey</code> updates the same folder. <code>isActive</code> is accepted and not stored. This call does not write the link.</td></tr>
-    <tr><td><code>/attribute-definitions</code></td><td class="keep"><span class="badge keep">NO CHANGE</span></td><td>Keep sending. PIM does not create attributes in F&amp;O.</td></tr>
-    <tr><td><code>/product-master</code></td><td class="fix"><span class="badge fix">NOT ON TEST</span></td><td>A new master may omit <code>parentKey</code>. Then <code>productType</code> <code>"06"</code> or <code>"09"</code> is required. See the products tab.</td></tr>
-    <tr><td><code>/product-attributes</code></td><td class="keep"><span class="badge keep">NO CHANGE</span></td><td>Same call. A value for a product still in the holding folder is ignored and not kept.</td></tr>
-    <tr><td><code>/product-translations</code></td><td class="keep"><span class="badge keep">NO CHANGE</span></td><td>Same as <a href="fo-api.html#product-translations">today</a>.</td></tr>
-    <tr><td><code>/product-release</code></td><td class="fix"><span class="badge fix">NOT ON TEST</span></td><td>Optional <code>lifecycleState</code> on <code>released: true</code>. Stored as sent. It does not turn the shop off.</td></tr>
-    <tr><td>Attribute set-up, placement, attribute values back to F&amp;O</td><td class="drop"><span class="badge drop">NOT BUILT</span></td><td>PIM will call the Function App. No date. No agreed attribute list.</td></tr>
+    <tr><td><code>/tree</code></td><td class="fix"><span class="badge fix">SWITCH 0 ON TEST</span></td><td>At switch 1 this stores a category card and does not create a folder. TEST is switch 0, so it still creates a screw or washer folder after the card. <code>isActive</code> is stored and does not block a link.</td></tr>
+    <tr><td><code>/attribute-definitions</code></td><td class="keep"><span class="badge keep">NO CHANGE</span></td><td>Keep sending this before <code>/product-attributes</code>. A value whose code is not in the book is ignored.</td></tr>
+    <tr><td><code>/product-master</code></td><td class="fix"><span class="badge fix">SPLIT</span></td><td>No <code>parentKey</code> on a new master stores a waiting card. That path runs on TEST. Resolving <code>parentKey</code> as <code>foCategoryKey</code> runs only at switch 1. See the products tab.</td></tr>
+    <tr><td><code>/product-attributes</code></td><td class="keep"><span class="badge keep">HELD ON TEST</span></td><td>Same body. A row with at least one <code>attributeCode</code> for a waiting card is <code>held</code>. It is applied when the card is placed.</td></tr>
+    <tr><td><code>/product-translations</code></td><td class="keep"><span class="badge keep">HELD ON TEST</span></td><td>Same body as <a href="fo-api.html#product-translations">today</a>. A non-empty <code>texts</code> list for a waiting card is <code>held</code>. <code>isDeleted</code> on this call is ignored.</td></tr>
+    <tr><td><code>/product-release</code></td><td class="keep"><span class="badge keep">HELD ON TEST</span></td><td>A release for a waiting card is <code>held</code>. After the variant exists, a missing variant is <code>NOT_FOUND</code>. <code>"3"</code> on <code>released: true</code> turns the shop on.</td></tr>
+    <tr><td>Link, attribute set-up, placement, values back to F&amp;O</td><td class="fix"><span class="badge fix">HELD, NOT POSTED</span></td><td>Four bodies are stored. Nothing is posted while the return URL is empty. See the return tab.</td></tr>
   </table>
 </div>
 
 <div class="tab panel" id="tab-products">
-  <h2><span class="badge fix">NOT ON TEST</span> <code>POST /api/v1/product-master</code></h2>
-  <p>Every field on the <a href="fo-api.html#products">current product page</a> still applies. A master that has a <code>parentKey</code> is unchanged: the folder decides screw or washer, and you may leave <code>productType</code> out. That is how the Screws feed works today.</p>
-  <div class="ask"><b>The only new case</b> is a master with no folder yet. Omit <code>parentKey</code>. Send <code>productType</code> <code>"06"</code> or <code>"09"</code>. It is stored in a holding folder that is not mapped. Do not default a missing type to a screw.</div>
+  <h2><span class="badge fix">SWITCH 1 FOR parentKey</span> <code>POST /api/v1/product-master</code></h2>
+  <p>Every other field on the <a href="fo-api.html#products">current product page</a> still applies. Two create paths:</p>
+  <div class="ask"><b>No folder yet.</b> Omit <code>parentKey</code>, or send JSON <code>null</code>. The master is a waiting card under <code>/ErpSyncLive/Unassigned</code>. It is not a screw and not a washer. <code>productType</code> is not read. Do not send <code>"0"</code>, <code>"06"</code>, or <code>"09"</code> to choose a class. None of them do.</div>
+  <div class="ok"><b>Folder already linked.</b> Send <code>parentKey</code> as the F&amp;O category id a person stored on one product-group folder. That folder decides screw or washer. Omit <code>productType</code>, or send JSON <code>null</code>. If you send it, it must match the folder.</div>
   <table>
     <tr><th>Field</th><th>On</th><th>Required</th><th>Rule</th></tr>
     <tr><td><code>code</code></td><td>master</td><td>Yes</td><td>Match key. Same as today.</td></tr>
     <tr><td><code>layer</code></td><td>master</td><td>Yes</td><td><code>"master"</code></td></tr>
-    <tr><td><code>parentKey</code></td><td>master</td><td>No</td><td>Level-5 folder <code>categoryKey</code> when you have one. Omit it and a <b>new</b> master goes to the holding folder. Omit it on a master that already exists and the master stays where it is. Sending a <code>parentKey</code> is a move, and the folder must be the same type.</td></tr>
-    <tr><td><code>productType</code></td><td>master</td><td>Only when <code>parentKey</code> is omitted on create</td><td><code>"06"</code> screw or <code>"09"</code> washer. <code>"SCREW"</code> and <code>"WASHER"</code> mean the same two types, as on <code>/tree</code>. Any other value fails the row. The master is not created. On a later row, the same type changes nothing. A different type is rejected. The master stays where it is. Variants do not send this field.</td></tr>
-    <tr><td><code>name</code> and the allowed lists</td><td>master</td><td>No</td><td>Same as today.</td></tr>
-    <tr><td><code>itemNumber</code> <code>masterItemNumber</code></td><td>variant</td><td>Yes on create</td><td>Same as today. A variant follows its master’s type. It does not send <code>productType</code> or <code>parentKey</code>.</td></tr>
-    <tr><td><code>isDeleted</code></td><td>both</td><td>No</td><td>Unpublish that object only. A master does not unpublish its variants.</td></tr>
+    <tr><td><code>parentKey</code></td><td>master</td><td>No</td><td>Omit it, or JSON <code>null</code>, and a <b>new</b> master is held. The reply action is <code>held</code> the first time and <code>updated</code> after that. The reply layer is <code>unassigned</code>. Omit it on a master that already exists and that master stays where it is, waiting card or catalogue folder. A value is a move only when a person has stored that id on exactly one product group. Sending <code>/tree</code> does not create that link. A later <code>parentKey</code> on a waiting card creates the catalogue master. The reply action is <code>created</code>. The waiting card is then closed.</td></tr>
+    <tr><td><code>productType</code></td><td>master</td><td>No. Do not send <code>"0"</code></td><td>Leave the field out, or send JSON <code>null</code>. The string <code>"null"</code> is rejected. While the master is still a waiting card and the row has no <code>parentKey</code>, the field is ignored, including <code>"0"</code>, <code>"06"</code>, and <code>"09"</code>. That is true on the first send and on a later send. On a row that has <code>parentKey</code>, and on any row for a master that is already a screw or washer, the field is checked. Accepted tokens: <code>06</code>, <code>SCREW</code>, <code>SCREWS</code>, <code>09</code>, <code>WASHER</code>, <code>WASHERS</code>. The token must match the folder. Any other value, including <code>"0"</code>, fails the whole row. The name is not saved and the master is not moved. Variants do not send this field.</td></tr>
+    <tr><td><code>name</code> and the allowed lists</td><td>master</td><td>No</td><td>Same as today on a catalogue master. On a waiting card, <code>name</code> is stored. The allowed lists are not applied there.</td></tr>
+    <tr><td><code>itemNumber</code> <code>masterItemNumber</code></td><td>variant</td><td>Yes on create</td><td>A variant is not created under a waiting card. If that card already exists, the row is stored and the reply is <code>held</code>, with no layer. The master row has to be earlier in the same batch. If the master code does not exist at all, the reply is <code>NOT_FOUND</code>: <code>masterItemNumber … not found; send masters before variants</code>. A variant does not send <code>productType</code> or <code>parentKey</code>.</td></tr>
+    <tr><td><code>isDeleted</code></td><td>catalogue master or variant</td><td>No</td><td>Unpublish that object only. A master does not unpublish its variants. On a waiting card this flag is not applied. The card stays published. This call does not delete a waiting card.</td></tr>
   </table>
-  <h3>Example — one master with no folder, one master on a folder</h3>
+  <h3>Example — one waiting master, one linked master, then its variant</h3>
 <pre>{
   "batchId": "a2-master-001",
   "items": [
-    { "code": "88001", "layer": "master", "productType": "06",
-      "name": "Unplaced screw" },
-    { "code": "88002", "layer": "master", "productType": "09",
-      "name": "Unplaced washer" },
+    { "code": "88001", "layer": "master", "name": "Waiting master" },
     { "code": "40100", "layer": "master", "parentKey": "5637150105",
       "name": "Hex head roofing screw 6.5 x 100" },
-    { "itemNumber": "88001", "masterItemNumber": "88001", "layer": "variant",
-      "name": "Unplaced screw" }
+    { "itemNumber": "40100", "masterItemNumber": "40100", "layer": "variant",
+      "name": "Hex head roofing screw 6.5 x 100" }
   ]
 }</pre>
   <ul class="rows">
-    <li><code>88001</code> has no <code>parentKey</code> and <code>productType</code> <code>"06"</code>. New master, holding folder, screw.</li>
-    <li><code>88002</code> is the same with <code>"09"</code>. Washer. It is not turned into a screw.</li>
-    <li><code>40100</code> still has a <code>parentKey</code>. No <code>productType</code> is required. The folder decides the type, as today.</li>
-    <li>The variant uses <code>masterItemNumber</code>. It is created under that master, including a master that is still in the holding folder.</li>
-    <li>A later row for <code>88001</code> with no <code>parentKey</code> updates it in place. It does not move.</li>
+    <li><code>88001</code> has no <code>parentKey</code>. Waiting card. Action <code>held</code>. It is not a screw.</li>
+    <li><code>40100</code> is created only when one product group already stores <code>5637150105</code>. The folder class decides screw or washer. No <code>productType</code> is sent.</li>
+    <li>The variant of <code>40100</code> is in the same batch, after that master, and is created only when the <code>parentKey</code> on <code>40100</code> resolved.</li>
+    <li>A variant of <code>88001</code> sent after that waiting card is <code>held</code>. It is not created under the card. It is applied when the card is placed.</li>
+    <li>A later row for <code>88001</code> with no <code>parentKey</code> updates the waiting card. It does not move it.</li>
   </ul>
   <h3>When something is off</h3>
   <table>
     <tr><th>You send</th><th>What happens</th></tr>
-    <tr><td>New master, no <code>parentKey</code>, no <code>productType</code></td><td>Row fails, <code>VALIDATION</code>, not retryable. Nothing is created. Error: <code>productType 06 (screw) or 09 (washer) is required to create a master with no parentKey</code>.</td></tr>
-    <tr><td>New master, no <code>parentKey</code>, <code>productType</code> <code>"99"</code></td><td>Row fails, <code>VALIDATION</code>, not retryable. Error: <code>productType 99 is not 06 (screw) or 09 (washer)</code>.</td></tr>
-    <tr><td><code>productType</code> <code>"09"</code> on a screw, or <code>"06"</code> on a washer</td><td>Row fails, <code>CONFLICT</code>, not retryable. The master is not converted and not moved.</td></tr>
-    <tr><td><code>parentKey</code> of a folder that is not a level-5 product group</td><td>Same as today. Row fails, <code>VALIDATION</code>.</td></tr>
-    <tr><td><code>parentKey</code> we have not seen</td><td>Same as today. <code>NOT_FOUND</code>, retryable. Send <code>/tree</code> first.</td></tr>
+    <tr><td>New master, no <code>parentKey</code>, no <code>productType</code></td><td>Waiting card. Action <code>held</code>. Not an error.</td></tr>
+    <tr><td>New master, no <code>parentKey</code>, <code>productType</code> <code>"0"</code>, <code>"06"</code>, or <code>"09"</code></td><td>Same waiting card. The type is ignored. Do not use this. The next row that also sends <code>parentKey</code> will check the type and can fail the whole row.</td></tr>
+    <tr><td><code>parentKey</code> present and <code>productType</code> <code>"0"</code></td><td>Row fails, <code>VALIDATION</code>, not retryable. Nothing is written. Error: <code>productType 0 is not 06 (screw) or 09 (washer)</code>.</td></tr>
+    <tr><td><code>productType</code> that does not match the folder, for example <code>"09"</code> on a screw folder</td><td>Row fails, <code>CONFLICT</code>, not retryable. Error names the two classes, <code>PtWasher</code> and <code>PtScrew</code>, and says a master cannot change between screw and washer. On create, the master is not created. On update, it is not moved and the rest of the row is not saved.</td></tr>
+    <tr><td>New master, <code>parentKey</code> is on the pick list, nobody has linked it</td><td>Switch 1 only. Waiting card. Action <code>held</code>, layer <code>unassigned</code>. Note: <code>parentKey … is on the pick list and is not linked; stored as a waiting card</code>. TEST is switch 0, so this note does not run. An existing catalogue master is not turned into a waiting card.</td></tr>
+    <tr><td>New master, <code>parentKey</code> was never sent on <code>/tree</code></td><td>Switch 1. <code>NOT_FOUND</code>, retryable. Error: <code>no PIM folder is linked to category …; a person must store it in F&amp;O category on a product group</code>. The product is not created. Send <code>/tree</code> first. On TEST today that same row looks up a folder code, not <code>foCategoryKey</code>.</td></tr>
+    <tr><td>The same id stored on two product groups</td><td><code>CONFLICT</code>, not retryable. PIM does not pick one. Error: <code>categoryKey … is stored on N product groups in PIM; a person must leave it on one</code>.</td></tr>
+    <tr><td>The id is stored on a folder above product group</td><td><code>VALIDATION</code>, not retryable. Error: <code>category … is linked to layer …; a master must hang off a product group</code>.</td></tr>
+    <tr><td><code>parentKey</code> points at the other class</td><td><code>CONFLICT</code>, not retryable. Error: <code>master cannot move between screw and washer</code>. The master stays where it is.</td></tr>
+    <tr><td>Variant while the master is still a waiting card</td><td><code>held</code>. No layer. No error. Note: <code>master … is a waiting card; the row is stored and will be applied when it is placed</code>. Do not retry it unless the row changes. A newer row for the same variant replaces the stored one.</td></tr>
+    <tr><td>Variant and the master code does not exist at all</td><td><code>NOT_FOUND</code>, retryable. Error: <code>masterItemNumber … not found; send masters before variants</code>.</td></tr>
   </table>
 </div>
 
 <div class="tab panel" id="tab-released">
-  <h2><span class="badge fix">NOT ON TEST</span> <code>POST /api/v1/product-release</code></h2>
-  <p>Same as <a href="fo-api.html#released">today</a>: one row per variant and company. <code>released: true</code> adds the company. <code>RH</code>, <code>RHU</code>, <code>ASW</code>, and <code>SPI</code> also turn that shop on. <code>released: false</code> removes the company and that shop. The product stays.</p>
-  <div class="ask"><code>lifecycleState</code> is stored per company on the variant. It does not turn the shop off. The shop still follows <code>released</code>. Do not send it until this field is on TEST.</div>
+  <h2><span class="badge keep">ON TEST</span> <code>POST /api/v1/product-release</code></h2>
+  <p>Same as <a href="fo-api.html#released">today</a> once the variant exists: one row per variant and company. <code>released: true</code> adds the company. <code>RH</code>, <code>RHU</code>, <code>ASW</code>, and <code>SPI</code> also turn that shop on. Any other company is stored on the variant and has no shop brick. <code>released: false</code> removes the company and marks that shop brick deleted. The brick’s own fields are the hero image and the description. Those go with the brick. Logos sit on the company. A later <code>released: true</code> creates a new brick and does not copy the old hero or description back.</p>
+  <div class="ask">While the master is only a waiting card, the release is <code>held</code>. It is applied when the card is placed. After the variant exists, a company never sent is <code>NOT_FOUND</code>, retryable: <code>companyCode … not found; send it on /companies first</code>. With no variant and no waiting card: <code>itemNumber not found; send the variant on /product-master first</code>. Release does not place the product and does not create the variant.</div>
+  <div class="ask"><code>lifecycleState</code> is stored per company on the variant when <code>released</code> is <code>true</code>. <code>"3"</code> is accepted and still turns the shop on. The off switch is <code>released: false</code>, with no <code>lifecycleState</code>.</div>
   <table>
     <tr><th>Field</th><th>Required</th><th>Rule</th></tr>
-    <tr><td><code>itemNumber</code></td><td>Yes</td><td>The variant number. A master number is not accepted until a variant with that number exists.</td></tr>
+    <tr><td><code>itemNumber</code></td><td>Yes</td><td>The variant number.</td></tr>
     <tr><td><code>companyCode</code></td><td>Yes</td><td>A company already sent on <code>/companies</code>.</td></tr>
-    <tr><td><code>released</code></td><td>Yes</td><td><code>true</code> or <code>false</code>. Same as today.</td></tr>
-    <tr><td><code>lifecycleState</code></td><td>No</td><td>On <code>released: true</code>: <code>"1"</code>, <code>"2"</code>, <code>"3"</code>, or JSON <code>null</code>. Stored as sent for that company. <code>null</code> clears the stored state and leaves the shop as <code>released</code> set it. Omit the field and the stored state is left as it is. On <code>released: false</code>, leave the field out. That company’s stored state is removed with the company. Any other value fails the row and writes nothing.</td></tr>
+    <tr><td><code>released</code></td><td>Yes</td><td><code>true</code> or <code>false</code>.</td></tr>
+    <tr><td><code>lifecycleState</code></td><td>No</td><td>On <code>released: true</code>: <code>"1"</code>, <code>"2"</code>, <code>"3"</code>, or JSON <code>null</code>. Stored as sent for that company. <code>null</code> clears the stored state and leaves the shop as <code>released</code> set it. Omit the field and the stored state is left as it is. On <code>released: false</code>, leave the field out. That company’s stored state is removed with the company. Any other value fails the row and writes nothing. <code>"3"</code> does not mean the shop is off. To turn a shop off, send <code>released: false</code>.</td></tr>
   </table>
   <h3>Example</h3>
 <pre>{
   "batchId": "a2-release-001",
   "items": [
-    { "itemNumber": "88001", "companyCode": "RH",  "released": true,  "lifecycleState": "3" },
-    { "itemNumber": "88001", "companyCode": "ASW", "released": true,  "lifecycleState": null },
-    { "itemNumber": "88001", "companyCode": "RH",  "released": false }
+    { "itemNumber": "40100", "companyCode": "RH",  "released": true,  "lifecycleState": "3" },
+    { "itemNumber": "40100", "companyCode": "ASW", "released": true,  "lifecycleState": null },
+    { "itemNumber": "40100", "companyCode": "RH",  "released": false }
   ]
 }</pre>
   <ul class="rows">
+    <li>These rows apply when variant <code>40100</code> exists. The same rows for waiting card <code>88001</code> are <code>held</code> and applied when that card is placed.</li>
     <li><code>"3"</code> is stored for RH. The RH shop still turns on, because <code>released</code> is <code>true</code>.</li>
     <li><code>null</code> is stored for ASW. The ASW shop still turns on.</li>
     <li>The same row again, with the same state, comes back <code>unchanged</code>.</li>
     <li><code>released: false</code> for RH removes RH and its shop, and removes the stored <code>"3"</code>. ASW is left as it was.</li>
     <li><code>"lifecycleState": "nope"</code> fails that row with <code>VALIDATION</code>. The shop and the stored state are not changed.</li>
   </ul>
-  <p class="small">A product in the holding folder is included. <code>released: true</code> for RH, RHU, ASW, or SPI still turns that shop on there. PIM does not feed Magento. <code>"3"</code> does not mean the shop is off.</p>
+  <p class="small">PIM does not feed Magento.</p>
 </div>
 
 <div class="tab panel" id="tab-attributes">
-  <h2><span class="badge live">NO CHANGE</span> <code>POST /api/v1/product-attributes</code></h2>
-  <p>Same body as <a href="fo-api.html#product-attributes">today</a>. Send it after <code>/product-master</code>.</p>
-  <div class="ask">A value sent while the product is in the holding folder is ignored and not kept. The reply names the code and says it is not placed on a folder of this item. Send the values again after a person has placed the product under a folder that has that attribute group.</div>
-  <p>This call keeps running until the switch date. That date is not set. On that date the agreed attributes are left out of the row. They are not sent empty. There is no agreed list yet.</p>
+  <h2><span class="badge keep">ON TEST</span> <code>POST /api/v1/product-attributes</code></h2>
+  <p>Same body as <a href="fo-api.html#product-attributes">today</a>. The attribute code must already be in the book from <code>/attribute-definitions</code> once the product exists. A code that is not in the book is ignored: <code>is not in /attribute-definitions</code>. The reply action is <code>unchanged</code>. Do not stop sending definitions, and send them before the values.</p>
+  <div class="ask">A waiting card with at least one <code>attributeCode</code> is <code>held</code>, one stored row per code. A newer row for the same code replaces it. The values are written when the card is placed. A row with no attribute list, and a product that is neither a catalogue item nor a waiting card, is <code>NOT_FOUND</code>, retryable: <code>itemNumber not found; send it on /product-master first</code>.</div>
+  <p>On a catalogue master or variant, a value whose group is not on that product’s folder is ignored, not failed: <code>is not placed on a folder of this item</code>. Null, <code>""</code>, or <code>isDeleted: true</code> clears a value. Do not resend the same row in a loop.</p>
+  <p>A row that sends <code>categoryKey</code> instead of <code>itemNumber</code> still looks up a catalogue folder by that folder’s own code. Approach 2 <code>/tree</code> does not create that folder, so a new category comes back <code>NOT_FOUND</code>: <code>categoryKey not found; send it on /tree first</code>. Sending <code>/tree</code> does not fix it. Folder defaults keep working only for folders that already exist from the earlier build.</p>
+  <p>There is no switch date and no agreed list of attributes to leave out. Until that list exists, keep the current send.</p>
 </div>
 
 <div class="tab panel" id="tab-tree">
-  <h2><span class="badge live">NO CHANGE</span> <code>POST /api/v1/tree</code></h2>
-  <p>Same body as <a href="fo-api.html#tree">today</a>. Keep sending Screws only, until PIM says the pick list is stored separately. After that, send the F&amp;O categories that will be mapped, with the active flag.</p>
+  <h2><span class="badge fix">SWITCH 0 ON TEST</span> <code>POST /api/v1/tree</code></h2>
+  <p>Same fields as <a href="fo-api.html#tree">today</a>. The card is stored under <code>/ErpSyncLive/Categories</code> on both switches. At switch 1 the call does not create a PIM folder. TEST is switch 0, so a screw or washer folder is still created after the card. Do not send the wide category list until the switch is 1.</p>
   <table>
     <tr><th>Field</th><th>Approach 2</th></tr>
-    <tr><td><code>categoryKey</code></td><td>Still the match key. The same key updates the same folder. It does not create a second one. Do not change it after create.</td></tr>
-    <tr><td><code>isActive</code></td><td>Accepted and not stored. PIM cannot refuse a placement because a category is inactive.</td></tr>
-    <tr><td>The link</td><td>This call does not write it. The link is an existing <code>categoryKey</code> stored on a PIM folder by a person. See the link tab.</td></tr>
+    <tr><td><code>categoryKey</code></td><td>Match key of the card. The same key updates the same card. It does not create a second card. Do not change it after create.</td></tr>
+    <tr><td><code>layer</code> and <code>level</code></td><td>Omit both and the card is still stored. <code>layer</code>, when sent, must be <code>type</code>, <code>family</code>, <code>series</code>, <code>range</code>, or <code>productGroup</code>. <code>master</code> and <code>variant</code> fail. <code>level</code>, when sent, must be <code>1</code> through <code>5</code>. Anything else fails the row and the card is not stored. If both are sent they must agree, or the row fails and the card is not stored.</td></tr>
+    <tr><td><code>isActive</code></td><td>Stored on the card. It does not unpublish the card and it does not hide the id from the link field. PIM cannot refuse a placement because a category is inactive.</td></tr>
+    <tr><td><code>isDeleted</code></td><td><code>true</code> unpublishes that card. A later row does not publish it again. There is no republish on this call.</td></tr>
+    <tr><td>The link</td><td>This call does not write it. A person stores the same <code>categoryKey</code> text on a PIM product group. The reply includes <code>store: categoryPickList</code>, <code>linkedFolders</code>, and, when none are linked, <code>no PIM folder is linked to this category yet</code>.</td></tr>
   </table>
 </div>
 
 <div class="tab panel" id="tab-link">
   <h2>Link — not a call</h2>
-  <p>There is no payload for the link. F&amp;O does not send it, and the Function App does not keep a second map.</p>
+  <p>There is no payload for the link. F&amp;O does not send it.</p>
   <ul>
-    <li>One PIM folder stores one category id. The id is the same <code>categoryKey</code> text as <code>/tree</code>.</li>
-    <li>Several folders may store the same id.</li>
-    <li>Empty means that folder is not mapped. A child folder does not take its parent’s id.</li>
-    <li>The id used for a product is the id on the folder the master sits in. PIM does not walk up to a parent.</li>
-    <li>A rename or a move of the PIM folder does not change the id, and it does not rename or move the F&amp;O category.</li>
-    <li>The holding folder is not mapped. No placement is sent for a product that is still there.</li>
+    <li>A person types one category id on a PIM folder. The id is the same <code>categoryKey</code> text as <code>/tree</code>. The field name in PIM is the F&amp;O category on that folder.</li>
+    <li>Do not put the same id on two product groups. <code>/product-master</code> then fails with <code>CONFLICT</code> and does not guess.</li>
+    <li>An id stored only on a folder above product group does not place a master. That row is <code>VALIDATION</code>.</li>
+    <li>Empty means that folder is not mapped. A child folder does not take its parent’s id. The id used for a product is the id on the folder the master sits in. PIM does not walk up.</li>
+    <li>Changing the id on a product group stores a link row: <code>categoryKey</code>, <code>pimPath</code>, <code>layer</code> <code>productGroup</code>. A rename, a move, or an unpublish that keeps the same id updates the path and sends nothing. Clearing the id deletes the table row and sends nothing.</li>
+    <li>A person moving a master onto a different id, or placing a waiting card into a folder that already has an id, stores <code>{"itemNumber","categoryKey"}</code>. The same id, no id, a move back to holding, a variant, and a <code>/product-master</code> save store nothing.</li>
+    <li>Both rows sit in <code>fo_return_outbox</code>. Neither has been posted.</li>
+    <li>The waiting folder is not mapped. Typing the id does not place waiting cards. Resend the master with that <code>parentKey</code>.</li>
+    <li>The save refusal is a second product group with the same id. The screen does not stop a person typing the id on a folder above product group. At switch 1 a master whose <code>parentKey</code> is stored only there fails <code>VALIDATION</code>.</li>
   </ul>
-  <p class="small">The field is on the folder in PIM. It is not on TEST.</p>
+  <p class="small">The field is on TEST. TEST is switch 0, so <code>parentKey</code> is still the folder code. Do not assume TEST resolves <code>parentKey</code> through this field.</p>
 </div>
 
 <div class="tab panel" id="tab-back">
-  <h2><span class="badge drop">NOT BUILT</span> PIM → F&amp;O</h2>
-  <p>PIM calls the Function App directly. These calls do not go through the Data Lake. Nothing here has a body you can send, and there is no date.</p>
+  <h2><span class="badge fix">HELD, NOT POSTED</span> PIM → F&amp;O</h2>
+  <p>One held row is one HTTP POST when the base URL, the header name, and the key are all set. The body is that row. <code>Content-Type</code> is <code>application/json</code>. The key travels in the one header you name. Timeout is 20 seconds. HTTP 2xx marks the row sent, and the body of that reply is not read. Any other status leaves the row held and the next flush posts it again. There is no retry limit. Rows go out in the order they were stored. A failed row does not stop the later rows. Nothing below has been posted.</p>
   <table>
-    <tr><th>Order</th><th>Call</th><th>What PIM sends</th></tr>
-    <tr><td>1</td><td>Attribute set-up</td><td>The agreed attributes only, and which category uses them. The category id is the same <code>categoryKey</code> as <code>/tree</code>.</td></tr>
-    <tr><td>2</td><td>Placement</td><td>The master item number and that category id. Sent only when the mapped category changes. Two folders that share one id do not cause a send. Variants are not rows. They follow the master.</td></tr>
-    <tr><td>3</td><td>Attribute values</td><td>The full set the master shows, including a value it shows from a folder above. A missing value in that full set is removed in F&amp;O. A master that does not yet have the full set is left out. Variant values are not sent.</td></tr>
+    <tr><th>Call</th><th>When it is stored</th><th>Body</th></tr>
+    <tr><td><code>POST {base}/fo-tree-links</code></td><td>A person sets or changes <code>foCategoryKey</code> on a product group.</td><td><code>{"categoryKey","pimPath","layer":"productGroup"}</code></td></tr>
+    <tr><td><code>POST {base}/fo-attribute-definitions</code></td><td>A person changes a direct field, and the product’s immediate parent already has an id. Code and the current value only. No type. No option list.</td><td><code>{"categoryKey","attributes":[{"code","value"}]}</code></td></tr>
+    <tr><td><code>POST {base}/fo-product-attributes</code></td><td>The same save as the set-up row, when the product has an item number. A normal variant sends nothing, because its parent is the master and that field is empty.</td><td><code>{"itemNumber","categoryKey","attributes":[{"code","value"}]}</code></td></tr>
+    <tr><td><code>POST {base}/fo-product-placement</code></td><td>A person moves a master onto a different id, or places a waiting card into a folder that already has an id.</td><td><code>{"itemNumber","categoryKey"}</code></td></tr>
   </table>
-  <p>PIM does not send its folders, its tree, or a category create, rename, inactivate, or delete. No return call starts until the attribute list exists and one writer per value has been proven on TEST.</p>
+  <p>A clear is not sent. Values set before the folder had an id are not replayed when the id is typed later. Measure codes such as <code>RH_DRIVE</code>, <code>DIAMETER</code>, and <code>LENGTH MM</code> are not sent. PIM does not send a folder create, rename, move, unpublish, or a new category id written back onto the folder. No outbox id and no stored time are posted.</p>
 </div>
 
 <div class="tab panel" id="tab-reply">
-  <h2>Reply shape — same as today</h2>
-  <p>HTTP <b>200</b> means the batch was read. A failed row is inside <code>results</code> and <code>errors</code>. <b>400</b> nothing applied. <b>413</b> the batch is too big. <b>401</b> bad key.</p>
+  <h2>Reply shape — same envelope</h2>
+  <p>HTTP <b>200</b> means the batch was read, including when <code>failed</code> is greater than 0. A failed row is inside <code>results</code> and <code>errors</code>. <b>413</b> the batch is too big and nothing in that call is applied. <b>401</b> bad key. Judge a row by its own <code>results[]</code> entry. <code>/product-master</code> does not answer <code>unchanged</code>.</p>
   <table>
     <tr><th>Field</th><th>Meaning</th></tr>
-    <tr><td><code>ok</code></td><td><code>true</code> only when <code>failed</code> is 0.</td></tr>
-    <tr><td><code>results[].action</code></td><td><code>created</code> · <code>updated</code> · <code>unpublished</code> · <code>released</code> · <code>unreleased</code> · <code>unchanged</code> · <code>failed</code></td></tr>
+    <tr><td><code>ok</code></td><td><code>true</code> only when <code>failed</code> is 0. A waiting card with action <code>held</code>, and a dependent row with action <code>held</code>, are successes.</td></tr>
+    <tr><td><code>results[].action</code></td><td><code>created</code> · <code>updated</code> · <code>held</code> · <code>unpublished</code> · <code>released</code> · <code>unreleased</code> · <code>unchanged</code> · <code>failed</code>. <code>unchanged</code> is an attributes reply, not a product-master reply.</td></tr>
     <tr><td><code>results[].code</code></td><td>On a failure: <code>VALIDATION</code>, <code>CONFLICT</code>, or <code>NOT_FOUND</code>.</td></tr>
-    <tr><td><code>retryable</code></td><td><code>true</code> only when sending the same row later can succeed. A bad <code>productType</code> or a type change is not retryable.</td></tr>
+    <tr><td><code>retryable</code></td><td><code>true</code> only when sending the same row later can succeed. A bad <code>productType</code> or a type change is not retryable. An unlinked <code>parentKey</code> is retryable after a person stores the id.</td></tr>
   </table>
 <pre>{
   "ok": false,
-  "processed": 1,
+  "processed": 3,
   "failed": 1,
   "results": [
-    { "key": "88001", "layer": "master", "action": "created" },
-    { "key": "88009", "action": "failed", "code": "VALIDATION", "retryable": false,
-      "error": "productType 06 (screw) or 09 (washer) is required to create a master with no parentKey" }
+    { "key": "88001", "layer": "unassigned", "action": "held" },
+    { "key": "88001-A", "action": "held",
+      "note": "master 88001 is a waiting card; the row is stored and will be applied when it is placed" },
+    { "key": "40100", "action": "failed", "code": "NOT_FOUND", "retryable": true,
+      "error": "no PIM folder is linked to category 5637150105; a person must store it in F&amp;O category on a product group" }
   ],
   "errors": [
-    { "key": "88009", "code": "VALIDATION", "retryable": false,
-      "error": "productType 06 (screw) or 09 (washer) is required to create a master with no parentKey" }
+    { "key": "40100", "code": "NOT_FOUND", "retryable": true,
+      "error": "no PIM folder is linked to category 5637150105; a person must store it in F&amp;O category on a product group" }
   ]
 }</pre>
-  <p class="small">Decide a retry from <code>code</code> and <code>retryable</code>, not from the sentence in <code>error</code>.</p>
+  <p class="small">Decide a retry from <code>code</code> and <code>retryable</code>, not from the sentence in <code>error</code>. A waiting-card master also includes <code>objectId</code> and <code>path</code>. A held variant, translation, value, or release has no layer and no error. <code>held</code> is delivered. Do not retry it unless F&amp;O changes it. The unlinked <code>40100</code> error above is the switch-1 reply.</p>
 </div>
 
 </div>
