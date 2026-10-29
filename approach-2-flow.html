@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Approach 2 — flow</title>
+<style>
+  :root { --ink:#1c1917; --muted:#57534e; --line:#e7e5e4; --red:#9f1239; --paper:#fafaf9; --card:#fff; --ok:#166534; --wait:#92400e; --get:#1d4ed8; }
+  * { box-sizing: border-box; }
+  body { margin: 0; color: var(--ink); background: var(--paper); font: 15px/1.55 "Segoe UI", Arial, sans-serif; }
+  a { color: var(--get); }
+  code { font-size: 12.5px; background: #f5f5f4; padding: 1px 5px; border-radius: 3px; }
+  pre { background: #1c1917; color: #fafaf9; border-radius: 8px; padding: 12px 14px; overflow-x: auto; font-size: 12.5px; line-height: 1.45; }
+  h1 { font-size: 28px; line-height: 1.2; margin: 0 0 8px; }
+  h2 { font-size: 20px; margin: 0 0 10px; }
+  h3 { font-size: 15px; margin: 18px 0 6px; }
+  p { margin: 0 0 10px; }
+  .layout { display: grid; grid-template-columns: 220px 1fr; max-width: 1180px; margin: 0 auto; }
+  nav { position: sticky; top: 0; align-self: start; padding: 22px 12px 40px 18px; max-height: 100vh; overflow: auto; }
+  nav a { display: block; color: var(--ink); text-decoration: none; font-size: 13px; padding: 5px 0; border-left: 2px solid var(--line); padding-left: 10px; }
+  nav a:hover { border-color: var(--red); }
+  main { padding: 28px 28px 80px 12px; min-width: 0; }
+  .banner, .warn, .okbox { border-radius: 8px; padding: 12px 14px; margin: 0 0 14px; }
+  .banner { background: #fff1f2; border: 1px solid #fecdd3; }
+  .warn { background: #fffbeb; border: 1px solid #fde68a; }
+  .okbox { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px 18px 8px; margin: 0 0 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 8px 0 14px; }
+  th, td { border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; padding: 7px 8px; }
+  th { background: #fafaf9; }
+  .steps { counter-reset: step; display: grid; gap: 10px; margin: 8px 0 14px; }
+  .step { display: grid; grid-template-columns: 42px 1fr; gap: 10px; align-items: start; }
+  .step::before { counter-increment: step; content: counter(step); width: 42px; height: 42px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-weight: 700; }
+  .tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .03em; padding: 2px 6px; border-radius: 4px; margin-right: 6px; }
+  .post { background: #fce7f3; color: var(--red); }
+  .get { background: #dbeafe; color: var(--get); }
+  .hold { background: #fef3c7; color: var(--wait); }
+  .small { color: var(--muted); font-size: 13px; }
+  ul { margin: 6px 0 12px; padding-left: 18px; }
+  li { margin: 0 0 4px; }
+  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } nav { position: static; max-height: none; display: flex; flex-wrap: wrap; gap: 8px 14px; } nav a { border: 0; padding: 0; } }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav>
+  <a href="#state">State</a>
+  <a href="#directions">Three directions</a>
+  <a href="#rules">Shared rules</a>
+  <a href="#steps">The flow</a>
+  <a href="#tree">1. Categories</a>
+  <a href="#link">2. The link</a>
+  <a href="#master">3. Masters</a>
+  <a href="#wait">4. Waiting cards</a>
+  <a href="#attr">5. Attributes</a>
+  <a href="#text">6. Text and shops</a>
+  <a href="#reads">7. What F&amp;O reads</a>
+  <a href="#table">Folder table</a>
+  <a href="#held">Held posts</a>
+  <a href="#expect">What F&amp;O should do</a>
+  <a href="#settled">Settled</a>
+  <a href="#out">Left open</a>
+</nav>
+<main>
+  <h1>Approach 2 flow</h1>
+  <p class="small">29 October 2026. What is on TEST <code>10.100.16.4:82</code>. Field contract: <a href="approach-2-api.html#vs">approach-2-api.html</a>.</p>
+
+  <div class="banner"><b>TEST is switch 1.</b> <code>FO_APPROACH_2=1</code>. F&amp;O posts into PIM. On TEST, F&amp;O reads four lists. PIM does not post back. The return URL, header, and key are empty. <code>app:fo-return-flush</code> sends nothing. <code>GET /fo-product-enrichment</code> is on TEST. It is not one of the four lists. Do not call <code>GET /fo-attribute-map</code>.</div>
+  <div class="okbox">Category ids stored 28 Oct on product groups <code>6713</code>, <code>6923</code>, <code>6706</code>, <code>6707</code>, <code>6708</code>, <code>6709</code>, <code>6710</code>, <code>6711</code>. Each <code>foCategoryKey</code> equals that folder’s <code>code</code>. <code>foMap</code> is false. Demo group <code>6961</code> stores <code>A2-DEMO-CAT</code> and <code>foMap</code> true. <code>6712</code> “PG | 6666 (old)” is empty. Masters <code>35088</code> and <code>34977</code> sit there with an empty id.</div>
+
+  <section id="state">
+    <h2>Who does what</h2>
+    <table>
+      <tr><th>Actor</th><th>Does</th><th>Does not</th></tr>
+      <tr><td>F&amp;O / Adil</td><td>POST the feeds. Read <code>GET /fo-tree-links</code> every run and compare it with the last read. That compare is his folder-scenario list. POST <code>/fo-category-key</code> after he creates a category in F&amp;O, to store that id on the folder.</td><td>Wait for PIM to send a folder create, rename, move, or unpublish. Create a PIM catalogue folder. Tick Map to F&amp;O. The tick is not required.</td></tr>
+      <tr><td>A person in PIM</td><td>Create the screw or washer folder tree. Store the F&amp;O id on a product group. Move a waiting card into a product group. Edit names, descriptions, and attribute values.</td><td>Invent an F&amp;O category id.</td></tr>
+      <tr><td>PIM</td><td>Store the post. Answer the four lists and <code>GET /fo-product-enrichment</code>. All five are on TEST. The enrichment read is not one of the four hourly lists.</td><td>Start a job. Post a folder rename, a folder move, a folder unpublish, or an image. Offer <code>GET /fo-attribute-map</code> as a list. The return URL is empty, so held rows are not posted.</td></tr>
+    </table>
+  </section>
+
+  <section id="directions">
+    <h2>Three directions</h2>
+    <table>
+      <tr><th></th><th>Calls</th><th>Status</th></tr>
+      <tr><td><span class="tag post">F&amp;O POSTS</span></td><td><code>/auth</code> <code>/ping</code> <code>/companies</code> <code>/dimensions</code> <code>/tree</code> <code>/attribute-definitions</code> <code>/product-master</code> <code>/product-attributes</code> <code>/product-translations</code> <code>/product-release</code> <code>/fo-category-key</code></td><td>On TEST</td></tr>
+      <tr><td><span class="tag get">F&amp;O READS</span></td><td><code>GET /fo-tree-links</code> <code>GET /fo-attributes</code> <code>GET /fo-product-values</code> <code>GET /fo-product-placement</code></td><td>On TEST. Folder changes are this compare, not a PIM send.</td></tr>
+      <tr><td><span class="tag get">F&amp;O READS</span></td><td><code>GET /fo-product-enrichment</code></td><td>On TEST. Names and descriptions for masters and variants. Not one of the four hourly lists. Do not call <code>GET /fo-attribute-map</code>.</td></tr>
+      <tr><td><span class="tag hold">PIM WOULD POST</span></td><td><code>/fo-tree-links</code> <code>/fo-attribute-definitions</code> <code>/fo-product-attributes</code> <code>/fo-product-placement</code> on a return URL</td><td>Rows can be stored. Nothing is sent.</td></tr>
+    </table>
+    <p>The GET paths and the would-post paths share names. The bodies differ. <code>GET /fo-tree-links</code> is every catalogue folder. A held link row is one product group when its id is set or changed.</p>
+  </section>
+
+  <section id="rules">
+    <h2>Shared rules</h2>
+    <ul>
+      <li>Header <code>X-API-Key</code> on every <code>/api/v1</code> call. No key is HTTP 401.</li>
+      <li>Feed body <code>{ "batchId", "items": [] }</code>. Unknown extra keys are ignored.</li>
+      <li>More than 500 items, or a body over 2 MB, is HTTP 413. Nothing in that batch is applied.</li>
+      <li>A bad JSON body is HTTP 400. A row that fails inside a valid batch is still HTTP 200. <code>ok</code> is false when <code>failed</code> is above 0. <code>results</code> has one entry per row. <code>errors</code> repeats the failed rows.</li>
+      <li><code>POST /fo-category-key</code> is one object or <code>{ "items": [] }</code>. It has no 500-row cap in the writer. An empty <code>categoryKey</code> is rejected. It cannot clear an id. It does not tick <code>foMap</code>. A different <code>categoryKey</code> for the same <code>folderId</code> replaces the stored id. The old id is not kept.</li>
+      <li>Reads: <code>?page=</code>. Page size 500. Page below 1 becomes 1. Past the end, <code>items</code> is empty and <code>count</code> stays the whole list. Last page is <code>page == pageCount</code>. No cache. No rate limit. A read during a save can still show the previous row. The next read after the save finishes shows the change.</li>
+    </ul>
+    <pre>{
+  "ok": true,
+  "service": "pimcore",
+  "auth": "api_key",
+  "batchId": "batch-1",
+  "processed": 1,
+  "failed": 0,
+  "results": [ { "key": "5637165576", "action": "created" } ],
+  "errors": []
+}</pre>
+    <pre>{ "ok": true, "page": 1, "pageCount": 1, "count": 33, "items": [] }</pre>
+  </section>
+
+  <section id="steps">
+    <h2>The flow, in order</h2>
+    <div class="steps">
+      <div class="step"><div><b>Send categories.</b> <code>POST /tree</code> stores a pick-list card under <code>/ErpSyncLive/Categories</code>. It does not create a screw or washer folder.</div></div>
+      <div class="step"><div><b>A person builds the PIM tree</b> under <code>/ErpSyncLive/Catalog</code>: type, family, series, range, product group. Screws and washers are two classes.</div></div>
+      <div class="step"><div><b>Store the F&amp;O id on the product group.</b> Admin field “F&amp;O category”, or <code>POST /fo-category-key</code> with <code>folderId</code> from the folder list. One id, one product group.</div></div>
+      <div class="step"><div><b>Send the attribute book</b> before values. <code>POST /attribute-definitions</code>. A code with no PIM field is book data only. It does not appear on <code>GET /fo-attributes</code>.</div></div>
+      <div class="step"><div><b>Send masters.</b> <code>parentKey</code> is the F&amp;O id stored on one product group. No <code>parentKey</code>, or an id that is on the pick list and not linked, becomes a waiting card under <code>/ErpSyncLive/Unassigned</code>.</div></div>
+      <div class="step"><div><b>Send variants, texts, attribute values, and shop release.</b> If the master is still a waiting card, the row is held and applied when the card is placed.</div></div>
+      <div class="step"><div><b>F&amp;O reads.</b> Every run, read <code>GET /fo-tree-links</code> and compare it with the last read. PIM sends nothing for a folder create, rename, move, or unpublish. The other three hourly lists are the attribute book, the values, and the placement. <code>GET /fo-product-enrichment</code> is the names and descriptions. It is on TEST and it is not one of those four. Do not call <code>GET /fo-attribute-map</code>. PIM does not call F&amp;O.</div></div>
+    </div>
+  </section>
+
+  <section id="tree">
+    <h2>1. Categories — <code>POST /api/v1/tree</code></h2>
+    <p>Switch 1. Every accepted row writes the pick-list card. The catalogue folder is untouched. <code>layer</code> and <code>level</code> may both be omitted. When sent, <code>layer</code> is <code>type</code>, <code>family</code>, <code>series</code>, <code>range</code>, or <code>productGroup</code>. <code>level</code> is 1 through 5 and must agree with <code>layer</code>. <code>master</code> and <code>variant</code> fail. <code>isActive</code> is stored and does not block a link. <code>isDeleted: true</code> unpublishes the card. <code>isDeleted: false</code>, or a later row that omits it, does not publish that card again.</p>
+    <pre>{
+  "batchId": "tree-1",
+  "items": [
+    { "categoryKey": "5637165576", "name": "PG | 7500", "layer": "productGroup", "level": 5, "isActive": true }
+  ]
+}</pre>
+    <pre>{
+  "key": "5637165576",
+  "action": "created",
+  "store": "categoryPickList",
+  "id": 7001,
+  "linkedFolders": [],
+  "note": "no PIM folder is linked to this category yet"
+}</pre>
+    <p class="small"><code>action</code> is <code>created</code>, <code>updated</code>, or <code>unpublished</code>. <code>linkedFolders</code> lists catalogue paths that already store this id. The note is present only when that list is empty. <code>7001</code> in the sample is a stand-in for the card’s PIM id, not a live object.</p>
+    <p>The old mirror (switch 0) is not TEST. On that switch, <code>/tree</code> also creates the catalogue folder, and a product type other than 06 or 09 is <code>skipped</code> / <code>UNKNOWN_TYPE</code>. Switch 1 does not do that skip.</p>
+  </section>
+
+  <section id="link">
+    <h2>2. The link — person or <code>POST /api/v1/fo-category-key</code></h2>
+    <p><code>folderId</code> is the PIM object id from <code>GET /fo-tree-links</code>. It stays the same when the folder is moved. <code>parentFolderId</code> changes on the folder that moved. <code>path</code> changes on that folder and on every folder inside it. A folder inside the one that moved keeps its own <code>folderId</code> and its own <code>parentFolderId</code>. A delete and a new folder gets a new <code>folderId</code>. <code>FolderId</code> and <code>CategoryKey</code> are accepted as well as <code>folderId</code> and <code>categoryKey</code>.</p>
+    <pre>{
+  "items": [
+    { "folderId": 6713, "categoryKey": "5637165576" }
+  ]
+}</pre>
+    <pre>{
+  "ok": true,
+  "processed": 1,
+  "failed": 0,
+  "results": [
+    { "key": "6713", "action": "updated", "objectId": 6713, "path": "/ErpSyncLive/Catalog/..." }
+  ]
+}</pre>
+    <ul>
+      <li>Missing or non-positive <code>folderId</code>: <code>VALIDATION</code>, not retryable, <code>folderId is required</code>.</li>
+      <li>Blank <code>categoryKey</code>: <code>VALIDATION</code>, <code>categoryKey is required</code>.</li>
+      <li>Not a catalogue type, family, series, range, or product group: <code>NOT_FOUND</code>, <code>folderId is not a catalogue folder</code>.</li>
+      <li>Same id already on another product group: <code>VALIDATION</code>, <code>F&amp;O category {id} is already stored on {path}. One product group, one F&amp;O category.</code></li>
+      <li>The same id written again is still <code>updated</code>.</li>
+      <li>A different id for the same <code>folderId</code> replaces <code>foCategoryKey</code>. The folder id does not change. The next <code>GET /fo-tree-links</code> shows the new <code>foCategoryKey</code>. The old id is not stored on that folder and is not written onto another folder. A PIM move does not do this by itself. Only this post changes the stored id.</li>
+      <li>That replace fails when the folder is a product group and the new id is already on a different product group. The row is <code>VALIDATION</code> and the old id stays.</li>
+      <li>Folders above product group are not in that duplicate check. An id on a type, family, series, or range does not place a master. <code>parentKey</code> reads only the product group.</li>
+      <li>Setting or changing the id on a product group holds one link row and one placement row per master already in that group. Those rows are not posted. A rename or a move that keeps the same id holds nothing. Clearing the id removes the link table row and does not tell F&amp;O to delete a category.</li>
+    </ul>
+  </section>
+
+  <section id="master">
+    <h2>3. Masters and variants — <code>POST /api/v1/product-master</code></h2>
+    <p>A master row has <code>code</code>. A variant row has <code>itemNumber</code> and <code>masterItemNumber</code>. The catalogue class comes from the product group: screw folder makes <code>PtScrew</code>, washer folder makes <code>PtWasher</code>. Tokens <code>06</code>, <code>SCREW</code>, <code>SCREWS</code> and <code>09</code>, <code>WASHER</code>, <code>WASHERS</code> are the only product types. Anything else is not a class.</p>
+    <table>
+      <tr><th>Incoming master</th><th>Result</th></tr>
+      <tr><td>New, <code>parentKey</code> omitted</td><td>Waiting card. <code>productType</code> is not checked. <code>action</code> <code>held</code> the first time, <code>updated</code> later. <code>layer</code> <code>unassigned</code>.</td></tr>
+      <tr><td>New, <code>parentKey</code> is on the pick list and on no folder</td><td>Same waiting card. Note: <code>parentKey {id} is on the pick list and is not linked; stored as a waiting card</code>.</td></tr>
+      <tr><td>New, <code>parentKey</code> was never sent on <code>/tree</code></td><td><code>NOT_FOUND</code>, retryable. <code>no PIM folder is linked to category {id}; a person must store it in F&amp;O category on a product group</code>.</td></tr>
+      <tr><td>Id stored on a folder that is not a product group</td><td><code>VALIDATION</code>, not retryable. The layer is named. A master hangs off a product group.</td></tr>
+      <tr><td>Same id on two product groups</td><td><code>CONFLICT</code>, not retryable. PIM does not pick one.</td></tr>
+      <tr><td>Linked product group, <code>productType</code> omitted</td><td>Master is created as that folder’s class.</td></tr>
+      <tr><td>Linked product group, <code>productType</code> is not 06 or 09</td><td><code>VALIDATION</code>. <code>productType {token} is not 06 (screw) or 09 (washer)</code>.</td></tr>
+      <tr><td>Linked product group, type is the other class</td><td><code>CONFLICT</code>. A master cannot change between screw and washer. A later move between those classes is the same <code>CONFLICT</code>.</td></tr>
+      <tr><td>Existing master, <code>parentKey</code> omitted</td><td>The master stays where it is. It is not turned into a waiting card.</td></tr>
+      <tr><td>Existing master, <code>parentKey</code> that does not resolve</td><td>The row fails. The master stays a catalogue master.</td></tr>
+      <tr><td>Existing master, <code>parentKey</code> of another product group of the same class</td><td>The master moves. <code>folderId</code> of the master object stays. Its parent changes. The next placement read shows the new <code>folderId</code> and that group’s <code>foCategoryKey</code>.</td></tr>
+      <tr><td><code>productType</code> <code>0</code>, or the text <code>null</code>, when the field is checked</td><td>The row fails. On a new master with no <code>parentKey</code> the field is ignored, including <code>0</code>, <code>06</code>, and <code>09</code>. None of them chooses a class.</td></tr>
+      <tr><td><code>isDeleted: true</code> on a catalogue master or variant</td><td>That object is unpublished. A master does not unpublish its variants. The master row stays on both product lists.</td></tr>
+      <tr><td><code>isDeleted: false</code>, or the field omitted, on a waiting card</td><td>The card is published again.</td></tr>
+      <tr><td>Master deleted in PIM</td><td>The object is gone. The row is absent from both product lists. That is not a clear of values in F&amp;O. F&amp;O leaves its own row as it was.</td></tr>
+    </table>
+    <pre>{
+  "batchId": "masters-1",
+  "items": [
+    { "code": "35032", "parentKey": "5637165576", "name": "Example", "productType": "06" },
+    { "itemNumber": "35032-V1", "masterItemNumber": "35032", "config": "A" }
+  ]
+}</pre>
+    <p>Variant rows do not read <code>productType</code> or <code>parentKey</code>. The master row has to be earlier in the same batch. A missing master is <code>NOT_FOUND</code>, retryable: <code>masterItemNumber {code} not found; send masters before variants</code>. A variant cannot move between screw and washer. <code>washerItemNumber</code> is ignored. Unknown dimension codes are ignored and do not fail the row. This call does not remove a leading language tag. A non-empty <code>name</code> overwrites the stored name. On a waiting card, omitting the name key, null, <code>""</code>, or spaces sets the card name to the master code. On a catalogue master or variant that already exists, omitting the name key keeps the stored name. Null, <code>""</code>, or spaces on that catalogue row clears the name and does not store the code. A new catalogue row with no name key stores the code on a master and the <code>itemNumber</code> on a variant. PIM does not lock the name after the first catalogue write. A later row that still has the name overwrites it. The allowed lists are not applied on a waiting card.</p>
+  </section>
+
+  <section id="wait">
+    <h2>4. Waiting cards and how a placement shows up</h2>
+    <p>The card lives at <code>/ErpSyncLive/Unassigned</code>. It is not a screw and not a washer. It is not a row on <code>GET /fo-product-values</code> or <code>GET /fo-product-placement</code>.</p>
+    <p>While it is a card, a variant, a translation with texts, an attribute value, or a shop release is stored in <code>fo_unassigned_hold</code>. The reply is:</p>
+    <pre>{
+  "key": "35032-V1",
+  "action": "held",
+  "note": "master 35032 is a waiting card; the row is stored and will be applied when it is placed"
+}</pre>
+    <p>A newer row for the same variant, translation, attribute code, or company replaces the stored one. <code>isDeleted: true</code> on the waiting master unpublishes the card and drops its held rows. <code>CONFLICT</code> is not held.</p>
+    <h3>Two ways the card becomes a master</h3>
+    <ul>
+      <li>A later <code>POST /product-master</code> with a <code>parentKey</code> that resolves. PIM saves the master, unpublishes the card, and moves it under <code>/ErpSyncLive/Unassigned/Placed</code>. Held rows then run in this order: variant, translation, attribute values, release.</li>
+      <li>A person places the card onto a product group in PIM. The folder’s class decides screw or washer. The card is marked placed. Held rows run in the same order. If that product group already has an F&amp;O id, one placement row is held and not posted.</li>
+    </ul>
+    <h3>What the next read shows</h3>
+    <table>
+      <tr><th>After</th><th><code>GET /fo-product-placement</code></th><th><code>GET /fo-product-values</code></th></tr>
+      <tr><td>Still a waiting card</td><td>No row</td><td>No row</td></tr>
+      <tr><td>Placed in a product group that has an id</td><td><code>itemNumber</code> is the master <code>code</code>. <code>folderId</code> is the product group. <code>foCategoryKey</code> is that group’s id.</td><td>Same <code>itemNumber</code>. <code>categoryKey</code> is that same id. <code>attributes</code> are the values now on the master, including values that were held.</td></tr>
+      <tr><td>Sitting in a product group with an empty id, as <code>35088</code> and <code>34977</code> do in <code>6712</code></td><td>Row present. <code>foCategoryKey</code> is <code>""</code>.</td><td>Row present. <code>categoryKey</code> is <code>""</code>.</td></tr>
+    </table>
+    <p>PIM does not walk up the tree for that id. An id on a parent folder does not fill an empty product group. Variants are not rows on either product list. A variant’s parent is the master, so a variant has no category id of its own. A master that is no longer under <code>/ErpSyncLive/Catalog</code> drops off both product lists.</p>
+    <p><code>POST /product-master</code> does not queue a placement row, including when <code>parentKey</code> moves the master. F&amp;O already sent that category. A person moving a catalogue master in the admin queues one held row <code>{ "itemNumber", "categoryKey" }</code> only when the destination product group has an F&amp;O id and that id differs from the previous folder. The same id, a folder with no id, and a variant queue nothing. Those held rows are not posted.</p>
+  </section>
+
+  <section id="attr">
+    <h2>5. Attributes</h2>
+    <h3>Book — <code>POST /api/v1/attribute-definitions</code></h3>
+    <p>Send this before values. It stores codes, types, texts, options, groups, and which folder uses which group. It does not add a field to the screw or washer class. A new class field is a PIM developer change, then a deploy. Until that field is in the alias list or the classification store and the class has it, <code>GET /fo-attributes</code> does not grow.</p>
+    <p><code>dataType</code> is <code>text</code>, <code>decimal</code>, <code>integer</code>, <code>boolean</code>, or <code>list</code>. Relation options become cards under <code>/ErpSyncLive/AttributeOptions</code>. Select lists and quantities do not. An existing option card is not renamed. Options include unpublished cards, and the read has no published flag, so every option code on <code>GET /fo-attributes</code> is a valid value.</p>
+    <p><code>folderGroups[].categoryKey</code> is the F&amp;O id stored on the folder. No folder: <code>NOT_FOUND</code>, retryable, <code>no PIM folder is linked to category {id}; a person must store it in F&amp;O category on the folder</code>. Two folders: <code>CONFLICT</code>, not retryable, <code>categoryKey {id} is stored on N folders in PIM; a person must leave it on one</code>. This call accepts any catalogue folder that is not a master.</p>
+    <h3>Values — <code>POST /api/v1/product-attributes</code></h3>
+    <p>Send <code>itemNumber</code> or <code>categoryKey</code>, not both. <code>categoryKey</code> uses the same id lookup. The folder must be a series, a range, or a product group, or the row is <code>VALIDATION</code>: <code>categoryKey must be a series, range, or product group</code>. A value whose code is not in the book is ignored: <code>is not in /attribute-definitions</code>, action <code>unchanged</code>. A value whose group is not on that product’s folder is ignored: <code>is not placed on a folder of this item</code>. Null, <code>""</code>, or <code>isDeleted: true</code> clears that code on the object named by the row. It does not clear the other object.</p>
+    <p>A folder row stores a default on that folder, and only for a code placed on that folder. A code placed only on a parent folder is ignored. An <code>itemNumber</code> row stores the code on the object that number finds. A variant <code>itemNumber</code> is found first. Otherwise the number is a master’s <code>code</code>, and the value is stored on the master. It is not stored on the folder. The comparison is the value stored on that object. Pimcore’s inheritance switch is off for that comparison. A folder-only value counts as empty, so sending it stores it on the object. A code a person owns in Pimcore is not overwritten. A code that is not placed on a folder of that item is ignored.</p>
+    <p><code>GET /fo-product-values</code> is masters only, including unpublished. This read turns Pimcore’s inheritance off, then walks the master and the catalogue folders above it, up to 20. An attribute is <code>code</code>, <code>value</code>, and <code>unit</code>. There is no source and no inherited flag. <code>categoryKey</code> is the immediate parent’s id. It does not say the value came from a folder. A stored decimal <code>0</code> is the master’s own value. The folder is not used for that code. An unset decimal is left out. A list is not mixed. If the master has any value for that code, the folder’s values are not added. A false boolean counts as empty, so a true on a folder above can be returned as <code>"true"</code>. Empty text is left out.</p>
+    <p>Leave a code off the master row when F&amp;O still has the value that read returned. For a decimal, that is the number and the unit. Sending the returned value stores it on the master when the master does not already store it. A later edit of the folder is then not used for that code. Send the code when F&amp;O has a different non-empty value. A decimal sent without a unit is stored with the attribute’s unit, or with <code>mm</code> when the attribute has none. A missing unit is not a reason to send the code. <code>value</code> null, <code>""</code>, a text value that is only spaces, or <code>isDeleted: true</code> clears the master’s own value. Leaving the code out does not clear it. A boolean clear stores false, and the next read treats false as empty.</p>
+    <p>A waiting card with at least one <code>attributeCode</code> is <code>held</code>. A product that is neither a catalogue item nor a waiting card is <code>NOT_FOUND</code>, retryable: <code>itemNumber not found; send it on /product-master first</code>.</p>
+    <pre>{
+  "batchId": "values-1",
+  "items": [
+    {
+      "itemNumber": "35032",
+      "attributes": [ { "attributeCode": "RH_HEAD", "value": "HX" } ]
+    }
+  ]
+}</pre>
+  </section>
+
+  <section id="text">
+    <h2>6. Text, shops, and what is not on the reads</h2>
+    <p><code>POST /product-translations</code>. en-CA name writes <code>name</code>. en-CA description writes <code>descriptionMetric</code>. en-US name writes <code>nameImperial</code>. en-US description writes <code>descriptionImperial</code>. Other languages write <code>foTranslationBag</code>. A person can edit all five. The next translation row overwrites the language and field it includes. A field left out stays. Null or <code>""</code> clears the one sent. A person edit does not lock the field. There is no mark of which texts a person changed. A non-empty <code>texts</code> list for a waiting card is <code>held</code>. <code>isDeleted</code> on this call is ignored. These texts are stored. They are not on <code>GET /fo-product-values</code>.</p>
+    <p><code>POST /product-release</code>. <code>released</code> is required, true or false. <code>released: true</code> adds the company. For RH, RHU, ASW, and SPI it also sets <code>shopOn</code> true on that shop brick. <code>lifecycleState</code> <code>"3"</code> with <code>released: true</code> still turns the shop on. <code>released: false</code> removes the company, sets <code>shopOn</code> false, and keeps the hero image and the description. A bad lifecycle state is <code>VALIDATION</code> and changes nothing. A release for a waiting card is <code>held</code>. After the variant exists, a missing variant is <code>NOT_FOUND</code>. Shop codes are those four. Kalle has not signed them. Star Fasteners has a brick and no F&amp;O code.</p>
+    <p>There is no image URL. Hero is per company, on the shop brick, only when that brick is on the product. Screw technical images are a gallery on the product group. Screw label images are a gallery on the master. A washer does not have those two galleries. Search name, weight, pack size, barcodes, related products, and brand-per-company are not fields on these lists. Brand on a family is the en-CA friendly name from <code>/tree</code>, and it is not on <code>GET /fo-tree-links</code>.</p>
+    <p><code>GET /fo-product-enrichment</code> is on TEST. It is not one of the four hourly lists. One row per catalogue master and one row per catalogue variant, including unpublished. A waiting card is not a row. A held translation is not a row until it has been applied. <code>itemNumber</code> is the master’s <code>code</code> or the variant’s <code>itemNumber</code>. <code>layer</code> is <code>master</code> or <code>variant</code>. <code>texts</code> uses the same language ids as <code>POST /product-translations</code>. en-CA is <code>name</code> and <code>descriptionMetric</code>. en-US is <code>nameImperial</code> and <code>descriptionImperial</code>. Every other language is <code>foTranslationBag</code>. These are not the Pimcore language tabs. An empty name or description is left out. A language with neither is left out. A product with no text is still a row, with no <code>texts</code>. This read turns inheritance off. A variant with an empty name does not show the master’s name. It does not remove a leading language tag. A deleted product is absent. There is no image field.</p>
+    <p>Do not call <code>GET /fo-attribute-map</code>. It is not one of the four lists, and it is not the enrichment read. F&amp;O does not need a split between a value stored on a folder and a value stored on a master. <code>GET /fo-product-values</code> is the value the master shows.</p>
+  </section>
+
+  <section id="reads">
+    <h2>7. What F&amp;O reads</h2>
+    <p>Read every page in one run. Compare the number of rows with <code>count</code>. Throw the run away when they differ. Sort is rebuilt on each request. A rename or a new master between page 1 and page 2 can move a row.</p>
+    <table>
+      <tr><th>GET</th><th>Row</th><th>Sort</th></tr>
+      <tr><td><code>/fo-tree-links</code></td><td><code>folderId</code>, <code>parentFolderId</code>, <code>foCategoryKey</code>, <code>foMap</code>, <code>path</code>, <code>name</code>, <code>code</code>, <code>layer</code>, <code>published</code>. Masters and waiting cards are absent. Unpublished folders are present. <code>name</code> has no language. Empty <code>foCategoryKey</code> is not a delete. <code>foMap</code> false does not hide the row.</td><td>path, then folderId</td></tr>
+      <tr><td><code>/fo-attributes</code></td><td><code>code</code>, <code>class</code> (<code>screw</code> or <code>washer</code>), <code>dataType</code>, <code>unit</code>, <code>group</code>, <code>texts</code> (language <code>en</code> only), <code>options</code>.</td><td>class, then code</td></tr>
+      <tr><td><code>/fo-product-values</code></td><td><code>itemNumber</code> (the master <code>code</code>), <code>categoryKey</code>, <code>attributes</code> as <code>{ code, value, unit }</code>. Unpublished masters are included.</td><td>folder path, then object id</td></tr>
+      <tr><td><code>/fo-product-placement</code></td><td><code>itemNumber</code>, <code>folderId</code>, <code>foCategoryKey</code>. Same masters as the values list.</td><td>folder path, then object id</td></tr>
+      <tr><td><code>/fo-product-enrichment</code></td><td><code>itemNumber</code>, <code>layer</code> (<code>master</code> or <code>variant</code>), <code>texts</code> as <code>{ languageId, name, description }</code>. Empty text is left out. No image. On TEST. Not one of the four hourly lists.</td><td>folder path, then object id</td></tr>
+    </table>
+    <pre>{
+  "itemNumber": "35032",
+  "folderId": 6713,
+  "foCategoryKey": "5637165576"
+}</pre>
+    <pre>{
+  "itemNumber": "35032",
+  "categoryKey": "5637165576",
+  "attributes": [ { "code": "RH_HEAD", "value": "HX", "unit": null } ]
+}</pre>
+    <p>Decimal values use up to 4 places, trailing zeros stripped. 0 is <code>"0"</code>. Relation and select attributes are <code>dataType</code> <code>list</code>. A quantity is <code>decimal</code>. A checkbox is <code>boolean</code>. Attribute titles are English only. An option card can also carry <code>da</code> and <code>sv</code> when those names are filled. Drawing measures, including diameter, length, pitch, and the washer sizes, are on <code>fo-attributes</code> and <code>fo-product-values</code>. They are not in the held person-edit posts. Many-value is a set. Only codes in <code>fo-attributes</code> are the ones F&amp;O should touch. A boolean absence means no value. False is never sent. A missing master changes nothing in F&amp;O. There is no price and no stock on these calls.</p>
+    <h3>Folder scenarios</h3>
+    <p>These are F&amp;O’s own list. PIM does not send a folder create, a rename, a move, or an unpublish. Read <code>GET /fo-tree-links</code> every run and compare it with the last read. The same <code>folderId</code> is the folder. <code>parentFolderId</code>, <code>path</code>, and <code>name</code> are what changed. <code>foCategoryKey</code> changes only when a person or <code>POST /fo-category-key</code> stores a new id.</p>
+    <p>The only PIM call for a folder is <code>POST /fo-category-key</code>, after F&amp;O has created the category. That post writes the new F&amp;O id onto <code>folderId</code>. If that folder already has an id, the posted id replaces it, except the product-group clash above.</p>
+    <p>A rename made only in F&amp;O stays. PIM sends no category name. Do not copy the PIM folder <code>name</code> onto the F&amp;O category. <code>/tree</code> updates the pick-list card name and does not rename the catalogue folder. The next folder read shows the PIM name when a person renames the folder in PIM. The two names can differ.</p>
+    <p>A move is the parent on that same read. If F&amp;O applies <code>parentFolderId</code>, a move made only in F&amp;O is put back to the PIM parent, and only when that parent row has an <code>foCategoryKey</code>. <code>parentFolderId</code> is a PIM id. The parent’s F&amp;O id is that parent row’s <code>foCategoryKey</code>. An empty one is not an F&amp;O parent. A move that must stay in F&amp;O has to be made on the PIM folder as well. The move does not replace <code>foCategoryKey</code>.</p>
+  </section>
+
+  <section id="table">
+    <h2>Folder table</h2>
+    <p><code>GET /admin/fo-tree-table</code> is the same rows as <code>GET /fo-tree-links</code>, behind the Pimcore login. It is the menu “F&amp;O tree”. It is not a feed.</p>
+    <table>
+      <tr><th>Column on screen</th><th>JSON field</th><th>Meaning</th></tr>
+      <tr><td>Folder</td><td><code>folderId</code></td><td>PIM id. Send this to <code>/fo-category-key</code>.</td></tr>
+      <tr><td>Parent</td><td><code>parentFolderId</code></td><td>PIM id of the parent. Changes when this folder moves.</td></tr>
+      <tr><td>Layer</td><td><code>layer</code></td><td><code>type</code>, <code>family</code>, <code>series</code>, <code>range</code>, <code>productGroup</code>.</td></tr>
+      <tr><td>Code</td><td><code>code</code></td><td>The folder’s own code. A different field from the F&amp;O id. On the demo, code is <code>A2-DEMO-PG</code> and the F&amp;O id is <code>A2-DEMO-CAT</code>.</td></tr>
+      <tr><td>Name</td><td><code>name</code></td><td>One plain name. No language.</td></tr>
+      <tr><td>F&amp;O id</td><td><code>foCategoryKey</code></td><td>The id <code>parentKey</code> and attribute <code>categoryKey</code> use. Empty means not linked.</td></tr>
+      <tr><td>Map</td><td><code>foMap</code></td><td>Checkbox “Map to F&amp;O”. The list is not filtered. The box does not decide the link.</td></tr>
+      <tr><td>Published</td><td><code>published</code></td><td>False still returns the folder. <code>6712</code> is false.</td></tr>
+      <tr><td>Path</td><td><code>path</code></td><td>Full path under <code>/ErpSyncLive/Catalog</code>.</td></tr>
+    </table>
+  </section>
+
+  <section id="held">
+    <h2>Rows PIM holds and does not send</h2>
+    <p>These are written when a person saves in PIM and the product group already has an id. F&amp;O does not need them for folder scenarios. A folder change is the next <code>GET /fo-tree-links</code>, compared with the last read. The flush runs only when the return URL, the header name, and the key are all set. They are empty. There is no schedule. Product text is <code>GET /fo-product-enrichment</code>, not a held post.</p>
+    <table>
+      <tr><th>Kind</th><th>When it is held</th><th>Body</th></tr>
+      <tr><td><code>link</code></td><td>The product-group id is set or changed.</td><td><code>{ "categoryKey", "pimPath", "layer": "productGroup" }</code></td></tr>
+      <tr><td><code>placement</code></td><td>A master lands on a different id, or the id on its group is set or changed.</td><td><code>{ "itemNumber", "categoryKey" }</code></td></tr>
+      <tr><td><code>attribute-setup</code></td><td>A person changes a direct field and the immediate parent already has an id.</td><td><code>{ "categoryKey", "attributes": [ { "code", "value" } ] }</code></td></tr>
+      <tr><td><code>values</code></td><td>That same save, when the object has an item number.</td><td><code>{ "itemNumber", "categoryKey", "attributes" }</code></td></tr>
+    </table>
+    <p>Classification-store measures are not in those held rows. An emptied field is left out. Many-value is queued only when exactly one option is selected. Values set before the id exists are not replayed. A normal variant queues nothing, because its parent is the master and that parent’s F&amp;O id is empty. If a post were ever turned on, headers would be <code>Content-Type: application/json</code>, the named key header, <code>X-Outbox-Id</code>, and <code>X-Saved-At</code> in UTC. Timeout 20 seconds. HTTP 401 would stop the flush. The link path is not an agreed outbound contract. Folder changes are not in these held rows. The folder compare is <code>GET /fo-tree-links</code>. A boolean false is absent from the value list.</p>
+  </section>
+
+  <section id="expect">
+    <h2>What F&amp;O should do with this</h2>
+    <ol>
+      <li>Keep sending <code>/tree</code>. Treat <code>store: categoryPickList</code> as the card, not as a PIM folder.</li>
+      <li>Read <code>GET /fo-tree-links</code> every run and compare it with the last read. PIM sends nothing for those folder changes. For a folder with an empty <code>foCategoryKey</code>, create the category in F&amp;O, then POST <code>/fo-category-key</code>. A later post with a different id for that same <code>folderId</code> replaces the stored id. Do not copy <code>code</code> unless that exact text is the F&amp;O category id.</li>
+      <li>Send masters with <code>parentKey</code> equal to that stored id. Read <code>action</code> <code>held</code> as “not in the catalogue yet”.</li>
+      <li>Send definitions, then attribute values, translations, and release. A <code>held</code> row is stored. It is not lost.</li>
+      <li>Read the four lists, all pages, and compare <code>count</code>. Use <code>foCategoryKey</code> on the folder list and on placement. Use <code>categoryKey</code> on product values. Ignore <code>foMap</code> for the link. Read <code>/fo-product-enrichment</code> for names and descriptions. Do not call <code>/fo-attribute-map</code>. Do not send a parent value from <code>/fo-product-values</code> back on the master <code>/product-attributes</code> row.</li>
+      <li>An hourly read is F&amp;O’s clock. PIM does not run one.</li>
+      <li>Do not expect an image URL, a price, or a stock. The next <code>/product-translations</code> row still overwrites the text it includes.</li>
+    </ol>
+    <p><code>POST /companies</code> upserts a legal entity by <code>companyCode</code> under <code>/ErpSyncLive/LegalEntities</code>. <code>companyCode</code> is required. <code>POST /dimensions</code> upserts config, colour, size, and style cards under <code>/ErpSyncLive/DimOptions</code>. Do not widen that list. <code>POST /ping</code> stores the body under <code>/ErpIntake</code>. <code>GET</code> or <code>POST /auth</code> only checks the key.</p>
+  </section>
+
+  <section id="settled">
+    <h2>Questions already settled</h2>
+    <table>
+      <tr><th>Question</th><th>Answer</th></tr>
+      <tr><td>Does <code>/tree</code> create the PIM folder?</td><td>No on TEST. It stores the pick-list card.</td></tr>
+      <tr><td>Does <code>folderId</code> change on a move?</td><td>No. <code>parentFolderId</code> changes on the folder that moved. An inner folder keeps its own parent id. Paths change.</td></tr>
+      <tr><td>Who stores the F&amp;O id?</td><td>A person, or <code>POST /fo-category-key</code>. The call does not tick Map to F&amp;O. The tick does not decide <code>parentKey</code>.</td></tr>
+      <tr><td>Tick Map to F&amp;O on the 8 groups for the folder test?</td><td>No. Read <code>foCategoryKey</code>. <code>foMap</code> false means the box is unticked.</td></tr>
+      <tr><td>Does an id on a folder above the product group place a master?</td><td>No. <code>parentKey</code> reads the product group only.</td></tr>
+      <tr><td>Is another product type one <code>skipped</code> reply?</td><td>No. No <code>parentKey</code> is a waiting card. A linked id plus a type that is not 06 or 09 fails that row.</td></tr>
+      <tr><td>Names, descriptions, images as a fifth list?</td><td><code>GET /fo-product-enrichment</code> is on TEST. It is not one of the four hourly lists. Masters and variants. No changed-text mark. No image URL. Inheritance is off. The next translation send still overwrites the field it includes.</td></tr>
+      <tr><td>A rename or a move made only in F&amp;O?</td><td>PIM sends nothing. The next <code>GET /fo-tree-links</code> is the compare. A rename stays. Do not copy the folder name. If F&amp;O applies <code>parentFolderId</code>, an F&amp;O-only move is put back when the parent row has an <code>foCategoryKey</code>. The move does not change the stored id.</td></tr>
+      <tr><td>A second <code>POST /fo-category-key</code> with a different id?</td><td>Yes. It replaces <code>foCategoryKey</code> on that <code>folderId</code>. The old id is dropped. If the folder is a product group and the new id is already on another product group, the post fails and the old id stays.</td></tr>
+      <tr><td>How often does PIM return data?</td><td>It does not post. F&amp;O reads four lists. <code>GET /fo-product-enrichment</code> is also on TEST and is not one of those four. Do not call <code>GET /fo-attribute-map</code>. There is no rate limit and no cache.</td></tr>
+      <tr><td>Does a new attribute code appear on the next GET by itself?</td><td>A new class field has to be in the attribute list and deployed before <code>GET /fo-attributes</code> shows it. <code>GET /fo-product-values</code> shows a value stored on the master, or the nearest catalogue folder’s value when the master has none. There is no marker. Do not call <code>GET /fo-attribute-map</code> for a per-node split.</td></tr>
+      <tr><td>Unpublished option, unpublished master, missing master, boolean?</td><td>An unpublished option code is valid. An unpublished master stays on both product lists. A deleted master is absent, not a clear. A boolean is sent only as <code>true</code>.</td></tr>
+    </table>
+  </section>
+
+  <section id="out">
+    <h2>Still open</h2>
+    <ul>
+      <li><code>6712</code> “PG | 6666 (old)” has no F&amp;O id. <code>5637164078</code> is not stored. Masters <code>35088</code> and <code>34977</code> stay in that folder until a person moves them into a product group that has an id. <code>6923</code> “PG | 6666” is a different folder and already has its id. It has no master in it.</li>
+      <li>Families <code>3842</code>, <code>8539</code>, <code>SCF1</code>, <code>SCF2</code>, and <code>SCF3</code> have no product group under them. They do not need an id to place a master. A series or a range needs an id only when an attribute <code>categoryKey</code> aims at that folder.</li>
+      <li>No image URL. No PIM return job. The return URL is still empty. <code>GET /fo-attribute-map</code> is not a list F&amp;O calls.</li>
+      <li>Shop codes on release are RH, RHU, ASW, and SPI. Kalle has not signed them.</li>
+      <li>Production host is unknown. This page is TEST.</li>
+    </ul>
+  </section>
+</main>
+</div>
+</body>
+</html>
