@@ -86,7 +86,7 @@
   </nav>
 </header>
 <main>
-  <p class="legend"><i style="background:#dbeafe"></i> F&amp;O sends <i style="background:#dcfce7"></i> PIM stores <i style="background:#fef3c7"></i> held <i style="background:#fee2e2"></i> failed</p>
+  <p class="legend"><i style="background:#1d4ed8"></i> F&amp;O sends <i style="background:#166534"></i> accepted <i style="background:#92400e"></i> held, not in the catalogue yet <i style="background:#b91c1c"></i> row failed, not written <i style="background:#dbeafe"></i> read</p>
   <p class="small">Category <code>5637165576</code> is stored on TEST product group <code>6713</code>. <code>40100</code> and <code>88001</code> are the worked example.</p>
 
   <h2 id="picture">Picture</h2>
@@ -120,7 +120,7 @@
   </div>
   <div class="fork3">
     <div class="out ok"><b>Yes — 40100</b>Catalogue master. <code>created</code>, layer <code>master</code>. Class comes from folder 6713. Then variant, values, texts, release.</div>
-    <div class="out held"><b>No id, or id only on the pick list — 88001</b>Waiting card. First reply <code>held</code>, layer <code>unassigned</code>. Dependents stay <code>held</code> until the card is placed.</div>
+    <div class="out held"><b>No id, or id only on the pick list — 88001</b>Waiting card. The first row that is not a delete is <code>held</code>, layer <code>unassigned</code>. A first row with <code>isDeleted: true</code> is <code>unpublished</code>, not <code>held</code>. Dependents stay <code>held</code> until the card is placed.</div>
     <div class="out bad"><b>Bad id</b>Never sent on <code>/tree</code>: <code>NOT_FOUND</code>. On a folder that is not a product group: <code>VALIDATION</code>. On two product groups: <code>CONFLICT</code>. Nothing is written.</div>
   </div>
   <div class="e2e" style="margin-top:14px">
@@ -133,7 +133,7 @@
   <h2 id="category">Category — POST /tree</h2>
   <div class="lane">
     <div class="row"><div class="send"><code>5637165576</code>, layer <code>productGroup</code></div><div class="mid">→</div><div class="get ok">Pick-list card. <code>store: categoryPickList</code>. Catalogue untouched.</div></div>
-    <div class="row"><div class="send"><code>isDeleted: true</code></div><div class="mid">→</div><div class="get held">Card unpublished. A later row does not publish it again. <code>isDeleted: false</code> does not publish it either.</div></div>
+    <div class="row"><div class="send"><code>isDeleted: true</code></div><div class="mid">→</div><div class="get ok">Pick-list card unpublished. A later row leaves it unpublished. <code>isDeleted: false</code> does not publish it. This is not the catalogue folder.</div></div>
     <div class="row"><div class="send"><code>isActive: false</code></div><div class="mid">→</div><div class="get ok">Stored. It does not block the link and does not hide the id.</div></div>
     <div class="row"><div class="send">Layer <code>master</code>, or level that disagrees with layer</div><div class="mid">→</div><div class="get bad">Row fails. The card is not stored.</div></div>
   </div>
@@ -144,8 +144,8 @@
     <div class="row"><div class="send">Empty <code>categoryKey</code></div><div class="mid">→</div><div class="get bad">Rejected. An id cannot be cleared by this call.</div></div>
     <div class="row"><div class="send">A different id for the same <code>folderId</code></div><div class="mid">→</div><div class="get ok">Replaces the stored id. The old id is not kept.</div></div>
     <div class="row"><div class="send">That new id is already on another product group</div><div class="mid">→</div><div class="get bad"><code>VALIDATION</code>. The old id stays.</div></div>
-    <div class="row"><div class="send">Same id typed on a type, family, series, or range</div><div class="mid">→</div><div class="get bad">Does not place a master. <code>parentKey</code> reads the product group only.</div></div>
-    <div class="row"><div class="send">Map to F&amp;O ticked, id empty</div><div class="mid">→</div><div class="get bad">Not a link. The lists are not filtered by the tick.</div></div>
+    <div class="row"><div class="send">Same id stored on a type, family, series, or range</div><div class="mid">→</div><div class="get read">The folder can keep that id. It still does not place a master. <code>parentKey</code> reads the product group only.</div></div>
+    <div class="row"><div class="send">Map to F&amp;O ticked, id empty</div><div class="mid">→</div><div class="get read">Not a link. The lists are not filtered by the tick. <code>6713</code> stores its id with <code>foMap</code> false.</div></div>
     <div class="row"><div class="send">Folder renamed or moved in PIM</div><div class="mid">→</div><div class="get read">Next <code>GET /fo-tree-links</code>. PIM sends no folder event. Do not copy <code>name</code> onto the F&amp;O category. The move does not change <code>foCategoryKey</code>.</div></div>
   </div>
 
@@ -154,15 +154,16 @@
     <div class="row"><div class="send">New <code>40100</code>, <code>parentKey</code> <code>5637165576</code>, no <code>productType</code></div><div class="mid">→</div><div class="get ok"><code>created</code>, layer <code>master</code>, class of folder 6713.</div></div>
     <div class="row"><div class="send">New <code>88001</code>, <code>parentKey</code> omitted. <code>productType</code> <code>0</code>, <code>06</code>, or <code>09</code> is ignored</div><div class="mid">→</div><div class="get held">Waiting card. First time <code>held</code>, later <code>updated</code>. Layer <code>unassigned</code>.</div></div>
     <div class="row"><div class="send"><code>parentKey</code> is on the pick list and on no folder</div><div class="mid">→</div><div class="get held">Same waiting card, plus a note. An existing catalogue master is not turned into a card.</div></div>
-    <div class="row"><div class="send"><code>parentKey</code> was never on <code>/tree</code></div><div class="mid">→</div><div class="get bad"><code>NOT_FOUND</code>. Product is not created.</div></div>
+    <div class="row"><div class="send">New master, <code>parentKey</code> was never on <code>/tree</code></div><div class="mid">→</div><div class="get bad"><code>NOT_FOUND</code>. The product is not created. An existing catalogue master is not removed.</div></div>
     <div class="row"><div class="send">Id is on a folder above product group</div><div class="mid">→</div><div class="get bad"><code>VALIDATION</code>. A master hangs off a product group.</div></div>
     <div class="row"><div class="send">Same id on two product groups</div><div class="mid">→</div><div class="get bad"><code>CONFLICT</code>. PIM does not pick one.</div></div>
     <div class="row"><div class="send"><code>productType</code> <code>09</code> on a screw folder, or <code>06</code> on a washer folder</div><div class="mid">→</div><div class="get bad"><code>CONFLICT</code>. Nothing is saved. A later move between those classes is the same failure.</div></div>
     <div class="row"><div class="send">Token other than <code>06</code> <code>SCREW</code> <code>SCREWS</code> <code>09</code> <code>WASHER</code> <code>WASHERS</code>, when the field is checked</div><div class="mid">→</div><div class="get bad"><code>VALIDATION</code>. <code>"0"</code> and the text <code>null</code> fail. JSON <code>null</code> is omit.</div></div>
     <div class="row"><div class="send">Existing master, <code>parentKey</code> omitted</div><div class="mid">→</div><div class="get ok">Stays where it is. Not turned into a waiting card.</div></div>
     <div class="row"><div class="send">Existing master, <code>parentKey</code> does not resolve</div><div class="mid">→</div><div class="get bad">Row fails. The master stays a catalogue master.</div></div>
+    <div class="row"><div class="send">Same <code>parentKey</code>, still the product group the master is already in</div><div class="mid">→</div><div class="get ok"><code>updated</code>, layer <code>master</code>. No move.</div></div>
     <div class="row"><div class="send">Same <code>parentKey</code>, now on a different product group of the same class</div><div class="mid">→</div><div class="get ok">Master moves. Reply stays <code>updated</code>. No move flag. Placement <code>folderId</code> is the new parent. <code>isDeleted: true</code> on that row makes the action <code>unpublished</code> and the move still happens.</div></div>
-    <div class="row"><div class="send">Variant <code>40100-V1</code> after the master, in the same batch</div><div class="mid">→</div><div class="get ok">Created under the master. No <code>productType</code>. No <code>parentKey</code>.</div></div>
+    <div class="row"><div class="send">Variant <code>40100-V1</code> after 40100 was created in that batch</div><div class="mid">→</div><div class="get ok">Created under the master. No <code>productType</code>. No <code>parentKey</code>. The same variant for waiting card 88001 is <code>held</code>, not created.</div></div>
     <div class="row"><div class="send">Variant and the master code does not exist</div><div class="mid">→</div><div class="get bad"><code>NOT_FOUND</code>. Send the master first.</div></div>
   </div>
 
@@ -179,53 +180,57 @@
 
   <h2 id="name">Name</h2>
   <div class="lane">
-    <div class="row"><div class="send">Non-empty name on the row that returns <code>created</code>, or the first <code>updated</code> layer <code>master</code></div><div class="mid">→</div><div class="get ok">That is the once-send. Later rows leave the name key out.</div></div>
-    <div class="row"><div class="send">Name key omitted, null, <code>""</code>, or spaces on waiting card 88001</div><div class="mid">→</div><div class="get held">Card name becomes <code>88001</code>. Same on the first <code>held</code> row and on a row that publishes the card again.</div></div>
+    <div class="row"><div class="send">Non-empty en-CA name on <code>/product-master</code> for the row that returns <code>created</code>, or the first <code>updated</code>, layer <code>master</code></div><div class="mid">→</div><div class="get ok">F&amp;O stops after that reply and leaves the name key out. PIM does not stop. A later row that still has the name overwrites it. Do not put that en-CA name on <code>/product-translations</code>.</div></div>
+    <div class="row"><div class="send">Name key omitted, null, <code>""</code>, or spaces on any save of waiting card 88001</div><div class="mid">→</div><div class="get ok">Card name becomes <code>88001</code>. That includes the first <code>held</code> row, a later <code>updated</code> row, and a row that publishes the card again.</div></div>
     <div class="row"><div class="send">Name key omitted on catalogue 40100 that already exists</div><div class="mid">→</div><div class="get ok">Stored name stays.</div></div>
-    <div class="row"><div class="send">Null, <code>""</code>, or spaces on that catalogue row</div><div class="mid">→</div><div class="get bad">Name is cleared. The code is not stored as the name.</div></div>
+    <div class="row"><div class="send">Null, <code>""</code>, or spaces on that catalogue row</div><div class="mid">→</div><div class="get ok">Name is cleared. The code is not stored as the name.</div></div>
     <div class="row"><div class="send">New catalogue row, name key omitted</div><div class="mid">→</div><div class="get ok">Master stores the code. Variant stores the <code>itemNumber</code>.</div></div>
-    <div class="row"><div class="send">A later row still has the name</div><div class="mid">→</div><div class="get held">Overwrites. PIM does not lock the field. <code>/product-master</code> does not strip a language tag.</div></div>
+    <div class="row"><div class="send"><code>/product-master</code> name, including a leading <code>(en-CA)</code> tag</div><div class="mid">→</div><div class="get ok">Stored as sent. This call does not remove the tag.</div></div>
   </div>
 
   <h2 id="deleted">Unpublish — isDeleted</h2>
   <div class="lane">
-    <div class="row"><div class="send"><code>true</code> on catalogue 40100 or its variant</div><div class="mid">→</div><div class="get held"><code>unpublished</code>. Object stays. A name on the same row is still written. A master does not unpublish its variants. The row stays on the product lists.</div></div>
-    <div class="row"><div class="send">Field omitted on a catalogue object</div><div class="mid">→</div><div class="get ok">Published stays as it is. <code>isDeleted: false</code> publishes it and the action stays <code>updated</code>.</div></div>
-    <div class="row"><div class="send"><code>true</code> on waiting card 88001, including the first save</div><div class="mid">→</div><div class="get held"><code>unpublished</code>. Held rows are dropped. Those once-sends are void.</div></div>
-    <div class="row"><div class="send">Next non-deleted row for that card</div><div class="mid">→</div><div class="get ok">Publishes the card if it was unpublished. Already published stays published. Not a new catalogue master until <code>parentKey</code> resolves.</div></div>
-    <div class="row"><div class="send">A person deletes the master in PIM</div><div class="mid">→</div><div class="get bad">Gone from the product lists. That is not a clear inside F&amp;O. F&amp;O leaves its own item.</div></div>
+    <div class="row"><div class="send"><code>true</code> on catalogue 40100 or its variant</div><div class="mid">→</div><div class="get ok"><code>unpublished</code>. Object stays. A name on the same row is still written. A master does not unpublish its variants. The row stays on the product lists.</div></div>
+    <div class="row"><div class="send">Field omitted on a catalogue object</div><div class="mid">→</div><div class="get ok">Published stays as it is. <code>isDeleted: false</code> publishes it and the action stays <code>updated</code>. This is not <code>created</code>.</div></div>
+    <div class="row"><div class="send"><code>true</code> on waiting card 88001, including the first save</div><div class="mid">→</div><div class="get ok"><code>unpublished</code>. The held variant, text, attribute, and release payloads are dropped. Send them again after the card is a catalogue master.</div></div>
+    <div class="row"><div class="send">Next row for that card with <code>isDeleted</code> false, or with the field omitted</div><div class="mid">→</div><div class="get ok">Publishes the card when it is unpublished. A card that is already published stays published. Still a waiting card until <code>parentKey</code> resolves. If the name key is omitted, the card name becomes the code.</div></div>
+    <div class="row"><div class="send">A person deletes the master in PIM</div><div class="mid">→</div><div class="get read">Gone from the product lists. That is not a clear inside F&amp;O. F&amp;O leaves its own item.</div></div>
   </div>
 
   <h2 id="attr">Attributes</h2>
   <div class="lane">
-    <div class="row"><div class="send"><code>itemNumber</code> 40100 and <code>LENGTH MM</code> 100 mm, and the read did not already show 100 mm</div><div class="mid">→</div><div class="get ok">Stored on the master. Not on the folder. Next values read uses the master’s own value.</div></div>
-    <div class="row"><div class="send">The values read showed <code>RH_HEAD</code> <code>HX</code> from folder 6713, and the master does not store it</div><div class="mid">→</div><div class="get held">Leave the code off the master row. Sending <code>HX</code> stores it on the master. A later folder edit is then not used for that code. There is no marker on the read.</div></div>
+    <div class="row"><div class="send"><code>itemNumber</code> 40100 and <code>LENGTH MM</code> 100 mm, and the read did not already show 100 mm</div><div class="mid">→</div><div class="get ok">Stored on the object that number finds. A variant <code>itemNumber</code> is found before a master code. It is not stored on the folder. When it lands on the master, the next values read uses the master’s own value.</div></div>
+    <div class="row"><div class="send">The values read showed <code>RH_HEAD</code> <code>HX</code> from folder 6713, and the master does not store it</div><div class="mid">→</div><div class="get read">Leave the code off the master row. Sending <code>HX</code> stores it on the master. A later folder edit is then not used for that code. The read has no source flag. This read turns Pimcore’s inheritance off, then walks the master and the catalogue folders above it.</div></div>
     <div class="row"><div class="send">Decimal <code>0</code> stored on the master</div><div class="mid">→</div><div class="get read">Returned as <code>"0"</code>. The folder is not used. An unset decimal is omitted.</div></div>
-    <div class="row"><div class="send">A list of several folder values</div><div class="mid">→</div><div class="get held">One code. Leave the whole code out to keep the folder list. Each value sent replaces the relation. The last one is kept.</div></div>
-    <div class="row"><div class="send">Boolean <code>false</code></div><div class="mid">→</div><div class="get held">Stored as false. The next read treats false as empty, so a folder <code>true</code> can still come back.</div></div>
-    <div class="row"><div class="send"><code>value</code> null, <code>""</code>, spaces, or <code>isDeleted: true</code></div><div class="mid">→</div><div class="get bad">Clears that object’s own value. Leaving the code out does not clear it.</div></div>
-    <div class="row"><div class="send"><code>categoryKey</code> and no <code>itemNumber</code></div><div class="mid">→</div><div class="get ok">Writes that folder, only for a code placed on that folder. A code only on a parent folder is ignored.</div></div>
-    <div class="row"><div class="send">Both <code>itemNumber</code> and <code>categoryKey</code></div><div class="mid">→</div><div class="get bad"><code>VALIDATION</code>.</div></div>
-    <div class="row"><div class="send">Code a person owns in PIM, or a code not placed on a folder of this master</div><div class="mid">→</div><div class="get bad">Not overwritten, or ignored. Not stored.</div></div>
-    <div class="row"><div class="send">Attribute row for waiting card 88001</div><div class="mid">→</div><div class="get held"><code>held</code> until the card is placed.</div></div>
-    <div class="row"><div class="send"><code>GET /fo-attribute-map</code></div><div class="mid">→</div><div class="get bad">Do not call. The values read is the value the master shows.</div></div>
+    <div class="row"><div class="send">A list of several folder values for one code</div><div class="mid">→</div><div class="get read">The read does not mix them with a value stored on the master. Leave the whole code out to keep the folder list. Each value sent replaces the relation. The last one is kept.</div></div>
+    <div class="row"><div class="send">Boolean <code>false</code> on the master</div><div class="mid">→</div><div class="get read">The read treats false as empty, so a <code>true</code> on a folder above can be returned. There is still no marker.</div></div>
+    <div class="row"><div class="send">A decimal with no unit</div><div class="mid">→</div><div class="get ok">Stored with the attribute’s unit, or with <code>mm</code> when the attribute has none. A missing unit is not a difference to send.</div></div>
+    <div class="row"><div class="send"><code>value</code> null, <code>""</code>, spaces, or <code>isDeleted: true</code></div><div class="mid">→</div><div class="get ok">Clears that object’s own value. Leaving the code out does not clear it. A boolean clear stores false, and the read treats false as empty.</div></div>
+    <div class="row"><div class="send"><code>categoryKey</code> and no <code>itemNumber</code>, folder is a series, range, or product group</div><div class="mid">→</div><div class="get ok">Writes that folder, only for a code placed on that folder. A code only on a parent folder is ignored. A type or a family is <code>VALIDATION</code>.</div></div>
+    <div class="row"><div class="send">Both <code>itemNumber</code> and <code>categoryKey</code></div><div class="mid">→</div><div class="get bad"><code>VALIDATION</code>. Nothing in that row is written.</div></div>
+    <div class="row"><div class="send">Code not in <code>/attribute-definitions</code></div><div class="mid">→</div><div class="get read">That code is ignored. It is not stored. The row is <code>unchanged</code> when nothing else was written.</div></div>
+    <div class="row"><div class="send">Code a person owns in PIM</div><div class="mid">→</div><div class="get read">Not overwritten.</div></div>
+    <div class="row"><div class="send">Code not placed on a folder of this master</div><div class="mid">→</div><div class="get read">Ignored. Not stored.</div></div>
+    <div class="row"><div class="send">At least one <code>attributeCode</code> for waiting card 88001</div><div class="mid">→</div><div class="get held"><code>held</code> until the card is placed. A row with no attribute list is <code>NOT_FOUND</code>.</div></div>
+    <div class="row"><div class="send"><code>GET /fo-attribute-map</code></div><div class="mid">→</div><div class="get read">Not a list F&amp;O calls. The values read is the value the master shows, including a value taken from a parent.</div></div>
   </div>
 
   <h2 id="text">Text and shops</h2>
   <div class="lane">
-    <div class="row"><div class="send"><code>POST /product-translations</code> en-CA name and description</div><div class="mid">→</div><div class="get ok">Writes <code>name</code> and <code>descriptionMetric</code>. A leading language tag is removed from the en-CA name on a master, and from the en-US name on a master and a variant. Descriptions are trimmed only.</div></div>
-    <div class="row"><div class="send">en-HK or zh-Hant</div><div class="mid">→</div><div class="get ok"><code>foTranslationBag</code>. Not a Pimcore language tab.</div></div>
-    <div class="row"><div class="send">Texts for waiting card 88001</div><div class="mid">→</div><div class="get held"><code>held</code>. No <code>languages</code> list on that reply. The last payload is the one applied.</div></div>
+    <div class="row"><div class="send"><code>POST /product-translations</code> en-CA and en-US</div><div class="mid">→</div><div class="get ok">en-CA writes <code>name</code> and <code>descriptionMetric</code>. en-US writes <code>nameImperial</code> and <code>descriptionImperial</code>. A leading language tag is removed from the en-CA name on a master, and from the en-US name on a master and a variant. Descriptions are trimmed only. The en-CA name for the once-send stays on <code>/product-master</code>.</div></div>
+    <div class="row"><div class="send">en-HK, zh-Hant, or any id other than en-CA and en-US</div><div class="mid">→</div><div class="get ok"><code>foTranslationBag</code>. Not a Pimcore language tab. The id must match exactly.</div></div>
+    <div class="row"><div class="send">Texts for waiting card 88001</div><div class="mid">→</div><div class="get held"><code>held</code>. Key, action, and a note. No layer and no <code>languages</code> list. The last payload is the one applied. On a catalogue <code>updated</code>, <code>languages</code> lists the name and description fields that row included, including one that was already the same. <code>unchanged</code> and <code>failed</code> have no <code>languages</code> list.</div></div>
     <div class="row"><div class="send">Field left out of a translation row</div><div class="mid">→</div><div class="get ok">Stays. Null or <code>""</code> clears the one field sent. A person edit does not lock it.</div></div>
     <div class="row"><div class="send"><code>POST /product-release</code> <code>released: true</code>, company RH, <code>lifecycleState</code> <code>"3"</code></div><div class="mid">→</div><div class="get ok">Company added. Shop turns on. <code>"3"</code> does not mean off. <code>released: false</code> turns the shop off and keeps the image and the description.</div></div>
+    <div class="row"><div class="send">Release for a company never sent on <code>/companies</code></div><div class="mid">→</div><div class="get bad"><code>NOT_FOUND</code> after the variant exists. The shop is not changed.</div></div>
     <div class="row"><div class="send">Release while 88001 is a card</div><div class="mid">→</div><div class="get held"><code>held</code>. Release does not place the card and does not create the variant.</div></div>
   </div>
 
   <h2 id="reads">What the next read shows for 40100</h2>
   <div class="lane">
-    <div class="row"><div class="send"><code>GET /fo-tree-links</code></div><div class="mid">→</div><div class="get read">Folder 6713. <code>foCategoryKey</code> <code>5637165576</code>. <code>foMap</code> may be false. Masters are not rows.</div></div>
+    <div class="row"><div class="send"><code>GET /fo-tree-links</code></div><div class="mid">→</div><div class="get read">Folder 6713. <code>foCategoryKey</code> <code>5637165576</code>. <code>foMap</code> is false on that group. Masters and waiting cards are not rows. Unpublished folders are included.</div></div>
     <div class="row"><div class="send"><code>GET /fo-attributes</code></div><div class="mid">→</div><div class="get read">The book. Unpublished options are valid values. No published flag.</div></div>
-    <div class="row"><div class="send"><code>GET /fo-product-values</code></div><div class="mid">→</div><div class="get read">Master only, including unpublished. <code>categoryKey</code> is the parent’s id. Attributes are <code>code</code>, <code>value</code>, <code>unit</code>. A parent value has no source flag. Variants are not rows.</div></div>
+    <div class="row"><div class="send"><code>GET /fo-product-values</code></div><div class="mid">→</div><div class="get read">Masters only, including unpublished. <code>categoryKey</code> is the immediate parent’s id and is not an attribute source. This read turns Pimcore’s inheritance off, then uses a folder above only when the master’s own value is empty. Attributes are <code>code</code>, <code>value</code>, <code>unit</code>. Variants are not rows.</div></div>
     <div class="row"><div class="send"><code>GET /fo-product-placement</code></div><div class="mid">→</div><div class="get read"><code>itemNumber</code> 40100, <code>folderId</code> 6713, <code>foCategoryKey</code> <code>5637165576</code>. <code>folderId</code> is the parent, not the folder that supplied an attribute.</div></div>
     <div class="row"><div class="send"><code>GET /fo-product-enrichment</code></div><div class="mid">→</div><div class="get read">On TEST. Not one of the four lists. Master and variant. Inheritance off. No language-tag strip. No image. Empty text omitted. A product with no text is still a row.</div></div>
     <div class="row"><div class="send">PIM would POST link, placement, or attribute rows</div><div class="mid">→</div><div class="get held">Stored only. Return URL, header, and key are empty. Nothing is sent.</div></div>
