@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Approach 2 — how it works</title>
+<style>
+  :root { --ink:#1c1917; --muted:#57534e; --line:#e7e5e4; --paper:#fafaf9; --fo:#1d4ed8; --pim:#9f1239; --person:#166534; --wait:#92400e; }
+  * { box-sizing: border-box; }
+  body { margin: 0; color: var(--ink); background: var(--paper); font: 16px/1.5 "Segoe UI", Arial, sans-serif; }
+  a { color: var(--fo); }
+  code { font-size: 13px; background: #f5f5f4; padding: 1px 5px; border-radius: 4px; }
+  header { max-width: 980px; margin: 0 auto; padding: 28px 20px 8px; }
+  h1 { font-size: 28px; margin: 0 0 8px; }
+  h2 { font-size: 20px; margin: 0 0 12px; }
+  main { max-width: 980px; margin: 0 auto; padding: 8px 20px 72px; }
+  .small { color: var(--muted); font-size: 14px; }
+  .banner { background: #fff1f2; border: 1px solid #fecdd3; border-radius: 10px; padding: 12px 14px; margin: 14px 0; }
+  .trees { display: grid; grid-template-columns: 1fr 72px 1fr; gap: 0; align-items: stretch; margin: 16px 0 8px; }
+  .tree { background: #fff; border: 2px solid; border-radius: 14px; padding: 14px 16px; }
+  .tree.fo { border-color: var(--fo); }
+  .tree.pim { border-color: var(--pim); }
+  .tree h3 { margin: 0 0 8px; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; }
+  .tree.fo h3 { color: var(--fo); }
+  .tree.pim h3 { color: var(--pim); }
+  .node { background: #fafaf9; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin: 8px 0; }
+  .node b { display: block; }
+  .node span { color: var(--muted); font-size: 13px; }
+  .join { display: flex; align-items: center; justify-content: center; color: var(--wait); font-weight: 700; text-align: center; font-size: 13px; }
+  .flow { margin: 18px 0; }
+  .step { display: grid; grid-template-columns: 46px 1fr; gap: 12px; margin: 0 0 14px; }
+  .n { width: 46px; height: 46px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-weight: 700; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .card h3 { margin: 0 0 6px; font-size: 16px; }
+  .who { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .04em; padding: 2px 7px; border-radius: 999px; margin-right: 6px; }
+  .who.fo { background: #dbeafe; color: var(--fo); }
+  .who.pim { background: #ffe4e6; color: var(--pim); }
+  .who.person { background: #dcfce7; color: var(--person); }
+  .ex { font-family: ui-monospace, Consolas, monospace; font-size: 13px; background: #1c1917; color: #fafaf9; border-radius: 8px; padding: 10px 12px; margin: 8px 0 0; white-space: pre-wrap; }
+  .fork { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 18px; }
+  .fork .card { border-width: 2px; }
+  .fork .wait { border-color: #fcd34d; }
+  .fork .go { border-color: #86efac; }
+  .reads { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .read { background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--fo); border-radius: 10px; padding: 10px 12px; }
+  .read b { display: block; }
+  .read.off { border-left-color: #a8a29e; background: #f5f5f4; }
+  .no { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .no div { background: #fff; border: 1px dashed #d6d3d1; border-radius: 10px; padding: 10px 12px; }
+  @media (max-width: 800px) {
+    .trees, .fork, .reads, .no { grid-template-columns: 1fr; }
+    .join { padding: 8px 0; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Approach 2 — how it works</h1>
+  <p class="small">30 October 2026. One example on TEST <code>10.100.16.4:82</code>. The field rules are <a href="approach-2-flow.html">approach-2-flow.html</a> and <a href="approach-2-api.html#vs">approach-2-api.html</a>.</p>
+</header>
+<main>
+  <div class="banner"><b>Two trees.</b> F&amp;O keeps its categories. PIM keeps its folders. <code>POST /tree</code> does not create a PIM folder. The only join is one category id stored on one product group. PIM does not post folder events back. F&amp;O reads.</div>
+
+  <h2>The picture</h2>
+  <p class="small">The category id <code>5637165576</code> is stored on TEST product group <code>6713</code>. The product numbers below are the worked example, not a claim that those items already exist.</p>
+  <div class="trees">
+    <div class="tree fo">
+      <h3>F&amp;O</h3>
+      <div class="node"><b>Category 5637165576</b><span>Its own name. Do not copy the PIM folder name onto it.</span></div>
+      <div class="node"><b>Product 40100</b><span>Created in F&amp;O. PIM does not create the F&amp;O item.</span></div>
+    </div>
+    <div class="join">id<br>5637165576</div>
+    <div class="tree pim">
+      <h3>PIM</h3>
+      <div class="node"><b>Pick-list card</b><span><code>/ErpSyncLive/Categories</code>. Written by <code>POST /tree</code>. Not a catalogue folder.</span></div>
+      <div class="node"><b>Product group 6713</b><span><code>/ErpSyncLive/Catalog/…</code>. A person builds this. Field <code>foCategoryKey</code> = <code>5637165576</code>. The Map to F&amp;O tick is not the link.</span></div>
+      <div class="node"><b>Master 40100</b><span>Hangs on that product group. The folder’s class decides screw or washer.</span></div>
+    </div>
+  </div>
+
+  <h2>The same example, in order</h2>
+  <div class="flow">
+    <div class="step"><div class="n">1</div><div class="card">
+      <h3><span class="who fo">F&amp;O posts</span> Send the category</h3>
+      <p><code>POST /api/v1/tree</code>. PIM stores a pick-list card. The catalogue folder is not created and not renamed.</p>
+      <div class="ex">{ "categoryKey": "5637165576", "name": "PG | 7500", "layer": "productGroup", "level": 5 }</div>
+      <p class="small">Reply <code>store</code> is <code>categoryPickList</code>. <code>linkedFolders</code> is empty until a product group stores that id.</p>
+    </div></div>
+
+    <div class="step"><div class="n">2</div><div class="card">
+      <h3><span class="who person">A person</span> Build the PIM folder, then store the id</h3>
+      <p>The person creates type, family, series, range, and product group under <code>/ErpSyncLive/Catalog</code>. The id is stored on the product group, in the admin field or by <code>POST /api/v1/fo-category-key</code>.</p>
+      <div class="ex">{ "folderId": 6713, "categoryKey": "5637165576" }</div>
+      <p class="small"><code>folderId</code> is the PIM id from <code>GET /fo-tree-links</code>. It does not change when the folder moves. An empty id is rejected. A second id for the same folder replaces the first. The same id on two product groups is refused.</p>
+    </div></div>
+
+    <div class="step"><div class="n">3</div><div class="card">
+      <h3><span class="who fo">F&amp;O posts</span> Send the attribute book</h3>
+      <p><code>POST /api/v1/attribute-definitions</code> before any values. It stores codes, types, and which folder uses which group. It does not add a field to the screw or washer class.</p>
+    </div></div>
+
+    <div class="step"><div class="n">4</div><div class="card">
+      <h3><span class="who fo">F&amp;O posts</span> Send the master</h3>
+      <p>One call, two results. The split is whether <code>parentKey</code> is the id on exactly one product group.</p>
+    </div></div>
+  </div>
+
+  <div class="fork">
+    <div class="card wait">
+      <h3>No folder yet — 88001</h3>
+      <div class="ex">{ "code": "88001", "name": "Waiting master" }</div>
+      <p>Waiting card under <code>/ErpSyncLive/Unassigned</code>. Not a screw and not a washer. First reply: <code>action</code> <code>held</code>, <code>layer</code> <code>unassigned</code>. It is not a row on the product lists.</p>
+      <p class="small">A variant, a translation, an attribute value, or a shop release for 88001 is stored and comes back <code>held</code>, with no layer. The last of each is kept. They are applied when the card is placed, in this order: variant, translation, attributes, release.</p>
+    </div>
+    <div class="card go">
+      <h3>Linked — 40100</h3>
+      <div class="ex">{ "code": "40100", "parentKey": "5637165576", "name": "Hex head roofing screw" }</div>
+      <p>Catalogue master under product group 6713. The folder decides screw or washer. Reply <code>action</code> <code>created</code>, <code>layer</code> <code>master</code>. Send the non-empty name on this row. On later rows, leave the name key out. PIM does not lock it: a later row that still has the name overwrites it.</p>
+      <p class="small">A variant goes in the same batch, after the master: <code>itemNumber</code>, <code>masterItemNumber</code> <code>40100</code>.</p>
+    </div>
+  </div>
+
+  <div class="flow">
+    <div class="step"><div class="n">5</div><div class="card">
+      <h3><span class="who person">A person</span> or <span class="who fo">F&amp;O</span> Place the waiting card</h3>
+      <p>Two ways, same master. A later <code>POST /product-master</code> for 88001 with <code>parentKey</code> <code>5637165576</code> creates the catalogue master. Reply <code>created</code>. Keep the non-empty name on that row, then leave the name key out. Or a person places the card on the product group. That save returns nothing to F&amp;O, so the name cannot be stopped on the place. A later row that still carries the name overwrites it. PIM does not lock the name.</p>
+    </div></div>
+
+    <div class="step"><div class="n">6</div><div class="card">
+      <h3><span class="who fo">F&amp;O reads</span> On F&amp;O’s clock</h3>
+      <p>PIM does not run a timer and does not call F&amp;O. Read every page. Page size is 500. Compare the rows with <code>count</code>. After 40100 is a catalogue master, the lists show this.</p>
+    </div></div>
+  </div>
+
+  <div class="reads">
+    <div class="read"><b>GET /fo-tree-links</b><span class="small">One row per catalogue folder. 6713 has <code>foCategoryKey</code> <code>5637165576</code>. <code>foMap</code> false does not hide it. A rename or a move is this compare. PIM sends nothing for it.</span></div>
+    <div class="read"><b>GET /fo-attributes</b><span class="small">The attribute book: code, type, unit, options. A new class field appears only after it is deployed.</span></div>
+    <div class="read"><b>GET /fo-product-values</b><span class="small">Masters only, including unpublished. 40100’s row has <code>categoryKey</code> <code>5637165576</code>. A value can come from the product group when the master does not store one. There is no marker. Decimal 0 is <code>"0"</code>. A false boolean counts as empty.</span></div>
+    <div class="read"><b>GET /fo-product-placement</b><span class="small"><code>itemNumber</code> 40100, <code>folderId</code> 6713, <code>foCategoryKey</code> <code>5637165576</code>. <code>folderId</code> is the parent folder.</span></div>
+    <div class="read"><b>GET /fo-product-enrichment</b><span class="small">On TEST. Not one of the four lists. Masters and variants. Names and descriptions. Inheritance is off, so an empty variant name does not show the master’s name. No image.</span></div>
+    <div class="read off"><b>GET /fo-attribute-map</b><span class="small">Do not call. F&amp;O does not need a split between a folder value and a master value.</span></div>
+  </div>
+
+  <h2>The one write that changes the next read</h2>
+  <div class="card">
+    <p>The values read shows <code>RH_HEAD</code> = <code>HX</code> on 40100 because product group 6713 stores it and the master does not. There is no marker on that value. Leave <code>RH_HEAD</code> off the master row. Sending <code>HX</code> stores it on the master, and a later edit of the folder is then not used for that code.</p>
+    <div class="ex">{ "itemNumber": "40100", "attributes": [ { "attributeCode": "LENGTH MM", "value": 100, "unit": "mm" } ] }</div>
+    <p class="small">This row is right only when <code>LENGTH MM</code> 100 mm is not the value the read returned. If the read already showed 100 mm from the folder, leave that code out too. A variant <code>itemNumber</code> is found before a master code.</p>
+  </div>
+
+  <h2>What this approach does not do</h2>
+  <div class="no">
+    <div><b>No folder from <code>/tree</code>.</b> The pick-list card is not the catalogue.</div>
+    <div><b>No PIM post.</b> The return URL is empty. Held rows are not sent.</div>
+    <div><b>No image, price, or stock</b> on these reads.</div>
+    <div><b>Unpublish is not a delete.</b> <code>isDeleted: true</code> on 40100 unpublishes it and leaves the object. The row stays on the product lists.</div>
+  </div>
+  <p class="small">Shop codes on release are RH, RHU, ASW, and SPI. Kalle has not signed them. <code>6712</code> still has no id, so a master in that folder has an empty <code>categoryKey</code>.</p>
+</main>
+</body>
+</html>
