@@ -132,35 +132,35 @@
 </div>
 
 <h2 id="layers">4. Where one value lands</h2>
-<p class="say">The folder named in setup is the branch. The value is written on the object in that branch that owns the field. It is not moved up onto a folder that was not named. The variant does not take the head type.</p>
+<p class="say"><code>folderGroups</code> decides which attributes apply to products under that folder. The value is stored on the product the row names. A second product does not overwrite the first. A clear empties only that product.</p>
 <div class="route">
   <div class="node"><b>Value on the item</b><br><code>RH_Head = HX17</code><br>sent for variant 35044-…</div>
   <div class="arr">→</div>
-  <div class="node"><b>Branch</b><br>The series folder was named for that group. The product sits under that series.</div>
+  <div class="node"><b>Branch check</b><br>The series folder was named for that group, and this product sits under it.</div>
   <div class="arr">→</div>
-  <div class="node"><b>Series folder</b><br>Head type becomes HX17. The variant stays empty for head type and shows the series value.</div>
+  <div class="node"><b>That product</b><br>Head type HX17 is stored on this variant. Another product under the same series can be HX13.</div>
 </div>
-<p class="say">Length is the exception that still follows the same rule. Length belongs to the master, and each master under a drawing has its own length. So <code>LENGTH MM</code> is written on the master of this item, not as one number on the drawing folder.</p>
+<p class="say">Length, diameter, material and coating use the same rule. They are stored on the item in the request, not on the folder.</p>
 <div class="stack" aria-label="Seven levels, bottom is the variant">
-  <div class="lvl l7"><b>Variant</b><span>colour, size, config, style · /product-master</span></div>
-  <div class="lvl l6"><b>Master</b><span>length, partial, effective · /product-attributes</span></div>
-  <div class="lvl l5"><b>Product group</b><span>diameter, drill cap, drive size · /product-attributes</span></div>
-  <div class="lvl l4"><b>Range</b><span>material, coating, corrosion · /product-attributes</span></div>
-  <div class="lvl l3"><b>Series</b><span>head, point, thread, features · /product-attributes</span></div>
+  <div class="lvl l7"><b>Variant</b><span>its own attribute values when the row names the variant · colour, size, config, style from /product-master</span></div>
+  <div class="lvl l6"><b>Master</b><span>its own attribute values when no variant has that number</span></div>
+  <div class="lvl l5"><b>Product group</b><span>folderGroups only · which attributes apply</span></div>
+  <div class="lvl l4"><b>Range</b><span>folderGroups only · which attributes apply</span></div>
+  <div class="lvl l3"><b>Series</b><span>folderGroups only · which attributes apply</span></div>
   <div class="lvl l2"><b>Family</b><span>brand · /tree</span></div>
   <div class="lvl l1"><b>Type</b><span>06 screw or 09 washer · /tree</span></div>
 </div>
 <table>
   <tr><th>Code sent</th><th>Field filled</th><th>Level</th></tr>
-  <tr><td><code>RH_Head</code></td><td>Head type</td><td>Series</td></tr>
-  <tr><td><code>RH_Point</code>, <code>RH_Thread</code></td><td>Point type, thread type</td><td>Series</td></tr>
-  <tr><td><code>RH_SpecialFeatures</code></td><td>One feature. Not split on commas.</td><td>Series</td></tr>
-  <tr><td><code>DRIVE TYPE</code></td><td>Torx, Phillips, Pozi. Not <code>RH_Drive</code>.</td><td>Series</td></tr>
-  <tr><td><code>MATERIAL TYPE</code>, <code>RH_Coating</code>, <code>CORROSION CATEGORY</code></td><td>Material, coating, corrosion category</td><td>Range</td></tr>
-  <tr><td><code>DIAMETER</code>, <code>DRILL CAP MM</code></td><td>Diameter. Drill cap from, and <code>valueTo</code> as drill cap to. A diameter containing <code>/</code> is skipped.</td><td>Product group</td></tr>
-  <tr><td><code>RH_Drive</code></td><td>Drive size, such as <code>TX10</code> or <code>HX8</code>. Not drive type.</td><td>Product group</td></tr>
-  <tr><td><code>LENGTH MM</code>, partial length, effective length</td><td>Length, partial length, effective length</td><td>Master of this item</td></tr>
-  <tr><td>Any other defined code</td><td>Kept on the folder that was named. No new field is created.</td><td>That folder</td></tr>
+  <tr><td><code>RH_Head</code></td><td>Head type</td><td>The item in the request</td></tr>
+  <tr><td><code>RH_Point</code>, <code>RH_Thread</code></td><td>Point type, thread type</td><td>The item in the request</td></tr>
+  <tr><td><code>RH_SpecialFeatures</code></td><td>One feature. Not split on commas.</td><td>The item in the request</td></tr>
+  <tr><td><code>DRIVE TYPE</code></td><td>Torx, Phillips, Pozi. Not <code>RH_Drive</code>.</td><td>The item in the request</td></tr>
+  <tr><td><code>MATERIAL TYPE</code>, <code>RH_Coating</code>, <code>CORROSION CATEGORY</code></td><td>Material, coating, corrosion category</td><td>The item in the request</td></tr>
+  <tr><td><code>DIAMETER</code>, <code>DRILL CAP MM</code></td><td>Diameter. Drill cap from, and <code>valueTo</code> as drill cap to. A diameter containing <code>/</code> is skipped.</td><td>The item in the request</td></tr>
+  <tr><td><code>RH_Drive</code></td><td>Drive size, such as <code>TX10</code> or <code>HX8</code>. Not drive type.</td><td>The item in the request</td></tr>
+  <tr><td><code>LENGTH MM</code>, partial length, effective length</td><td>Length, partial length, effective length</td><td>The item in the request</td></tr>
+  <tr><td>Any other defined code</td><td>Kept on that same item. No new field is created.</td><td>The item in the request</td></tr>
 </table>
 
 <h2 id="screw">5. The same screw, after all six calls</h2>
@@ -169,13 +169,12 @@
 /ErpSync/Catalog
   5637144580  type           Screws                 <span class="hit">/tree  productType 06</span>
     5637144712  family       CREO                   <span class="hit">/tree  brand</span>
-      series      head HX17                        <span class="hit">/product-attributes  RH_Head</span>
-        range       material A2, corrosion C4      <span class="hit">/product-attributes</span>
-          5637145021  drawing  diameter 6.5 mm     <span class="hit">/product-attributes  DIAMETER</span>
-                               drill cap 2.5 to 4
-            35044     master   length 23 mm        <span class="hit">/product-master then LENGTH MM</span>
-              35044-…   variant colour 59, size 8  <span class="hit">/product-master + /dimensions</span>
-                              head type stays on the series
+      series      group SHAPE                  <span class="hit">/attribute-definitions  folderGroups</span>
+        range       group MATERIAL               <span class="hit">/attribute-definitions  folderGroups</span>
+          5637145021  drawing  group DIMENSIONS   <span class="hit">/attribute-definitions  folderGroups</span>
+            35044     master   head HX17, length 23 mm   <span class="hit">/product-attributes on this master</span>
+              35044-…   variant colour 59, size 8        <span class="hit">/product-master + /dimensions</span>
+                              its own head and length when the row names this variant
 </div>
 <p class="small">The A2 and C4 pictures are not created by the feed. They are uploaded on the material lookup and the corrosion lookup.</p>
 
@@ -187,7 +186,7 @@
   </div>
   <div class="house erp">
     <h3>Sent on the batch.</h3>
-    <p>Company rows. Dimension codes and names. Folder ids. Which folder uses which attribute group. Option codes such as <code>HX17</code>. Product rows. The master’s allowed lists. A code with no field is stored on the named folder and is not moved upward.</p>
+    <p>Company rows. Dimension codes and names. Folder ids. Which folder uses which attribute group. Option codes such as <code>HX17</code>. Product rows. The master’s allowed lists. A code with no field is stored on that product. It is not written on the folder.</p>
   </div>
 </div>
 

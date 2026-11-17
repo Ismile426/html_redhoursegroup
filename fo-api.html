@@ -518,8 +518,8 @@ Content-Type: application/json
     <li><b>All five <code>dataType</code>s</b>: <code>list</code> (head, point, …), <code>decimal</code> (diameter, drill cap, length), <code>integer</code> (roof pitch), <code>boolean</code> (certified), <code>text</code> (note).</li>
     <li><b>Options.</b> Only the option codes listed here are valid values later. <code>HX13</code> and <code>TX25</code> have empty <code>texts</code>, so the code is the label. When a value is first used, Pimcore names it with the <code>en-CA</code> option text (<code>HX17</code> → "Hex 17"). <code>en-US</code> and other languages are stored and not shown.</li>
     <li><b>Groups</b> bundle attributes. <b><code>folderGroups</code></b> say which <code>/tree</code> folder uses which group: <code>SHAPE</code> on the series, <code>MATERIAL</code> on the range, <code>DIMENSIONS</code> on the product group.</li>
-    <li><b>Known codes</b> land on a real Pimcore field: head, point, thread and features on the series; material, coating and corrosion category on the range; diameter, drill cap and drive size on the product group; length on each master under that product group.</li>
-    <li><b>Codes with no Pimcore field yet</b> (<code>RH_RoofPitch</code>, <code>RH_Certified</code>, <code>RH_Note</code>) are still accepted. Their values are stored on the folder you named, so nothing is lost.</li>
+    <li><b>Known codes</b> land on a real field on the product the value was sent for. That is the variant, or the master when no variant has that number. Head, material, coating, diameter and length are all stored there. Two products under one folder keep their own values.</li>
+    <li><b>Codes with no Pimcore field yet</b> (<code>RH_RoofPitch</code>, <code>RH_Certified</code>, <code>RH_Note</code>) are still accepted. Their values are stored on that same product.</li>
     <li>Send this again only when setup changes. The same body again answers <code>unchanged</code>.</li>
   </ul>
   <details><summary>Reply Pimcore gave to this body</summary>
@@ -557,7 +557,7 @@ Content-Type: application/json
     <li>A brand-new product class still has to exist first. This payload cannot invent a class. Unknown product types stay skipped (<code>06</code> screw, <code>09</code> washer).</li>
     <li>The group code <code>DIMENSIONS</code> is not the existing <code>POST /dimensions</code> call. <code>/dimensions</code> remains only config, colour, size, style.</li>
     <li>Danish and Swedish shop copy stays PIM-owned.</li>
-    <li>The folder you name is the branch. A known field is written on the object in that branch that owns it. It is not moved upward onto a folder you did not name. Length is written on the master under that branch, because each master has its own length.</li>
+    <li><code>folderGroups</code> decides which attributes apply to products under that folder. The value is stored on the product, not on the folder. A second product does not overwrite the first. A clear empties only that product.</li>
     <li>Corrosion category sits on the Range, with material and coating. Send that group on the range folder. The catalogue icon is a Pimcore upload, not part of this call.</li>
   </ul>
 </div>
@@ -600,12 +600,12 @@ Content-Type: application/json
   ]
 }</pre>
   <ul class="rows">
-    <li>You send everything on the item you know, here the variant. Pimcore climbs to the folder named in <code>folderGroups</code> and writes the value on the object that owns it. The reply's <code>written</code> list shows where each value went, as <code>code@categoryKey</code> or <code>code@master</code>.</li>
+    <li>You send everything on the item you know. <code>folderGroups</code> only checks that this item sits under a folder that uses the attribute. The value is written on that item. The reply's <code>written</code> list is <code>code@itemNumber</code>.</li>
     <li><b>List values</b> (<code>HX17</code>, <code>A2</code>, <code>C4</code>, …) must be option codes from the definition. The value object is created the first time a code is used, and named from its <code>en-CA</code> option text.</li>
     <li><b>Decimals</b> send the number as text with its <code>unit</code>. <code>DRILL CAP MM</code> is a from–to value: <code>value</code> is from, <code>valueTo</code> is to.</li>
-    <li><code>LENGTH MM</code> lands on master <code>40100</code>, because each master has its own length.</li>
-    <li><code>RH_RoofPitch</code> and <code>RH_Certified</code> have no Pimcore field yet. They are kept on the series and range folders.</li>
-    <li><code>RH_Note</code> with <code>isDeleted: true</code> clears that one attribute. It does not unpublish the product. Nothing was stored for it here, so it does not appear in <code>written</code>. When there is a value to clear, the clear is listed in <code>written</code> like any other write.</li>
+    <li><code>LENGTH MM</code> is stored on that same item, as are head type, material, coating and diameter.</li>
+    <li><code>RH_RoofPitch</code> and <code>RH_Certified</code> have no Pimcore field yet. They are kept on that same item.</li>
+    <li><code>RH_Note</code> with <code>isDeleted: true</code> clears that attribute on that item only. It does not unpublish the product, and it does not clear any other product. Nothing was stored for it here, so it does not appear in <code>written</code>. When there is a value to clear, the clear is listed in <code>written</code> like any other write.</li>
   </ul>
   <details><summary>Reply Pimcore gave to this body</summary>
 <pre>{
@@ -613,18 +613,18 @@ Content-Type: application/json
   "results": [
     {"key": "40100-STD-59-8-1", "action": "updated", "objectId": 8750,
      "path": "/ErpSync/Catalog/…/5637150105/40100/40100-STD-59-8-1",
-     "written": ["RH_Head@5637150103", "RH_Point@5637150103", "RH_Thread@5637150103",
-                 "RH_SpecialFeatures@5637150103", "RH_RoofPitch@5637150103",
-                 "MATERIAL TYPE@5637150104", "RH_Coating@5637150104",
-                 "CORROSION CATEGORY@5637150104", "RH_Certified@5637150104",
-                 "DIAMETER@5637150105", "DRILL CAP MM@5637150105", "RH_Drive@5637150105",
-                 "LENGTH MM@40100"]}
+     "written": ["RH_Head@40100-STD-59-8-1", "RH_Point@40100-STD-59-8-1", "RH_Thread@40100-STD-59-8-1",
+                 "RH_SpecialFeatures@40100-STD-59-8-1", "RH_RoofPitch@40100-STD-59-8-1",
+                 "MATERIAL TYPE@40100-STD-59-8-1", "RH_Coating@40100-STD-59-8-1",
+                 "CORROSION CATEGORY@40100-STD-59-8-1", "RH_Certified@40100-STD-59-8-1",
+                 "DIAMETER@40100-STD-59-8-1", "DRILL CAP MM@40100-STD-59-8-1", "RH_Drive@40100-STD-59-8-1",
+                 "LENGTH MM@40100-STD-59-8-1"]}
   ],
   "errors": []
 }</pre>
   </details>
   <p class="small">An attribute missing from the list is left unchanged. <code>null</code> or <code>isDeleted: true</code> clears that attribute only. It does not unpublish the product. Option codes come from the definition — HX17 / HX13 are examples, not a list we invented.</p>
-  <p class="small"><code>folderGroups</code> decides the branch. Head type is written on the series folder, material and corrosion category on the range folder, diameter and drill cap on the product group, length on the master of this item. A code that has no field yet is stored on the folder you named. Sending the value again with the same contents answers <code>unchanged</code>.</p>
+  <p class="small"><code>folderGroups</code> decides which attributes apply. Every value is stored on the item in the request. Two items under one folder can hold different heads, materials, coatings, diameters and lengths. A clear affects only the item in that row. Sending the same value again answers <code>unchanged</code>.</p>
 </div>
 
 <!-- RELEASED -->
@@ -776,9 +776,9 @@ Content-Type: application/json
     <tr><th>Level</th><th>Pimcore expects</th><th>Source today</th></tr>
     <tr><td>Type</td><td>Screw or washer</td><td class="fix"><code>productType</code> on <code>/tree</code> level 1 — <b>you must add it</b></td></tr>
     <tr><td>Family</td><td>Brand</td><td class="fix"><code>brand</code> on <code>/tree</code> level 2 — the API accepts it, <b>you must add it</b></td></tr>
-    <tr><td>Series</td><td>Named facts that belong on that folder</td><td class="fix">Defined once on <code>/attribute-definitions</code>, placed with <code>folderGroups</code>, valued on <code>/product-attributes</code>. Use <code>RH_Head</code>, not <code>HEAD TYPE</code></td></tr>
-    <tr><td>Range</td><td>Named facts that belong on that folder</td><td class="fix">Same two calls. Another folder, another group — not a new endpoint</td></tr>
-    <tr><td>Product Group</td><td>PG number, geometry (diameter, pitch, head, drill)</td><td class="fix"><code>productGroupNumber</code> — the API accepts it, <b>you must add it</b>. Geometry via the two attribute calls</td></tr>
+    <tr><td>Series</td><td>Which attribute groups apply. Not the product value.</td><td class="fix"><code>folderGroups</code> on <code>/attribute-definitions</code>. The value is stored on the product.</td></tr>
+    <tr><td>Range</td><td>Which attribute groups apply. Not the product value.</td><td class="fix">Same call. Another folder, another group. The value is stored on the product.</td></tr>
+    <tr><td>Product Group</td><td>PG number, and which attribute groups apply</td><td class="fix"><code>productGroupNumber</code> — the API accepts it, <b>you must add it</b>. Geometry is stored on the product via <code>/product-attributes</code>.</td></tr>
     <tr><td>Master</td><td>Name, length, allowed dimensions</td><td class="fix"><code>name</code> — <b>please add it</b>. Measures via <code>/product-attributes</code>. Allowed dimensions: send <code>allowedColour</code> (and the other three) on the master row</td></tr>
     <tr><td>Variant</td><td>Item number, config, colour, size, style, washer link</td><td class="keep">Covered by <code>/product-master</code> + <code>/dimensions</code>. Washer link still open</td></tr>
     <tr><td>Shops</td><td>Which companies sell the SKU</td><td class="keep">Covered by <code>/companies</code> + <code>/product-release</code></td></tr>
