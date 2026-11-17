@@ -101,6 +101,7 @@
   <p>The other product fields on the <a href="fo-api.html#products">current product page</a> still apply. <code>layer</code> and <code>parentKey</code> on that page are replaced by this tab. Two create paths:</p>
   <div class="ask"><b>No folder yet.</b> Omit <code>parentKey</code>, or send JSON <code>null</code>. The master is a waiting card under <code>/ErpSyncLive/Unassigned</code>. It is not a screw and not a washer. <code>productType</code> is not read. Do not send <code>"0"</code>, <code>"06"</code>, or <code>"09"</code> to choose a class. None of them do. This path runs on TEST.</div>
   <div class="ok"><b>TEST, switch 1.</b> Send <code>parentKey</code> as the F&amp;O category id a person stored on exactly one product group. <code>/tree</code> does not create that link. That folder decides screw or washer. Omit <code>productType</code>, or send JSON <code>null</code>. If you send it, it must match the folder.</div>
+  <div class="ok"><b>Where F&amp;O reads the place.</b> This post does not return the placement list. After the master is a catalogue product, <a href="#back"><code>GET /api/v1/fo-product-placement?page=1</code></a> has one row: <code>itemNumber</code>, <code>folderId</code> (the product group), and <code>foCategoryKey</code> (that group's id). A waiting card is not a row. PIM does not post this list. The full read is on the Return calls tab.</div>
   <table>
     <tr><th>Field</th><th>On</th><th>Required</th><th>Rule</th></tr>
     <tr><td><code>code</code></td><td>master</td><td>Yes</td><td>Match key. Same as today.</td></tr>
@@ -284,12 +285,16 @@
   buttons.forEach(function (b) {
     b.addEventListener("click", function () { show(b.getAttribute("data-tab")); });
   });
-  var hash = (location.hash || "#vs").replace("#", "");
-  if (hash === "product-master") hash = "products";
-  if (hash === "product-release") hash = "released";
-  if (hash === "product-attributes") hash = "attributes";
-  if (!document.getElementById("tab-" + hash)) hash = "vs";
-  show(hash);
+  function tabFromHash() {
+    var hash = (location.hash || "#vs").replace("#", "");
+    if (hash === "product-master") hash = "products";
+    if (hash === "product-release") hash = "released";
+    if (hash === "product-attributes") hash = "attributes";
+    if (!document.getElementById("tab-" + hash)) hash = "vs";
+    return hash;
+  }
+  show(tabFromHash());
+  window.addEventListener("hashchange", function () { show(tabFromHash()); });
 })();
 </script>
 </body>
